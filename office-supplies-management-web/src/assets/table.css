@@ -1,0 +1,6 @@
+.main-table{
+    border-radius: 5px !important;
+    /* box-shadow: rgb(88, 33, 103) 0px 0px 10px 0px !important; */
+    margin: 10px;
+    max-height: 400px !important;
+}

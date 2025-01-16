@@ -1,0 +1,139 @@
+.form-container {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    min-width: 100%;
+    margin: 10px 10px 10px 10px;
+}
+
+h2 {
+    text-align: center;
+    margin-bottom: 20px;
+    color: rgb(53, 8, 58);
+}
+
+.form-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.form-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+}
+
+.products-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+}
+
+.form-field {
+    display: flex;
+    justify-content: space-between;
+}
+
+.products-table th,
+.products-table td {
+    border: 1px solid #ccc;
+    padding: 10px;
+    text-align: left;
+}
+
+.products-table th {
+    background-color: #f0f0f0;
+}
+.created-date {
+    display: flex;
+}
+
+.products-table td input {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px;
+    border-radius: 4px;
+    border: 1px solid #ccc;
+}
+
+.add-button-container {
+    display: flex;
+    justify-content: space-between;
+}
+
+button.add-button {
+    background-color: #46bd52;
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    border: none;
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    margin: 10px 0;
+}
+
+.submit-btn {
+    display: flex;
+    justify-content: flex-end;
+    /* margin-top: 20px; */
+}
+
+button.add-button:hover {
+    background-color: #3a8fcf;
+}
+
+button.delete-button {
+    /* background-color: #ff6b6b; */
+    color: #aaa8a8;
+    font-size: 25px;
+    border: none;
+    border-radius: 4px;
+    padding: 10px 10px;
+    cursor: pointer;
+}
+
+button.delete-button:hover {
+    color: #7c7c7c;
+}
+
+button.submit-button {
+    background-color: #46bd52;
+    color: white;
+    font-size: 16px;
+    padding: 10px 10px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    align-self: flex-end;
+}
+
+button.submit-button:hover {
+    background-color: #45a049;
+}
+select {
+    width: 100%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
+  .delete-cell{
+    display: flex;
+    justify-content: space-between;
+    gap: 20px;
+  }
+  .quantity-input{
+    max-width: 50%;
+    padding: 10px;
+    margin: 10px 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+  }
