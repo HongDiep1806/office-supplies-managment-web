@@ -21,6 +21,7 @@ import { ref } from "vue";
 import router from "@/router";
 const titles = [
     { title: "Trang chủ", icon: "mdi-view-dashboard-outline", path: "/" },
+    {title:"Danh mục VPP",icon:"mdi-folder-outline",path:"/category"},
     { title: "Tạo phiếu yêu cầu cấp VPP", icon: "mdi-folder-plus-outline", path: "/create-request" },
     { title: "Tạo phiếu tổng hợp VPP", icon: "mdi-folder-plus-outline", path: "/create-collection" },
     { title: "Quản lý phiếu yêu cầu cấp VPP", icon: "mdi-folder-table-outline", path: "/manage-request" },

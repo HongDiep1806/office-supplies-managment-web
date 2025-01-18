@@ -4,3 +4,17 @@
     margin: 10px;
     max-height: 400px !important;
 }
+th{
+    background-color: rgb(101, 20, 110);
+    color: white;
+}
+.table-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+  
+  .pagination {
+    margin-right: 16px;
+  }

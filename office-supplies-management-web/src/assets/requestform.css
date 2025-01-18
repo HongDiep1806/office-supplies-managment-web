@@ -1,10 +1,12 @@
+
+
 .form-container {
     background: #f9f9f9;
     padding: 20px;
     border-radius: 8px;
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
     min-width: 100%;
-    margin: 10px 10px 10px 10px;
+    /* margin: 0px 10px 10px 10px; */
 }
 
 h2 {
@@ -29,6 +31,8 @@ h2 {
     width: 100%;
     border-collapse: collapse;
     margin-top: 10px;
+    table-layout: auto;
+
 }
 
 .form-field {
@@ -44,7 +48,8 @@ h2 {
 }
 
 .products-table th {
-    background-color: #f0f0f0;
+    background-color: rgb(101, 20, 110);
+    color: white;
 }
 .created-date {
     display: flex;
@@ -120,15 +125,38 @@ button.submit-button:hover {
 }
 select {
     width: 100%;
-    padding: 10px;
     margin: 10px 0;
-    border: 1px solid #ccc;
+    padding: 10px;
+    border: 2px solid rgb(132, 103, 135); 
     border-radius: 4px;
-  }
+    background-color: #f9f9f9;
+    background-image: url('data:image/svg+xml;charset=US-ASCII,<svg xmlns="http://www.w3.org/2000/svg" fill="%234CAF50" viewBox="0 0 24 24" width="24px" height="24px"><path d="M7 10l5 5 5-5z"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    background-size: 16px;
+    color: black;
+    cursor: pointer;
+}
+
+select option {
+    color: black;
+}
+
+select:focus {
+    outline: none; 
+    border-color: rgb(101, 20, 110); 
+    box-shadow: 0 0 5px rgb(101, 20, 110); 
+}
+
+select option:disabled {
+    color: gray;
+}
+
   .delete-cell{
     display: flex;
     justify-content: space-between;
     gap: 20px;
+    border: none;
   }
   .quantity-input{
     max-width: 50%;

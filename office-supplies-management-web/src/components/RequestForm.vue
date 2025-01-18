@@ -1,6 +1,6 @@
 <template>
     <div class="form-container">
-        <h2>TẠO PHIẾU YÊU CẦU CẤP VĂN PHÒNG PHẨM</h2>
+        <h2>PHIẾU YÊU CẦU CẤP VĂN PHÒNG PHẨM</h2>
 
         <form @submit.prevent="handleSubmit" class="form-grid">
             <!-- User Information -->
@@ -31,20 +31,23 @@
             <table class="products-table">
                 <thead>
                     <tr>
-                        <th>Product</th>
-                        <th>Quantity</th>
+                        <th>STT</th>
+                        <th>Mã sản phẩm</th>
+                        <th>Tên sản phẩm</th>
+                        <th>Số lượng</th>
                     </tr>
                 </thead>
                 <tbody>
-                    <tr v-for="(product, index) in form.products" :key="index">
+                    <tr v-for="(product, index) in form.products">
+                        <td>{{ index + 1 }}</td>
+                        <td>{{ product + "-" + index }}</td>
                         <td>
-                            <select required>
-                                <option v-for="option in productOptions" :key="option" :value="option">
-                                    {{ option }}
-                                </option>
+                            <select v-model="product.name" required class="product-select">
+                                <option value="" disabled>Select a product</option>
+                                <option v-for="option in productOptions" value="{{ option }}">{{ option }}</option>
                             </select>
                         </td>
-                        <td class="delete-cell">
+                        <td>
                             <input type="number" v-model="product.quantity" placeholder="Enter quantity" min="1"
                                 required class="quantity-input" />
                             <button type="button" @click="removeProduct(index)" class="delete-button">
@@ -54,9 +57,6 @@
                     </tr>
                 </tbody>
             </table>
-
-
-
             <!-- Submit Button -->
             <div class="form-row submit-btn">
                 <button type="submit" class="submit-button">Tạo yêu cầu</button>

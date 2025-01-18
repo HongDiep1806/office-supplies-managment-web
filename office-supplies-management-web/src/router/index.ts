@@ -10,6 +10,7 @@ import { routes } from 'vue-router/auto-routes'
 import index from '../pages/index.vue'
 import createRequest from '../pages/createRequest.vue'
 import App from '@/App.vue'
+import productList from '@/pages/productList.vue'
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes: [
@@ -20,6 +21,10 @@ const router = createRouter({
     {     
       path: '/create-request',
       component: createRequest
+    },
+    {
+      path: '/category',
+      component: productList
     }
 ]
 })

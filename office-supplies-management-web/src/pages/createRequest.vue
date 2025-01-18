@@ -1,7 +1,7 @@
 <template>
   <div class="app">
     <header class="header">
-      <NavBar></NavBar>
+      <NavBar :title="title"></NavBar>
     </header>
     <div class="container">
       <SideBar class="container-child"></SideBar>
@@ -21,8 +21,9 @@ import { ref } from 'vue'
 import NavBar from '@/components/NavBar.vue';
 import SideBar from '@/components/SideBar.vue';
 import Cards from '@/components/Cards.vue';
-import Table from '@/components/Table.vue';
+import Table from '@/components/RequestFormTable.vue';
 import RequestForm from '@/components/RequestForm.vue';
+const title = "Tạo phiếu yêu cầu cấp VPP"
 </script>
 <style>
 .container {
