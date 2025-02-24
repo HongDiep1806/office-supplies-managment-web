@@ -1,0 +1,254 @@
+<template>
+  <div>
+    <table class="table" v-if="data.length > 0">
+      <thead>
+        <slot name="columns">
+          <tr>
+            <th v-for="column in columns" :key="column">{{ column }}</th>
+            <th v-if="displayActions">Thao tác</th>
+          </tr>
+        </slot>
+      </thead>
+      <tbody>
+        <tr v-for="(item, rowIndex) in paginatedData" :key="rowIndex">
+          <td>{{ (currentPage - 1) * pageSize + rowIndex + 1 }}</td>
+          <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
+            {{ itemValueByIndex(item, colIndex + 1) }}
+          </td>
+          <td style="display: flex; justify-content: space-between; width: 80px;" v-if="displayActions">
+            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm">
+              <i class="fa fa-edit"></i>
+            </button>
+            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm">
+              <i class="fa fa-trash"></i>
+            </button>
+
+            <!-- <i class=" a fa-edit" @click="navigateToEditForm(item)"></i>
+            <i class="fa fa-trash" @click="openDeleteDialog(item)"></i> -->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+    <div v-else class="text-center">
+      <p>Chưa có dữ liệu.</p>
+    </div>
+
+    <!-- Dialog Xác Nhận Xóa -->
+    <div v-if="dialog" class="dialog-overlay">
+      <div class="dialog-box">
+        <h3>Xác nhận xóa</h3>
+        <p>Bạn có chắc chắn muốn xóa sản phẩm này?</p>
+        <div class="dialog-actions">
+          <button class="btn btn-cancel" @click="dialog = false">Hủy</button>
+          <button class="btn btn-delete" @click="confirmDelete">Xóa</button>
+        </div>
+      </div>
+    </div>
+
+    <nav>
+      <ul class="pagination" style="color: rgb(220, 68, 5) !important;">
+        <li class="page-item" :class="{ disabled: currentPage === 1 }" @click="changePage(currentPage - 1)">
+          <button class="page-link">Previous</button>
+        </li>
+        <li v-for="page in totalPages" :key="page" class="page-item" :class="{ active: page === currentPage }"
+          @click="changePage(page)">
+          <button class="page-link">{{ page }}</button>
+        </li>
+        <li class="page-item" :class="{ disabled: currentPage === totalPages }" @click="changePage(currentPage + 1)">
+          <button class="page-link">Next</button>
+        </li>
+      </ul>
+    </nav>
+  </div>
+</template>
+
+<script>
+import axios from 'axios';
+
+export default {
+  name: "l-table",
+  props: {
+    columns: Array,
+    data: Array,
+    apiURL: String,
+    domain: String,
+    pageSize: {
+      type: Number,
+      default: 10,
+    },
+    displayActions: Boolean
+  },
+  data() {
+    return {
+      currentPage: 1,
+      dialog: false,
+      itemToDelete: null,
+      type: ['success', 'danger', 'warning'],
+      notifications: {
+        topCenter: false
+      },
+    };
+  },
+  computed: {
+    totalPages() {
+      return Math.ceil(this.data.length / this.pageSize);
+    },
+    paginatedData() {
+      const startIndex = (this.currentPage - 1) * this.pageSize;
+      return this.data.slice(startIndex, startIndex + this.pageSize);
+    },
+  },
+  methods: {
+    itemValueByIndex(item, colIndex) {
+      const values = Object.values(item);
+      return values[colIndex] !== undefined ? values[colIndex] : '';
+    },
+    changePage(page) {
+      if (page >= 1 && page <= this.totalPages) {
+        this.currentPage = page;
+      }
+    },
+    navigateToEditForm(item) {
+      if (this.domain === 'product') {
+        this.$router.push({ name: 'Edit Product', params: { id: item.productID } });
+      }
+    },
+    openDeleteDialog(item) {
+      this.itemToDelete = item;
+      this.dialog = true;
+    },
+    async confirmDelete() {
+      if (!this.itemToDelete) return;
+      try {
+        const productId = this.itemToDelete.productID;
+        await axios.delete(`${this.apiURL}/${productId}`);
+
+        const index = this.data.findIndex(product => product.productID === productId);
+        if (index !== -1) {
+          this.data.splice(index, 1);
+        }
+
+        this.dialog = false;
+        this.notifySuccess('top', 'right');
+
+      } catch (error) {
+        console.error("Delete error:", error);
+        this.dialog = false;
+        this.notifyError('top', 'right');
+      }
+    },
+    async notifySuccess(verticalAlign, horizontalAlign) {
+      this.$notifications.notify({
+        message: `<span>Xóa sản phẩm thành công</span>`,
+        icon: 'nc-icon nc-app',
+        horizontalAlign: horizontalAlign,
+        verticalAlign: verticalAlign,
+        type: this.type[0]
+      });
+    },
+    async notifyError(verticalAlign, horizontalAlign) {
+      this.$notifications.notify({
+        message: `<span>Xóa sản phẩm thất bại</span>`,
+        icon: 'nc-icon nc-app',
+        horizontalAlign: horizontalAlign,
+        verticalAlign: verticalAlign,
+        type: this.type[1]
+      });
+    },
+  },
+};
+</script>
+
+<style scoped>
+.table-striped tbody tr:nth-of-type(odd) {
+    background-color: rgba(230, 106, 201, 0.2) !important;
+}
+
+.btn{
+  width: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.btn-danger {
+    border: 2px solid #dc3545 !important;
+}
+.btn-warning {
+    border: 2px solid #e0a800 !important; /* Màu đậm hơn để dễ thấy */
+}
+.icon {
+  margin-right: 20px;
+  cursor: pointer;
+}
+
+.icon:hover {
+  color: orangered;
+}
+
+.pagination {
+  margin-top: 20px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.pagination .page-item.disabled .page-link {
+  pointer-events: none;
+  opacity: 0.5;
+  color: rgb(220,68,5);
+}
+
+.pagination .page-item.active .page-link {
+  background-color: rgb(220,68,5);
+  border-color: rgb(220,68,5);
+  color: #fff;
+}
+.pagination .page-item .page-link {
+  color: rgb(220, 68, 5); /* Màu cam cho tất cả các số trang */
+}
+
+
+/* CSS cho Dialog */
+.dialog-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.dialog-box {
+  background: white;
+  padding: 20px;
+  border-radius: 8px;
+  text-align: center;
+  width: 400px;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.btn {
+  padding: 8px 16px;
+  /* border: none; */
+  cursor: pointer;
+}
+
+.btn-cancel {
+  background: gray;
+  color: white;
+}
+
+.btn-delete {
+  background: red;
+  color: white;
+}
+</style>

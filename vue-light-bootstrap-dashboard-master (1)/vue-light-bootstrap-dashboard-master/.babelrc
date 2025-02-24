@@ -1,0 +1,19 @@
+{
+  "presets": [
+    [
+      "@vue/app",
+      {
+        "polyfills": [
+          "es7.object.entries",
+          "es6.promise"
+        ],
+        "presets": [
+          "@babel/preset-env"
+        ],
+        "plugins": [
+          "@babel/plugin-proposal-optional-chaining"
+        ]
+      }
+    ]
+  ]
+}
