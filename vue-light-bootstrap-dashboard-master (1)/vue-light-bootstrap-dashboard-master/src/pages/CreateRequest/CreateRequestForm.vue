@@ -67,7 +67,7 @@
 
             <div class="text-center position-relative">
                 <div style="display: flex; flex-direction: row; justify-content: flex-start;">
-                    <button type="button" class="btn btn-primary btn-add-product" @click="addProductRow">
+                    <button type="button" class="btn btn-add-product" @click="addProductRow" style="border-color: rgb(220, 68, 5);">
                         <i class="fa fa-plus" style="color: rgb(220, 68, 5);"></i>
                     </button>
                 </div>

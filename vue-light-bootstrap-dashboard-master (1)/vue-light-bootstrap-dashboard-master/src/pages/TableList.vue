@@ -11,13 +11,15 @@
                   <p class="card-category">Danh sách mã sản phẩm</p>
                 </div>
                 <div>
-                  <button v-if="userRole === 'Finance Management Employee'" class="btn btn-info btn-fill float-right" @click="navigateToCreateProduct()">Tạo mới</button>
+                  <button v-if="userRole === 'Finance Management Employee'" class="btn btn-info btn-fill float-right"
+                    @click="navigateToCreateProduct()">Tạo mới</button>
                 </div>
               </div>
             </template>
 
             <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
-              :apiURL="'https://localhost:7162/Product'" :domain="'product'" :displayActions="userRole=='Finance Management Employee'">
+              :apiURL="'https://localhost:7162/Product'" :domain="'product'"
+              :displayActions="userRole == 'Finance Management Employee'">
             </l-table>
           </card>
         </div>
@@ -53,28 +55,39 @@ export default {
     }
   },
   methods: {
-      fetchProductData() {
-        const token = localStorage.getItem('authToken'); // Lấy token từ localStorage
+    fetchProductData() {
+      const token = localStorage.getItem('authToken'); // Lấy token từ localStorage
 
-        axios.get('https://localhost:7162/Product', {
-          headers: {
-            Authorization: `Bearer ${token}` // Đính kèm token vào header
-          }
+      axios.get('https://localhost:7162/Product', {
+        headers: {
+          Authorization: `Bearer ${token}` // Đính kèm token vào header
+        }
+      })
+        .then(response => {
+          this.table1.data = response.data
+          .sort((a, b) => new Date(b.productID) - new Date(a.productID))
+          .map((item, index) => ({
+            productID: item.productID, // Include it in the object
+            // STT: index + 1,
+            'Tên sản phẩm': item.name,
+            'Mã sản phẩm': item.code,
+            'Đơn vị': item.unitCurrency,
+            'Giá': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.unitPrice)
+          }));
+          console.log(this.table1.data);
         })
-          .then(response => {
-            this.table1.data = response.data;
-            console.log(response.data);
-          })
-          .catch(error => {
-            console.error('Error fetching data:', error);
-          });
-          const decodeToken = jwtDecode(token);
-          this.userRole = decodeToken.Role;
-      },
+        .catch(error => {
+          console.error('Error fetching data:', error);
+        });
 
-      navigateToCreateProduct() {
-        this.$router.push('/admin/createproduct');
-      },
+      const decodeToken = jwtDecode(token);
+      this.userRole = decodeToken.Role;
+    }
+
+    ,
+    navigateToCreateProduct() {
+      this.$router.push('/admin/createproduct');
+    },
   },
   mounted() {
     this.fetchProductData()

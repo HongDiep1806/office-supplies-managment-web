@@ -3,9 +3,10 @@
     <table class="table" v-if="data.length > 0">
       <thead>
         <slot name="columns">
-          <tr>
-            <th v-for="column in columns" :key="column">{{ column }}</th>
-            <th v-if="displayActions">Thao tác</th>
+          <tr style="background-color: rgb(220, 68, 5); color: white;">
+            <th v-for="column in columns" :key="column" style="color: white;">{{ column }}</th>
+            <th v-if="displayStatus" style="color: white;">Trạng thái</th>
+            <th v-if="displayActions" style="color: white;">Thao tác</th>
           </tr>
         </slot>
       </thead>
@@ -15,36 +16,26 @@
           <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
             {{ itemValueByIndex(item, colIndex + 1) }}
           </td>
-          <td style="display: flex; justify-content: space-between; width: 80px;" v-if="displayActions">
+
+          <!-- Status Column (Conditional) -->
+          <td v-if="displayStatus && domain === 'request'">
+            <span :class="['status-badge', getStatusClass(item)]" style="min-width: 50px;">
+              <i :class="getStatusIcon(item)"></i> {{ getStatusText(item) }}
+            </span>
+          </td>
+
+
+          <td style="display: flex; justify-content: space-between; width: 60px;" v-if="displayActions">
             <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm">
               <i class="fa fa-edit"></i>
             </button>
             <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm">
               <i class="fa fa-trash"></i>
             </button>
-
-            <!-- <i class=" a fa-edit" @click="navigateToEditForm(item)"></i>
-            <i class="fa fa-trash" @click="openDeleteDialog(item)"></i> -->
           </td>
         </tr>
       </tbody>
     </table>
-    <div v-else class="text-center">
-      <p>Chưa có dữ liệu.</p>
-    </div>
-
-    <!-- Dialog Xác Nhận Xóa -->
-    <div v-if="dialog" class="dialog-overlay">
-      <div class="dialog-box">
-        <h3>Xác nhận xóa</h3>
-        <p>Bạn có chắc chắn muốn xóa sản phẩm này?</p>
-        <div class="dialog-actions">
-          <button class="btn btn-cancel" @click="dialog = false">Hủy</button>
-          <button class="btn btn-delete" @click="confirmDelete">Xóa</button>
-        </div>
-      </div>
-    </div>
-
     <nav>
       <ul class="pagination" style="color: rgb(220, 68, 5) !important;">
         <li class="page-item" :class="{ disabled: currentPage === 1 }" @click="changePage(currentPage - 1)">
@@ -76,7 +67,8 @@ export default {
       type: Number,
       default: 10,
     },
-    displayActions: Boolean
+    displayActions: Boolean,
+    displayStatus: Boolean
   },
   data() {
     return {
@@ -155,16 +147,80 @@ export default {
         type: this.type[1]
       });
     },
+    getStatusText(item) {
+      console.log("log trong table"+item.Status);
+      return item.Status ? 'Đã duyệt' : 'Đang xử lí';
+    },
+    getStatusClass(item) {
+      if (item.Status) {
+        return "status-approved";
+      }
+      return "status-pending";
+    },
+    getStatusIcon(item) {
+      if (item.Status) {
+        return "fa fa-check-circle";
+      }
+      return "fa fa-hourglass-half";
+    }
+
   },
 };
 </script>
 
 <style scoped>
-.table-striped tbody tr:nth-of-type(odd) {
-    background-color: rgba(230, 106, 201, 0.2) !important;
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  padding: 6px 12px;
+  border-radius: 15px;
+  text-align: center;
+  width: max-content;
 }
 
-.btn{
+.status-approved {
+  background-color: #28a745;
+  color: white;
+}
+
+.status-pending {
+  background-color: #ffc107;
+  color: black;
+}
+
+.status-badge i {
+  font-size: 16px;
+}
+
+.status-approved {
+  color: white;
+  font-weight: bold;
+}
+
+.status-pending {
+  color: white;
+  font-weight: bold;
+}
+
+tbody tr {
+  transition: box-shadow 0.2s ease-in-out;
+}
+
+tbody tr:hover {
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+  background-color: inherit;
+}
+
+
+.table-striped tbody tr:nth-of-type(odd) {
+  background-color: rgba(248, 153, 113, 0.2);
+  z-index: 1;
+}
+
+.btn {
   width: 10px;
   display: flex;
   flex-direction: column;
@@ -172,11 +228,14 @@ export default {
 }
 
 .btn-danger {
-    border: 2px solid #dc3545 !important;
+  border: 2px solid #dc3545 !important;
 }
+
 .btn-warning {
-    border: 2px solid #e0a800 !important; /* Màu đậm hơn để dễ thấy */
+  border: 2px solid #e0a800 !important;
+  /* Màu đậm hơn để dễ thấy */
 }
+
 .icon {
   margin-right: 20px;
   cursor: pointer;
@@ -195,16 +254,18 @@ export default {
 .pagination .page-item.disabled .page-link {
   pointer-events: none;
   opacity: 0.5;
-  color: rgb(220,68,5);
+  color: rgb(220, 68, 5);
 }
 
 .pagination .page-item.active .page-link {
-  background-color: rgb(220,68,5);
-  border-color: rgb(220,68,5);
+  background-color: rgb(220, 68, 5);
+  border-color: rgb(220, 68, 5);
   color: #fff;
 }
+
 .pagination .page-item .page-link {
-  color: rgb(220, 68, 5); /* Màu cam cho tất cả các số trang */
+  color: rgb(220, 68, 5);
+  /* Màu cam cho tất cả các số trang */
 }
 
 

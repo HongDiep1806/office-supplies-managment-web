@@ -15,9 +15,7 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped"
-                     :columns="table1.columns"
-                     :data="table1.data">
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data" :displayStatus="true" :domain="'request'">
             </l-table>
           </card>
         </div>
@@ -52,16 +50,27 @@ export default {
 
       try {
         const response = await axios.get(`https://localhost:7162/Request/${this.userID}`);
-        this.table1.data = response.data.map((item, index) => ({
-          STT: index + 1,
-          'Mã số phiếu': item.requestCode,
-          'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN'),
-          'Tổng tiền': item.totalPrice.toLocaleString('vi-VN') + ' VND'
-        }));
+
+        this.table1.data = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
+          .map((item, index) => ({
+            STT: index + 1,
+            'Mã số phiếu': item.requestCode,
+            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }).replace(',', ''),
+            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? true : false
+          }));
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
-    },
+    }
+    ,
     navigateToCreateRequest() {
       this.$router.push('/admin/createrequest');
     }
@@ -83,5 +92,4 @@ export default {
 };
 </script>
 
-<style>
-</style>
+<style></style>

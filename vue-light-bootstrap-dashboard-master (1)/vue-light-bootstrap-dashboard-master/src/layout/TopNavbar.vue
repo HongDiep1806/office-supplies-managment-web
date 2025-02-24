@@ -54,10 +54,8 @@
             <div class="divider"></div>
             <a class="dropdown-item" href="#">Separated link</a>
           </base-dropdown> -->
-          <li class="nav-item" style="border: none; border-radius: 5px;background-color: orangered;box-shadow: 1px 1px 1px 1px orange ;">
-            <a href="#" class="nav-link" style="color: white !important;">
-              Đăng xuất
-            </a>
+          <li class="nav-item" >
+            <button class="btn btn-warning btn-fill float-right" @click="logout">Đăng xuất</button>
           </li>
         </ul>
       </div>
@@ -92,6 +90,10 @@
       },
       hideSidebar () {
         this.$sidebar.displaySidebar(false)
+      },
+      logout(){
+        localStorage.removeItem('authToken');
+        this.$router.push('/');
       }
     }
   }

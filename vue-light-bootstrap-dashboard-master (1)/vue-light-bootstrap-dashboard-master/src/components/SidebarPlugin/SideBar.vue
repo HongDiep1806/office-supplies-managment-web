@@ -15,7 +15,7 @@
 
       <slot name="content" style="background-color: rgb(106, 42, 91) !important;"></slot>
       <ul class="nav nav-main__links"
-      style="background-color: rgb(114, 45, 99) !important;">
+      style="background-color: rgb(106, 42, 91) !important;">
         <!--By default vue-router adds an active class to each route link. This way the links are colored when clicked-->
         <slot>
           <sidebar-link v-for="(link,index) in sidebarLinks"
