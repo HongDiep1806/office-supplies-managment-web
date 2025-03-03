@@ -89,7 +89,14 @@ export default {
 
                         });
                     console.log("Response:", response.data);
-                    await this.notifySuccess('top', 'right');
+                    if(response.data == true){
+                        await this.notifySuccess('top', 'right');
+                        this.navigateBackToTableList();
+
+
+                    }else{
+                        await this.notifyError('top', 'right');
+                    }
                     // Reset form after successful submission
                     this.product = {
                         Name: "",
@@ -97,7 +104,6 @@ export default {
                         UnitCurrency: "",
                         UnitPrice: 0
                     };
-                    this.navigateBackToTableList();
                 } catch (error) {
                     console.error("Lỗi khi tạo sản phẩm:", error);
                     this.notifyError('top', 'right');
@@ -117,7 +123,7 @@ export default {
         },
         async notifyError(verticalAlign, horizontalAlign) {
             this.$notifications.notify({
-                message: `<span>Tạo sản phẩm thất bại</span>`,
+                message: `<span>Tạo sản phẩm thất bại. Mã code đã được tạo. Vui lòng nhập mã code khác</span>`,
                 icon: 'nc-icon nc-app',
                 horizontalAlign: horizontalAlign,
                 verticalAlign: verticalAlign,

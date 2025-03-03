@@ -19,7 +19,7 @@
 
             <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
               :apiURL="'https://localhost:7162/Product'" :domain="'product'"
-              :displayActions="userRole == 'Finance Management Employee'">
+              :displayActions="userRole === 'Finance Management Employee'" :canEdit="true" :canDelete="true">
             </l-table>
           </card>
         </div>

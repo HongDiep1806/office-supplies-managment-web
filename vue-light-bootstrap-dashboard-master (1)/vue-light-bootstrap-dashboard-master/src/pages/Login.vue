@@ -1,6 +1,9 @@
 <template>
   <div class="d-flex justify-content-center align-items-center min-vh-100"
-    style="background-image: url('https://media.licdn.com/dms/image/v2/C4E1BAQHhunsSgrkEHA/company-background_10000/company-background_10000/0/1614734251750/becamex_idc_vietnam_cover?e=2147483647&v=beta&t=PZSPf-AuHNCCATPClSWGuV1VwJPpnzPUZ5zaspEtwDY');">
+    style="background-image: url('https://media.licdn.com/dms/image/v2/C4E1BAQHhunsSgrkEHA/company-background_10000/company-background_10000/0/1614734251750/becamex_idc_vietnam_cover?e=2147483647&v=beta&t=PZSPf-AuHNCCATPClSWGuV1VwJPpnzPUZ5zaspEtwDY');background-repeat: no-repeat; /* Prevent background from repeating */
+  background-size: contain; /* Make background cover the entire screen */
+  background-position: center; /* Center the background */
+  background-attachment: fixed; /* Keep background fixed when scrolling (optional) */">
     <div class="card shadow p-4" style="width: 400px;">
       <div class="text-center mb-4">
         <h3>Đăng Nhập</h3>

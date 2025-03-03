@@ -1,6 +1,6 @@
 <template>
   <div>
-    <table class="table" v-if="data.length > 0">
+    <table class="table">
       <thead>
         <slot name="columns">
           <tr style="background-color: rgb(220, 68, 5); color: white;">
@@ -26,10 +26,13 @@
 
 
           <td style="display: flex; justify-content: space-between; width: 60px;" v-if="displayActions">
-            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm">
-              <i class="fa fa-edit"></i>
+            <button type="button" class="icon btn btn-info btn-sm" v-if="canView">
+              <i class="fa fa-eye"></i>
             </button>
-            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm">
+            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="item.Status === 'Chưa duyệt' || domain === 'product' && userRole==='Finance Management Employee'">
+              <i class="fa fa-edit"></i>    
+            </button>
+            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm" v-if="item.Status==='Chưa duyệt' || domain === 'product' && userRole==='Finance Management Employee'">
               <i class="fa fa-trash"></i>
             </button>
           </td>
@@ -50,6 +53,16 @@
         </li>
       </ul>
     </nav>
+    <!-- Dialog xác nhận xóa -->
+    <div v-if="dialog" class="dialog-overlay">
+      <div class="dialog-box">
+        <p>Bạn có chắc chắn muốn xóa không?</p>
+        <div class="dialog-actions">
+          <button @click="dialog = false" class="btn btn-cancel">Hủy</button>
+          <button @click="confirmDelete" class="btn btn-delete">Xóa</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -68,7 +81,10 @@ export default {
       default: 10,
     },
     displayActions: Boolean,
-    displayStatus: Boolean
+    displayStatus: Boolean,
+    canEdit: Boolean,
+    canView: Boolean,
+    canDelete: Boolean
   },
   data() {
     return {
@@ -79,6 +95,7 @@ export default {
       notifications: {
         topCenter: false
       },
+      userRole: localStorage.getItem('userRole'), 
     };
   },
   computed: {
@@ -149,22 +166,27 @@ export default {
     },
     getStatusText(item) {
       console.log("log trong table"+item.Status);
-      return item.Status ? 'Đã duyệt' : 'Đang xử lí';
+      return item.Status;
     },
     getStatusClass(item) {
-      if (item.Status) {
+      if (item.Status==="Đã duyệt") {
         return "status-approved";
+      }else if(item.Status==="Đang xử lí"){
+        return "status-pending";
       }
-      return "status-pending";
+      return "status-loading";
     },
     getStatusIcon(item) {
-      if (item.Status) {
+      if (item.Status==="Đã duyệt") {
         return "fa fa-check-circle";
+      }else if(item.Status==="Đang xử lí"){
+        return "fa fa-hourglass-half";
       }
-      return "fa fa-hourglass-half";
+      return "fa fa-spinner";
     }
 
   },
+ 
 };
 </script>
 
@@ -191,6 +213,15 @@ export default {
   color: black;
 }
 
+.status-rejected {
+  background-color: #dc3545;
+  color: white;
+}
+.status-loading {
+  background-color: #17a2b8;
+  color: white;
+}
+
 .status-badge i {
   font-size: 16px;
 }
@@ -207,6 +238,9 @@ export default {
 
 tbody tr {
   transition: box-shadow 0.2s ease-in-out;
+}
+td{
+  border: none !important;
 }
 
 tbody tr:hover {

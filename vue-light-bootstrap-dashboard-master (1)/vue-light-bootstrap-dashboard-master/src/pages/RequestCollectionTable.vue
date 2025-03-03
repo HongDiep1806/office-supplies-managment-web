@@ -15,7 +15,7 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data" :displayStatus="true" :domain="'request'">
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data" :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Request'">
             </l-table>
           </card>
         </div>
@@ -64,7 +64,7 @@ export default {
               year: 'numeric'
             }).replace(',', ''),
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? true : false
+            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
           }));
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
@@ -77,17 +77,8 @@ export default {
   },
   mounted() {
     // Lấy userID từ token trong localStorage
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        this.userID = decoded.sub || null; // Giả sử `sub` là userID
-      } catch (error) {
-        console.error('Token không hợp lệ:', error);
-      }
-    }
-
-    this.fetchRequestData(); // Gọi API sau khi lấy được userID
+    this.userID = localStorage.getItem('userId');
+     this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
 </script>

@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <div class="row" v-if="this.userRole==='SupLeader'">
+      <div class="row" v-if="userRole==='Sup Leader'">
         <div class="col-xl-3 col-md-6">
           <stats-card>
             <template v-slot:header>
@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div class="row" v-if="userRole==='SupLeader'">
+      <div class="row" v-if="userRole==='Sup Leader'">
         <div class="col-md-12">
           <chart-card 
             :chart-data="barChart.data" 
@@ -109,10 +109,10 @@
         <div class="col-12">
           <card class="strpied-tabled-with-hover" body-classes="table-full-width table-responsive">
             <template v-slot:header>
-              <h4 class="card-title">Danh mục Văn phòng phẩm</h4>
-              <p class="card-category">Here is a subtitle for this table</p>
+              <h4 class="card-title">Lịch sử Phiếu yêu cầu gần đây</h4>
+              <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
             </template>
-            <l-table class="table-hover table-striped" :columns="tableColumns" :data="tableData"></l-table>
+            <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data" :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
       </div>
@@ -126,6 +126,7 @@ import StatsCard from 'src/components/Cards/StatsCard.vue'
 import LTable from 'src/components/Table.vue'
 import Card from 'src/components/Cards/Card.vue'
 import jwtDecode from 'jwt-decode'
+import axios from 'axios'
 
 export default {
   components: {
@@ -139,14 +140,11 @@ export default {
       currentTime: '',
       userName: 'Nguyen Van A',
       userRole: '',
-      tableColumns: ['Id', 'Name', 'Salary', 'Country', 'City'],
-      tableData: [
-        { id: 1, name: 'Dakota Rice', salary: '$36.738', country: 'Niger', city: 'Oud-Turnhout' },
-        { id: 2, name: 'Minerva Hooper', salary: '$23,789', country: 'Curaçao', city: 'Sinaai-Waas' },
-        { id: 3, name: 'Sage Rodriguez', salary: '$56,142', country: 'Netherlands', city: 'Baileux' },
-        { id: 4, name: 'Philip Chaney', salary: '$38,735', country: 'Korea, South', city: 'Overland Park' },
-        { id: 5, name: 'Doris Greene', salary: '$63,542', country: 'Malawi', city: 'Feldkirchen in Kärnten' }
-      ],
+      userID: '',
+      tableData: {
+      columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
+      data: []
+      },
       barChart: {
         data: {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
@@ -187,17 +185,51 @@ export default {
         const decoded = jwtDecode(token);
         this.userName = decoded.name || 'User';
         this.userRole = decoded.Role || 'User';
+        this.userID = decoded.sub || 'User';
         console.log('User name:', this.userName);
         console.log('User role:', this.userRole);
+        localStorage.setItem('userName', this.userName);
+        localStorage.setItem('userRole', this.userRole);
+        localStorage.setItem('userId', this.userID);
       } catch (error) {
         console.error('Invalid token:', error);
       }
+    }
+
+    if(this.userRole === 'Finance Management Employee') {
+      this.fetchRequestData();
     }
   },
   methods: {
     updateClock() {
       const now = new Date();
       this.currentTime = now.toLocaleTimeString();
+    },
+    async fetchRequestData() {
+      if (!this.userID) return; // Nếu không có userID, không gọi API
+
+      try {
+        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`);
+
+        this.tableData.data = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
+          .slice(0, 10) // Get only the top 10 elements
+          .map((item, index) => ({
+            STT: index + 1,
+            'Mã số phiếu': item.requestCode,
+            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }).replace(',', ''),
+            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
+          }));
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
+      }
     }
   }
 };
