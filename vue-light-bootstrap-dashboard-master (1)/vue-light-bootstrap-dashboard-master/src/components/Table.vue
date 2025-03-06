@@ -25,8 +25,8 @@
           </td>
 
 
-          <td style="display: flex; justify-content: space-between; width: 60px;" v-if="displayActions">
-            <button type="button" class="icon btn btn-info btn-sm" v-if="canView">
+          <td style="display: flex; justify-content: space-between; width: 50%;" v-if="displayActions">
+            <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
               <i class="fa fa-eye"></i>
             </button>
             <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="item.Status === 'Chưa duyệt' || domain === 'product' && userRole==='Finance Management Employee'">
@@ -120,6 +120,13 @@ export default {
     navigateToEditForm(item) {
       if (this.domain === 'product') {
         this.$router.push({ name: 'Edit Product', params: { id: item.productID } });
+      }else if (this.domain === 'request') {
+        this.$router.push({ name: 'Edit Request', params: { id: item.requestID } });
+      }
+    },
+    navigateToViewForm(item) {
+      if (this.domain === 'request') {
+        this.$router.push({ name: 'View Request', params: { id: item.requestID } });
       }
     },
     openDeleteDialog(item) {
@@ -127,25 +134,46 @@ export default {
       this.dialog = true;
     },
     async confirmDelete() {
-      if (!this.itemToDelete) return;
-      try {
-        const productId = this.itemToDelete.productID;
-        await axios.delete(`${this.apiURL}/${productId}`);
+  if (this.domain === 'product') {
+    if (!this.itemToDelete) return;
+    try {
+      const productId = this.itemToDelete.productID;
+      await axios.delete(`${this.apiURL}/${productId}`);
 
-        const index = this.data.findIndex(product => product.productID === productId);
-        if (index !== -1) {
-          this.data.splice(index, 1);
-        }
-
-        this.dialog = false;
-        this.notifySuccess('top', 'right');
-
-      } catch (error) {
-        console.error("Delete error:", error);
-        this.dialog = false;
-        this.notifyError('top', 'right');
+      const index = this.data.findIndex(product => product.productID === productId);
+      if (index !== -1) {
+        this.data.splice(index, 1);
       }
-    },
+
+      this.dialog = false;
+      this.notifySuccess('top', 'right');
+
+    } catch (error) {
+      console.error("Delete error:", error);
+      this.dialog = false;
+      this.notifyError('top', 'right');
+    }
+  } else if (this.domain === 'request') {
+    if (!this.itemToDelete) return;
+    try {
+      const requestId = this.itemToDelete.requestID; // Sửa ở đây
+      await axios.delete(`${this.apiURL}/${requestId}`); // Sửa ở đây
+
+      const index = this.data.findIndex(r => r.requestID === requestId); // Sửa ở đây
+      if (index !== -1) {
+        this.data.splice(index, 1);
+      }
+
+      this.dialog = false;
+      this.notifySuccess('top', 'right');
+
+    } catch (error) {
+      console.error("Delete error:", error);
+      this.dialog = false;
+      this.notifyError('top', 'right');
+    }
+  }
+},
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: `<span>Xóa sản phẩm thành công</span>`,

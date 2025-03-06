@@ -10,6 +10,7 @@ import LightBootstrap from "./light-bootstrap-main";
 import routes from "./routes/routes";
 
 import "./registerServiceWorker";
+import '@fortawesome/fontawesome-free/css/all.css';
 
 // Sử dụng plugin
 Vue.use(VueRouter);

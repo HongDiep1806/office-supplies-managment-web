@@ -49,12 +49,12 @@ export default {
       if (!this.userID) return; // Nếu không có userID, không gọi API
 
       try {
-        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`);
+        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {timeout:50000});
 
         this.table1.data = response.data
           .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
           .map((item, index) => ({
-            STT: index + 1,
+            requestID : item.requestID,
             'Mã số phiếu': item.requestCode,
             'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
               hour: '2-digit',

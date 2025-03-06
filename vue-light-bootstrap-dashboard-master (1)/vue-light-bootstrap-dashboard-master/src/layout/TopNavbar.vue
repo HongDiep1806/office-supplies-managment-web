@@ -15,23 +15,10 @@
       </button>
       <div class="collapse navbar-collapse justify-content-end">
         <ul class="navbar-nav ml-auto">
-          <!-- User Profile Dropdown -->
-          <li class="nav-item dropdown" ref="dropdown">
-            <a class="nav-link d-flex align-items-center" href="#" role="button" onclick="toggleDropdown">
-              <i class="fa fa-user-circle"></i>  <!-- User Icon -->
-              <span class="ml-2">{{ userName }}</span>
-              <i class="fa fa-chevron-down ml-2 dropdown-arrow" :class="{ open: isDropdownOpen }"></i> <!-- Dropdown Arrow -->
-            </a>
-            <!-- Dropdown Menu -->
-            <div v-if="isDropdownOpen" class="dropdown-menu dropdown-menu-right show">
-              <a class="dropdown-item" href="#" @click="viewProfile">
-                <i class="fa fa-user"></i> Hồ sơ
-              </a>
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item text-danger" href="#" @click="logout">
-                <i class="fa fa-sign-out-alt"></i> Đăng xuất
-              </a>
-            </div>
+          <li class="nav-item dropdown" ref="dropdown" @click="logout" style="cursor: pointer;">
+              <i class="fa fa-sign-out-alt"></i> 
+              <span class="ml-2">Đăng xuất</span>
+              <!-- <i class="fa fa-chevron-down ml-2 logout" @click="logout()"></i>  -->
           </li>
         </ul>
       </div>
@@ -64,9 +51,7 @@ export default {
       this.$router.push("/profile"); // Change this to your actual profile route
     },
     logout() {
-      localStorage.removeItem("authToken");
-      localStorage.removeItem("userRole");
-      localStorage.removeItem("userName");
+      localStorage.clear();
       this.$router.push("/");
     }
   },
@@ -80,13 +65,13 @@ export default {
 </script>
 
 <style scoped>
-.nav-item {
+/* .nav-item {
   position: relative;
   cursor: pointer;
-}
+} */
 
 /* Dropdown menu positioning */
-.dropdown-menu {
+/* .dropdown-menu {
   display: none;
   position: absolute;
   top: 100%;
@@ -116,21 +101,25 @@ export default {
 
 .dropdown-item:hover {
   background-color: #f8f9fa;
-}
+} */
 
-.nav-link {
+/* .nav-link {
   display: flex;
   align-items: center;
-}
+} */
 
 /* Ensure the dropdown arrow is visible */
-.dropdown-arrow {
+/* .dropdown-arrow {
   font-size: 14px;
   transition: transform 0.2s;
-  color: #333; /* Make sure it's visible */
-}
+  color: #333; 
+} */
 
-.dropdown-arrow.open {
+/* .dropdown-arrow.open {
   transform: rotate(180deg);
+} */
+.nav-item:hover {
+color: red;
+cursor: pointer;
 }
 </style>
