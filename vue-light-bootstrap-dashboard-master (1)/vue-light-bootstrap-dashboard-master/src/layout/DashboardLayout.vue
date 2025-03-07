@@ -12,6 +12,10 @@
       </sidebar-link>
       <sidebar-link to="/admin/request-table">
         <i class="nc-icon nc-notes"></i>
+        <p>Lịch sử Phiếu yêu cầu</p>
+      </sidebar-link>
+      <sidebar-link to="/admin/all-request" v-if="permissions.includes('ViewAllRequests')">
+        <i class="nc-icon nc-notes"></i>
         <p>QL Phiếu yêu cầu</p>
       </sidebar-link>
       <sidebar-link to="/admin/typography">
@@ -54,6 +58,11 @@ export default {
     DashboardContent,
     MobileMenu,
   },
+  data() {
+    return {
+      permissions: [],
+    };
+  },
   methods: {
     toggleSidebar() {
       if (this.$sidebar.showSidebar) {
@@ -62,5 +71,9 @@ export default {
     },
     
   },
+  mounted() {
+    this.permissions = localStorage.getItem('permissions');  
+
+  }
 };
 </script>
