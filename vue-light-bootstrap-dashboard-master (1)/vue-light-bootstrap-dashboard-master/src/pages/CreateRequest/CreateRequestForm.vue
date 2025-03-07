@@ -66,14 +66,20 @@
             </div>
 
             <div class="text-center position-relative">
-                <div style="display: flex; flex-direction: row; justify-content: flex-start;">
-                    <button type="button" class="btn btn-primary btn-add-product" @click="addProductRow">
+                <div style="display: flex; flex-direction: row; justify-content: space-between;">
+                    <button type="button" class="btn btn-add-product" @click="addProductRow" style="border-color: rgb(220, 68, 5); max-height: fit-content;">
                         <i class="fa fa-plus" style="color: rgb(220, 68, 5);"></i>
                     </button>
+                    <div>
+                        <label for="totalAmount">Tổng cộng</label>
+                        <base-input type="text" placeholder="Tổng cộng" v-model="totalAmount" readonly></base-input>
+                    </div>
+                   
                 </div>
-                <div class="total-amount">
+                <!-- <div class="total-amount">
                     Tổng cộng: <span class="ml-2">{{ totalAmount }}</span>
-                </div>
+                </div> -->
+                
                 <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="createTicket">
                     Tạo phiếu yêu cầu
                 </button>
@@ -106,10 +112,11 @@ export default {
             userID: 0,
             userDepartment: '',
             type: ['success', 'danger', 'warning'],
+            requestNumber: 0
         };
     },
     created() {
-        this.ticketNumber = this.generateTicketNumber();
+       
     },
     methods: {
 
@@ -144,7 +151,7 @@ export default {
             const today = new Date();
             const month = String(today.getMonth() + 1).padStart(2, '0');
             const year = String(today.getFullYear()).slice(-2);
-            return `PYC${year}/${month}/01`;
+            return `PYC${year}/${month}/${this.requestNumber}`;
         },
 
         addProductRow() {
@@ -238,13 +245,16 @@ export default {
         } catch (error) {
             console.error('Lỗi khi lấy danh sách sản phẩm:', error);
         }
-
+       
         const token = localStorage.getItem('authToken');
         const decodeToken = jwtDecode(token);
         this.userID = decodeToken.sub;
         this.userName = decodeToken.name;
         this.requester = this.userName;
-
+        const number = await axios.get('https://localhost:7162/Request/count');
+        this.requestNumber = number.data;   
+        this.ticketNumber = this.generateTicketNumber();
+       
         try {
             const user = await axios.get(`https://localhost:7162/User/${decodeToken.email}`);
             this.userDepartment = user.data.department;

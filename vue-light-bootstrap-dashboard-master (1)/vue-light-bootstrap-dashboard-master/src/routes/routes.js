@@ -16,10 +16,15 @@ import RequestCollectionTable from 'src/pages/RequestCollectionTable.vue'
 import CreateProduct from '../pages/CreateProduct.vue'
 import EditProduct from '../pages/UserProfile/EditProduct.vue'
 import CreateRequest from '../pages/CreateRequest.vue'
-
+import ViewRequestDetails from '../pages/ViewRequestDetails.vue'
+import EditRequest from '../pages/EditRequest.vue'
 const routes = [
   {
     path: '/',
+    component: Login
+  },
+  {
+    path:'/login',
     component: Login
   },
   {
@@ -98,6 +103,18 @@ const routes = [
         path: 'createrequest',
         name: 'Create Request',
         component: CreateRequest ,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'viewrequest/:id',
+        name: 'View Request',
+        component: ViewRequestDetails,
+        meta: { requiresAuth: true }
+      },
+      {
+        path: 'editrequest/:id',
+        name: 'Edit Request',
+        component: EditRequest,
         meta: { requiresAuth: true }
       }
     ]

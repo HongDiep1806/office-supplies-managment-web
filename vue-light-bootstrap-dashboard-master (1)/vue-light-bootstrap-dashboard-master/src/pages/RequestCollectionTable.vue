@@ -15,9 +15,7 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped"
-                     :columns="table1.columns"
-                     :data="table1.data">
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data" :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Request'">
             </l-table>
           </card>
         </div>
@@ -51,37 +49,38 @@ export default {
       if (!this.userID) return; // Nếu không có userID, không gọi API
 
       try {
-        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`);
-        this.table1.data = response.data.map((item, index) => ({
-          STT: index + 1,
-          'Mã số phiếu': item.requestCode,
-          'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN'),
-          'Tổng tiền': item.totalPrice.toLocaleString('vi-VN') + ' VND'
-        }));
+        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {timeout:50000});
+
+        this.table1.data = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
+          .map((item, index) => ({
+            requestID : item.requestID,
+            'Mã số phiếu': item.requestCode,
+            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric'
+            }).replace(',', ''),
+            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
+          }));
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
-    },
+    }
+    ,
     navigateToCreateRequest() {
       this.$router.push('/admin/createrequest');
     }
   },
   mounted() {
     // Lấy userID từ token trong localStorage
-    const token = localStorage.getItem('authToken');
-    if (token) {
-      try {
-        const decoded = jwtDecode(token);
-        this.userID = decoded.sub || null; // Giả sử `sub` là userID
-      } catch (error) {
-        console.error('Token không hợp lệ:', error);
-      }
-    }
-
-    this.fetchRequestData(); // Gọi API sau khi lấy được userID
+    this.userID = localStorage.getItem('userId');
+     this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
 </script>
 
-<style>
-</style>
+<style></style>
