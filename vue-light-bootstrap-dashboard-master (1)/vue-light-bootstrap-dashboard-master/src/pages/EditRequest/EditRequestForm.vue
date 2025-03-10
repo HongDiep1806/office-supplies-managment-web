@@ -102,12 +102,13 @@ export default {
             type: ['success', 'danger', 'warning'],
             requestNumber: 0,
             totalAmountFromApi: 0,
+            request: {},
         };
     },
     async mounted() {
         const requestId = this.$route.params.id;
         const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`);
-
+        this.request= request.data;
         this.requestDate = new Date().toISOString().substr(0, 10);
         this.ticketNumber = request.data.requestCode;
         this.userID = request.data.userID;
@@ -217,6 +218,9 @@ export default {
                 productID: row.selectedProduct.productID,
                 quantity: row.quantity,
             })),
+            isProcessedByDepLead: this.request.isProcessedByDepLead,
+            isProcessedBySupLead: this.request.isProcessedBySupLead,
+            isApprovedByDepLead: this.request.isApprovedByDepLead,
     };
 
     try {

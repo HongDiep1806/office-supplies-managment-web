@@ -32,7 +32,7 @@
             <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="(item.Status === 'Chưa duyệt' &&  domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole==='Finance Management Employee'">
               <i class="fa fa-edit"></i>    
             </button>
-            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm" v-if="(item.Status==='Chưa duyệt' &&  domain === 'request' && userRole === 'Employee'|| userRole==='Finance Management Employee')|| (domain === 'product' && userRole==='Finance Management Employee')">
+            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm" v-if="(item.Status==='Chưa duyệt' &&  domain === 'request' && userRole === 'Employee')|| (domain === 'product' && userRole==='Finance Management Employee')">
               <i class="fa fa-trash"></i>
             </button>
           </td>
@@ -126,7 +126,7 @@ export default {
     },
     navigateToViewForm(item) {
       if (this.domain === 'request') {
-        this.$router.push({ name: 'View Request', params: { id: item.requestID } });
+        this.$router.push({ name: 'View Request', params: { id: item.requestID, status: item.Status } });
       }
     },
     openDeleteDialog(item) {
@@ -199,15 +199,20 @@ export default {
     getStatusClass(item) {
       if (item.Status==="Đã duyệt") {
         return "status-approved";
-      }else if(item.Status==="Chưa duyệt" || item.Status==="Đang xử lí"){
+      }else if(item.Status==="Đang xử lý"){
         return "status-pending";
+      }else if(item.Status==="Không duyệt"){
+        return "status-rejected";
+      }else if(item.Status==="Chưa duyệt"){
+        return "status-loading";
       }
-      return "status-rejected";
     },
     getStatusIcon(item) {
       if (item.Status==="Đã duyệt") {
         return "fa fa-check-circle";
       }else if(item.Status==="Chưa duyệt"){
+        return "fa fa-spinner";
+      }else if(item.Status==="Đang xử lý"){
         return "fa fa-hourglass-half";
       }
       return "fa fa-times-circle";

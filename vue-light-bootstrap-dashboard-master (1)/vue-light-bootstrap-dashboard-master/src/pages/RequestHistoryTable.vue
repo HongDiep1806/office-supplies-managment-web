@@ -70,22 +70,25 @@ export default {
               }).replace(',', ''),
               'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
               Status: (() => {
-                if (this.userRole === 'Employee') {
-                  if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
-                    return "Đã duyệt";
-                  } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
-                    return "Không duyệt";
-                  } else if (!item.isProcessedByDepLead) {
+                if (this.userRole === 'Employee'|| this.userRole === 'Finance Management Employee') {
+                  if (item.isProcessedByDepLead) {
+                    if (item.isApprovedByDepLead) {
+                      if (item.isApprovedBySupLead) {
+                        return "Đã duyệt";
+                      } else {
+                        return "Đang xử lý";
+                      }
+                    }
+                  } else {
                     return "Chưa duyệt";
-                  } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Đang xử lý";
                   }
-                }
-                return "Không xác định"; // Trường hợp mặc định
-              })()
+                }               
+              }
+              )()
 
             }));
         }
+
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
