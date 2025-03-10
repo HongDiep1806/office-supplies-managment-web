@@ -63,8 +63,8 @@ export default {
             headers: { Authorization: `Bearer ${token}` },
             timeout: 100000
           });
-        } else if (this.userRole === 'Sup Leader') {
-          response = await axios.get(`https://localhost:7162/Request`, {
+        } else if (this.userRole === 'Finance Management Employee') {
+          response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
             headers: { Authorization: `Bearer ${token}` },
             timeout: 100000
           });
@@ -92,6 +92,12 @@ export default {
                     return "Đã duyệt";
                   } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
                     return "Không duyệt";
+                  }
+                }else if(this.userRole === 'Finance Management Employee') {
+                  if(item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                    return "Chưa duyệt";
+                  }else if(item.isApprovedByDepLead && item.isApprovedBySupLead) {
+                    return "Đã duyệt";
                   }
                 }
                 return "Không xác định"; // Trường hợp mặc định

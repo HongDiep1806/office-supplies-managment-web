@@ -232,7 +232,7 @@ export default {
               year: 'numeric'
             }).replace(',', ''),
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
+            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" :"Chưa duyệt"
           }));
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);

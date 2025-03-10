@@ -33,7 +33,7 @@ export default {
   mounted() {
     const userRole = localStorage.getItem('userRole');
 
-    if (userRole === 'Dep Leader') {
+    if (userRole === 'Dep Leader' || userRole === 'Finance Management Employee') {
       this.requestManagementPath = '/admin/view-all-request';
     }
   }
