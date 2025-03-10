@@ -11,7 +11,9 @@
                   <p class="card-category">Danh sách các yêu cầu đã tạo</p>
                 </div>
                 <div>
-                  <button class="btn btn-info btn-fill float-right" @click="navigateToCreateRequest">Tạo mới</button>
+                  <button
+                    v-if="userRole !== 'Finance Management Employee' && userRole !== 'Dep Leader' && userRole !== 'Sup Leader'"
+                    class="btn btn-info btn-fill float-right" @click="navigateToCreateRequest">Tạo mới</button>
                 </div>
               </div>
             </template>
@@ -50,46 +52,57 @@ export default {
   },
   methods: {
     async fetchRequestData() {
-  try {
-    const token = localStorage.getItem('authToken');
-    let response;
+      try {
+        const token = localStorage.getItem('authToken');
+        let response;
 
-    if (this.userRole === 'Dep Leader') {
-      response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, { 
-        headers: { Authorization: `Bearer ${token}` }, 
-        timeout: 100000 
-      });
-    } else if (this.userRole === 'Sup Leader') {
-      response = await axios.get(`https://localhost:7162/Request`, { 
-        headers: { Authorization: `Bearer ${token}` }, 
-        timeout: 100000 
-      });
-    }
+        if (this.userRole === 'Dep Leader') {
+          response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 100000
+          });
+        } else if (this.userRole === 'Sup Leader') {
+          response = await axios.get(`https://localhost:7162/Request`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 100000
+          });
+        }
 
-    if (response && Array.isArray(response.data)) {
-      this.table1.data = response.data
-        .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-        .map((item, index) => ({
-          requestID: item.requestID,
-          'Mã số phiếu': item.requestCode,
-          'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-            hour: '2-digit',
-            minute: '2-digit',
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-          }).replace(',', ''),
-          'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-          Status: this.userRole === 'Dep Leader'
-        ? item.isApprovedByDepLead===true: "Đã duyệt" ?item.isApprovedByDepLead===false: "Không được duyệt" ?item.isApprovedByDepLead===null:"Chưa duyệt"
-        }));
-    } else {
-      console.error('Unexpected response format:', response);
-    }
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
-  }
-},
+        if (response && Array.isArray(response.data)) {
+          this.table1.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+            .map((item, index) => ({
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }).replace(',', ''),
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              Status: (() => {
+                if (this.userRole === 'Dep Leader') {
+                  if (!item.IsProcessedByDepLead) {
+                    return "Chưa duyệt";
+                  } else if (item.IsProcessedByDepLead && item.isApprovedByDepLead) {
+                    return "Đã duyệt";
+                  } else if (item.IsProcessedByDepLead && !item.isApprovedByDepLead) {
+                    return "Không duyệt";
+                  }
+                }
+                return "Không xác định"; // Trường hợp mặc định
+              })()
+
+            }));
+        } else {
+          console.error('Unexpected response format:', response);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
+      }
+    },
     navigateToCreateRequest() {
       this.$router.push('/admin/createrequest');
     }
