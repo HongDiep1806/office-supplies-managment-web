@@ -29,7 +29,7 @@
             <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
               <i class="fa fa-eye"></i>
             </button>
-            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="(item.Status === 'Chưa duyệt' &&  domain === 'request' && userRole === 'Employee' || userRole==='Finance Management Employee') || domain === 'product' && userRole==='Finance Management Employee'">
+            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="(item.Status === 'Chưa duyệt' &&  domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole==='Finance Management Employee'">
               <i class="fa fa-edit"></i>    
             </button>
             <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm" v-if="(item.Status==='Chưa duyệt' &&  domain === 'request' && userRole === 'Employee'|| userRole==='Finance Management Employee')|| (domain === 'product' && userRole==='Finance Management Employee')">
@@ -193,17 +193,13 @@ export default {
       });
     },
     getStatusText(item) {
-      if (item.Status==="Đã duyệt") {
-        return "Đã duyệt";
-      }else if(item.Status==="Chưa duyệt"){
-        return "Chưa duyệt";
-      }
-      return "Không duyệt";
+      console.log("log trong table"+ item.Status);
+      return item.Status;
     },
     getStatusClass(item) {
       if (item.Status==="Đã duyệt") {
         return "status-approved";
-      }else if(item.Status==="Chưa duyệt"){
+      }else if(item.Status==="Chưa duyệt" || item.Status==="Đang xử lí"){
         return "status-pending";
       }
       return "status-rejected";
