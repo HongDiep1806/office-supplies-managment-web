@@ -61,13 +61,24 @@
         </div>
   
         <div class="text-center position-relative">
-          <div>
-            <!-- <label for="totalAmount">Tổng cộng</label> -->
-            <button class="btn btn-info btn-fill float-right" disabled> Tổng cộng: 
-              {{ formattedTotalAmount }}
-            </button>
-          </div>
-        </div>
+                <div style="display: flex; flex-direction: row; justify-content: end;">
+                    <!-- <button type="button" class="btn btn-add-product" @click="addProductRow"
+                        style="border-color: rgb(220, 68, 5); max-height: fit-content;">
+                        <i class="fa fa-plus" style="color: rgb(220, 68, 5);"></i>
+                    </button> -->
+                    <div>
+                        <label for="totalAmount">Tổng cộng</label>
+                        <base-input type="text" v-model="formattedTotalAmount" readonly></base-input>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="updateTicket">
+                    Duyệt phiếu yêu cầu
+                </button>
+                <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket" style="margin-right: 10px;">
+                  Không duyệt phiếu
+                </button>
+            </div>
       </form>
     </card>
   </template>
