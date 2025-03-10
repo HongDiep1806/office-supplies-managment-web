@@ -43,7 +43,8 @@ export default {
     return {
       table1: {
         columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
-        data: []
+        data: [],
+
       },
       userID: null,
       userRole: '',
@@ -51,6 +52,7 @@ export default {
     };
   },
   methods: {
+    
     async fetchRequestData() {
       try {
         const token = localStorage.getItem('authToken');
@@ -67,7 +69,7 @@ export default {
             timeout: 100000
           });
         }
-
+        console.log("data gốc api", response.data);
         if (response && Array.isArray(response.data)) {
           this.table1.data = response.data
             .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
@@ -84,18 +86,21 @@ export default {
               'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
               Status: (() => {
                 if (this.userRole === 'Dep Leader') {
-                  if (!item.IsProcessedByDepLead) {
+                  if (!item.isProcessedByDepLead) {
                     return "Chưa duyệt";
-                  } else if (item.IsProcessedByDepLead && item.isApprovedByDepLead) {
+                  } else if (item.isProcessedByDepLead && item.isApprovedByDepLead) {
                     return "Đã duyệt";
-                  } else if (item.IsProcessedByDepLead && !item.isApprovedByDepLead) {
+                  } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
                     return "Không duyệt";
                   }
                 }
                 return "Không xác định"; // Trường hợp mặc định
               })()
 
-            }));
+            }
+            
+          ));
+          console.log("table data",this.table1.data);  
         } else {
           console.error('Unexpected response format:', response);
         }

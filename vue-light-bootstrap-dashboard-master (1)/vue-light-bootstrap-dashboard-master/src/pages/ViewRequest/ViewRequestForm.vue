@@ -102,7 +102,10 @@
         userID: 0,
         userDepartment: '',
         requestNumber: 0,
-        totalAmount: 0
+        totalAmount: 0,
+        type: ['success', 'danger', 'warning'],
+        userRole: ''
+
       };
     },
     async mounted() {
@@ -113,9 +116,11 @@
       this.ticketNumber = request.data.requestCode;
       this.requestDate = request.data.createdDate.substr(0, 10);
       this.totalAmount = request.data.totalPrice;
+
   
       try {
         const token = localStorage.getItem('authToken');
+        this.userRole = localStorage.getItem('userRole');
         const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -157,6 +162,33 @@
       },
     },
     methods: {
+      async notifySuccess(verticalAlign, horizontalAlign) {
+            this.$notifications.notify({
+                message: `<span>Duyệt phiếu yêu cầu thành công</span>`,
+                icon: 'nc-icon nc-app',
+                horizontalAlign: horizontalAlign,
+                verticalAlign: verticalAlign,
+                type: this.type[0],
+            });
+        },
+        async notifyError(verticalAlign, horizontalAlign) {
+            this.$notifications.notify({
+                message: `<span>Duyệt phiếu yêu cầu thất bại</span>`,
+                icon: 'nc-icon nc-app',
+                horizontalAlign: horizontalAlign,
+                verticalAlign: verticalAlign,
+                type: this.type[1],
+            });
+        },
+        async notifyWarning(verticalAlign, horizontalAlign) {
+            this.$notifications.notify({
+                message: `<span>Vui lòng nhập đủ thông tin</span>`,
+                icon: 'nc-icon nc-app',
+                horizontalAlign: horizontalAlign,
+                verticalAlign: verticalAlign,
+                type: this.type[2],
+            });
+        },
       async approveTicket() {
         try {
           const token = localStorage.getItem('authToken');
@@ -166,7 +198,13 @@
               Authorization: `Bearer ${token}`,
             },
           });
-          console.log(response.data);
+          console.log("thành công"+response.data);
+          this.notifySuccess('top', 'right');
+          if(this.userRole==='Dep Leader') {
+            this.$router.push('/admin/view-all-request');
+          }else if (this.userRole === 'Employee') {
+           this.$router.push('/admin/request-table'); 
+          }
         } catch (error) {
           console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
         }
