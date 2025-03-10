@@ -71,8 +71,7 @@
                         <base-input type="text" v-model="formattedTotalAmount" readonly></base-input>
                     </div>
                 </div>
-
-                <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="updateTicket">
+                <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket">
                     Duyệt phiếu yêu cầu
                 </button>
                 <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket" style="margin-right: 10px;">
@@ -155,6 +154,22 @@
           style: 'currency',
           currency: 'VND',
         }).format(this.totalAmount);
+      },
+    },
+    methods: {
+      async approveTicket() {
+        try {
+          const token = localStorage.getItem('authToken');
+          const requestId = this.$route.params.id;
+          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          });
+          console.log(response.data);
+        } catch (error) {
+          console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
+        }
       },
     },
   };

@@ -10,11 +10,11 @@
         <i class="nc-icon nc-bullet-list-67"></i>
         <p>Danh mục VPP</p>
       </sidebar-link>
-      <sidebar-link to="/admin/request-table" v-if="role !== 'Sup Leader'">
+      <sidebar-link to="/admin/request-table" v-if="role !== 'Sup Leader'&&role !=='Dep Leader'">
         <i class="nc-icon nc-notes"></i>
         <p>Lịch sử Phiếu yêu cầu</p>
       </sidebar-link>
-      <sidebar-link to="/admin/view-all-request" v-if="!permissions.includes('ViewAllRequests')">
+      <sidebar-link to="/admin/view-all-request" v-if="permissions.includes('ViewAllRequests')">
         <i class="nc-icon nc-notes"></i>
         <p>QL Phiếu yêu cầu</p>
       </sidebar-link>
