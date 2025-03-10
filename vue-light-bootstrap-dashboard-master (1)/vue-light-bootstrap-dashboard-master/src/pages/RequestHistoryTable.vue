@@ -15,7 +15,9 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data" :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Request'">
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
+              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :canView="true" :apiURL="'https://localhost:7162/Request'">
             </l-table>
           </card>
         </div>
@@ -42,7 +44,7 @@ export default {
         data: []
       },
       userID: null,
-      userRole:''
+      userRole: ''
     };
   },
   methods: {
@@ -50,25 +52,39 @@ export default {
       if (!this.userID) return; // Nếu không có userID, không gọi API
 
       try {
-        if(this.userRole==='Employee'|| this.userRole === 'Finance Management Employee') {
-          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {timeout:50000});
-        
+        if (this.userRole === 'Employee' || this.userRole === 'Finance Management Employee') {
+          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
 
-        this.table1.data = response.data
-          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
-          .map((item, index) => ({
-            requestID : item.requestID,
-            'Mã số phiếu': item.requestCode,
-            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            }).replace(',', ''),
-            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
-          }));
+
+          this.table1.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
+            .map((item, index) => ({
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }).replace(',', ''),
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              Status: (() => {
+                if (this.userRole === 'Employee') {
+                  if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
+                    return "Đã duyệt";
+                  } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
+                    return "Không duyệt";
+                  } else if (!item.isProcessedByDepLead) {
+                    return "Chưa duyệt";
+                  } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                    return "Đang xử lý";
+                  }
+                }
+                return "Không xác định"; // Trường hợp mặc định
+              })()
+
+            }));
         }
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
@@ -83,7 +99,7 @@ export default {
     // Lấy userID từ token trong localStorage
     this.userID = localStorage.getItem('userId');
     this.userRole = localStorage.getItem('userRole');
-     this.fetchRequestData(); // Gọi API sau khi lấy được userID
+    this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
 </script>
