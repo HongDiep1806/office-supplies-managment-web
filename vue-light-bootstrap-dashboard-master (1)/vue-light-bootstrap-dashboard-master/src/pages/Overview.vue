@@ -80,7 +80,7 @@
         </div>
       </div>
 
-      <div class="row" v-if="permissions.includes('CamViewChartReport')">
+      <div class="row">
         <div class="col-md-12">
           <chart-card 
             :chart-data="barChart.data" 
@@ -141,6 +141,7 @@ export default {
       userName: 'Nguyen Van A',
       userRole: '',
       userID: '',
+      department: '',
       permissions: [],
       tableData: {
       columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
@@ -188,12 +189,14 @@ export default {
         this.userRole = decoded.Role || 'User';
         this.userID = decoded.sub || 'User';
         this.permissions = decoded.Permission || [];
+        this.department = decoded.Department || 'User'; 
         console.log('User name:', this.userName);
         console.log('User role:', this.userRole);
         localStorage.setItem('userName', this.userName);
         localStorage.setItem('userRole', this.userRole);
         localStorage.setItem('userId', this.userID);
         localStorage.setItem('permissions', JSON.stringify(this.permissions));
+        localStorage.setItem('department', this.department);
       } catch (error) {
         console.error('Invalid token:', error);
       }

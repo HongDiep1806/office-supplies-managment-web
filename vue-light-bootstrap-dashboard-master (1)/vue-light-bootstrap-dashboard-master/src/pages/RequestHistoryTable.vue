@@ -41,7 +41,8 @@ export default {
         columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
         data: []
       },
-      userID: null
+      userID: null,
+      userRole:''
     };
   },
   methods: {
@@ -49,7 +50,9 @@ export default {
       if (!this.userID) return; // Nếu không có userID, không gọi API
 
       try {
-        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {timeout:50000});
+        if(this.userRole==='Employee'|| this.userRole === 'Finance Management Employee') {
+          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {timeout:50000});
+        
 
         this.table1.data = response.data
           .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
@@ -66,6 +69,7 @@ export default {
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
             Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" :"Chưa duyệt"
           }));
+        }
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
@@ -78,6 +82,7 @@ export default {
   mounted() {
     // Lấy userID từ token trong localStorage
     this.userID = localStorage.getItem('userId');
+    this.userRole = localStorage.getItem('userRole');
      this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
