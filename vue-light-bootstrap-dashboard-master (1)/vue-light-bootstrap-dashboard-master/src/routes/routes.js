@@ -12,19 +12,20 @@ import Maps from 'src/pages/Maps.vue'
 import Notifications from 'src/pages/Notifications.vue'
 import Upgrade from 'src/pages/Upgrade.vue'
 import Login from 'src/pages/Login.vue'
-import RequestCollectionTable from 'src/pages/RequestCollectionTable.vue'
 import CreateProduct from '../pages/CreateProduct.vue'
 import EditProduct from '../pages/UserProfile/EditProduct.vue'
 import CreateRequest from '../pages/CreateRequest.vue'
 import ViewRequestDetails from '../pages/ViewRequestDetails.vue'
 import EditRequest from '../pages/EditRequest.vue'
+import RequestHistoryTable from '../pages/RequestHistoryTable.vue'
+import ViewAllRequests from '../pages/ViewAllRequests.vue'
 const routes = [
   {
     path: '/',
     component: Login
   },
   {
-    path:'/login',
+    path: '/login',
     component: Login
   },
   {
@@ -54,7 +55,7 @@ const routes = [
       {
         path: 'request-table',
         name: 'Request Table',
-        component: RequestCollectionTable,
+        component: RequestHistoryTable,
         meta: { requiresAuth: true }
       },
       {
@@ -102,7 +103,7 @@ const routes = [
       {
         path: 'createrequest',
         name: 'Create Request',
-        component: CreateRequest ,
+        component: CreateRequest,
         meta: { requiresAuth: true }
       },
       {
@@ -116,7 +117,14 @@ const routes = [
         name: 'Edit Request',
         component: EditRequest,
         meta: { requiresAuth: true }
+      },
+      {
+        path: 'view-all-request',
+        name: 'View All Request',
+        component: ViewAllRequests,
+        meta: {requiresAuth: true}
       }
+      
     ]
   },
   { path: '*', component: NotFound }
