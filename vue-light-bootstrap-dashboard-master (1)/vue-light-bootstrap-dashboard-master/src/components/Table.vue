@@ -193,7 +193,6 @@ export default {
       });
     },
     getStatusText(item) {
-      console.log("log trong table"+item.Status);
       return item.Status;
     },
     getStatusClass(item) {

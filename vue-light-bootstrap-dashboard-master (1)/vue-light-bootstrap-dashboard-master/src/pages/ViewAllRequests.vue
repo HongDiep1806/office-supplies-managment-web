@@ -45,7 +45,7 @@ export default {
       },
       userID: null,
       userRole: '',
-      deparment: ''
+      department: ''
     };
   },
   methods: {
@@ -55,14 +55,14 @@ export default {
     let response;
 
     if (this.userRole === 'Dep Leader') {
-      response = await axios.get(`https://localhost:7162/Request/department/${this.deparment}`, { 
+      response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, { 
         headers: { Authorization: `Bearer ${token}` }, 
-        timeout: 50000 
+        timeout: 100000 
       });
     } else if (this.userRole === 'Sup Leader') {
       response = await axios.get(`https://localhost:7162/Request`, { 
         headers: { Authorization: `Bearer ${token}` }, 
-        timeout: 50000 
+        timeout: 100000 
       });
     }
 
@@ -80,9 +80,8 @@ export default {
             year: 'numeric'
           }).replace(',', ''),
           'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-          Status: item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" 
-                : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lí" 
-                : "Chưa duyệt"
+          Status: this.userRole === 'Dep Leader'
+        ? item.isApprovedByDepLead===true: "Đã duyệt" ?item.isApprovedByDepLead===false: "Không được duyệt" ?item.isApprovedByDepLead===null:"Chưa duyệt"
         }));
     } else {
       console.error('Unexpected response format:', response);
@@ -99,6 +98,7 @@ export default {
     // Lấy userID từ token trong localStorage
     this.userID = localStorage.getItem('userId');
     this.userRole = localStorage.getItem('userRole');
+    this.department = localStorage.getItem('department');
     this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
