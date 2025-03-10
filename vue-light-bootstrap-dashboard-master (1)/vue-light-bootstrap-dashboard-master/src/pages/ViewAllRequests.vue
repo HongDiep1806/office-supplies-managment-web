@@ -11,7 +11,7 @@
                   <p class="card-category">Danh sách các yêu cầu đã tạo</p>
                 </div>
                 <div>
-                  <button class="btn btn-info btn-fill float-right" @click="navigateToCreateRequest">Tạo mới</button>
+                  <button v-if="userRole !== 'Finance Management Employee'&& userRole !== 'Dep Leader' && userRole !== 'Sup Leader'" class="btn btn-info btn-fill float-right" @click="navigateToCreateRequest">Tạo mới</button>
                 </div>
               </div>
             </template>
@@ -81,7 +81,7 @@ export default {
           }).replace(',', ''),
           'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
           Status: this.userRole === 'Dep Leader'
-        ? item.isApprovedByDepLead===true: "Đã duyệt" ?item.isApprovedByDepLead===false: "Không được duyệt" ?item.isApprovedByDepLead===null:"Chưa duyệt"
+        ? item.isApprovedByDepLead===true: "Đã duyệt" ?item.isApprovedByDepLead===false: "Không duyệt" ?item.isApprovedByDepLead===null:"Chưa duyệt"
         }));
     } else {
       console.error('Unexpected response format:', response);

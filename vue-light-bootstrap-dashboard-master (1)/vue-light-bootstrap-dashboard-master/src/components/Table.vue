@@ -193,23 +193,28 @@ export default {
       });
     },
     getStatusText(item) {
-      return item.Status;
+      if (item.Status==="Đã duyệt") {
+        return "Đã duyệt";
+      }else if(item.Status==="Chưa duyệt"){
+        return "Chưa duyệt";
+      }
+      return "Không duyệt";
     },
     getStatusClass(item) {
       if (item.Status==="Đã duyệt") {
         return "status-approved";
-      }else if(item.Status==="Đang xử lí"){
+      }else if(item.Status==="Chưa duyệt"){
         return "status-pending";
       }
-      return "status-loading";
+      return "status-rejected";
     },
     getStatusIcon(item) {
       if (item.Status==="Đã duyệt") {
         return "fa fa-check-circle";
-      }else if(item.Status==="Đang xử lí"){
+      }else if(item.Status==="Chưa duyệt"){
         return "fa fa-hourglass-half";
       }
-      return "fa fa-spinner";
+      return "fa fa-times-circle";
     }
 
   },
