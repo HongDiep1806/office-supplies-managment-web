@@ -166,7 +166,7 @@ export default {
   methods: {
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Duyệt phiếu yêu cầu thành công</span>`,
+        message: `<span>Cập nhật phiếu yêu cầu thành công</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -175,7 +175,7 @@ export default {
     },
     async notifyError(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Duyệt phiếu yêu cầu thất bại</span>`,
+        message: `<span>Cập nhật phiếu yêu cầu thất bại</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,

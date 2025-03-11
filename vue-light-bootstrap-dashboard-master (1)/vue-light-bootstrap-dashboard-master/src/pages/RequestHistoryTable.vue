@@ -76,7 +76,15 @@ export default {
                   } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
                     return "Đang xử lý";
                   }else if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
-                    return "Đã duyệt";
+                    if(item.isSummaryBeProcessed){
+                      if(item.isSummaryBeApproved){
+                        return "Đã duyệt";
+                      }else{
+                        return "Không duyệt";
+                      }
+                    }else{
+                      return "Đang xử lý";
+                    }
                   }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
                     return "Không duyệt";
                   }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){

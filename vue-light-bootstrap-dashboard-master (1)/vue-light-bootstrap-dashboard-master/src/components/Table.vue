@@ -1,9 +1,11 @@
 <template>
   <div>
+    <button v-if="showCreateSummaryButton" @click="createSummary" class="btn btn-info btn-fill float-right" style="position: absolute; top: 0; right: 0;">Tạo Phiếu Tổng Hợp</button>
     <table class="table">
       <thead>
         <slot name="columns">
           <tr style="background-color: rgb(220, 68, 5); color: white;">
+            <th v-if="showCheckboxColumn" style="color: white;">Chọn</th>
             <th v-for="column in columns" :key="column" style="color: white;">{{ column }}</th>
             <th v-if="displayStatus" style="color: white;">Trạng thái</th>
             <th v-if="displayActions" style="color: white;">Thao tác</th>
@@ -12,6 +14,9 @@
       </thead>
       <tbody>
         <tr v-for="(item, rowIndex) in paginatedData" :key="rowIndex">
+          <td v-if="showCheckboxColumn">
+            <input type="checkbox" v-model="selectedRequests" :value="item.requestID" v-show="item.Status === 'Đã duyệt'"/>
+          </td>
           <td>{{ (currentPage - 1) * pageSize + rowIndex + 1 }}</td>
           <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
             {{ itemValueByIndex(item, colIndex + 1) }}
@@ -96,18 +101,44 @@ export default {
         topCenter: false
       },
       userRole: localStorage.getItem('userRole'), 
+      selectedRequests: [],
+
     };
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.data.length / this.pageSize);
+    // totalPages() {
+    //   return Math.ceil(this.data.length / this.pageSize);
+    // },
+    // paginatedData() {
+    //   const startIndex = (this.currentPage - 1) * this.pageSize;
+    //   return this.data.slice(startIndex, startIndex + this.pageSize);
+    // },
+   
+    // showCreateSummaryButton() {
+    //   return this.showCheckbox && this.selectedRequests.length > 0;
+    // },
+    showCheckboxColumn() {
+      return this.domain === 'request' && this.userRole === 'Finance Management Employee';
+    },
+    showCreateSummaryButton() {
+      return this.selectedRequests.length > 0;
     },
     paginatedData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       return this.data.slice(startIndex, startIndex + this.pageSize);
     },
+    totalPages() {
+      return Math.ceil(this.data.length / this.pageSize);
+    },
   },
   methods: {
+    itemValueByIndex(item, colIndex) {
+      const values = Object.values(item);
+      return values[colIndex] !== undefined ? values[colIndex] : '';
+    },
+    showCheckbox(item) {
+      return this.domain === 'request' && this.userRole === 'Finance Management Employee' && item.Status === 'Đã duyệt';
+    },
     itemValueByIndex(item, colIndex) {
       const values = Object.values(item);
       return values[colIndex] !== undefined ? values[colIndex] : '';
@@ -216,7 +247,12 @@ export default {
         return "fa fa-hourglass-half";
       }
       return "fa fa-times-circle";
-    }
+    },
+    createSummary() {
+      // Logic để tạo phiếu tổng hợp từ selectedRequests
+      console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
+      // Bạn có thể thêm logic để gọi API hoặc điều hướng đến trang tạo phiếu tổng hợp
+    },
 
   },
  

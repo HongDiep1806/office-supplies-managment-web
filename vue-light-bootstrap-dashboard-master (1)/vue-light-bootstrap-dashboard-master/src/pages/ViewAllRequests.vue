@@ -1,4 +1,4 @@
-<template>
+<!-- <template>
   <div class="content">
     <div class="container-fluid">
       <div class="row">
@@ -26,9 +26,54 @@
       </div>
     </div>
   </div>
+</template> -->
+<template>
+  <div class="content">
+    <div class="container-fluid">
+      <div class="row">
+        <div class="col-12">
+          <card class="strpied-tabled-with-hover" body-classes="table-full-width table-responsive">
+            <template slot="header">
+              <div style="display: flex; justify-content: space-between; padding: 0px 15px;">
+                <div>
+                  <h4 class="card-title">Danh sách Phiếu yêu cầu</h4>
+                  <p class="card-category">Danh sách các yêu cầu đã tạo</p>
+                </div>
+                <div>
+                  <button
+                    v-if="userRole !== 'Finance Management Employee' && userRole !== 'Dep Leader' && userRole !== 'Sup Leader'"
+                    class="btn btn-info btn-fill float-right" @click="navigateToCreateRequest">
+                    Tạo mới
+                  </button>
+                  <button
+                    v-if="userRole === 'Finance Management Employee' && selectedRequests.length > 0"
+                    class="btn btn-success btn-fill float-right ml-2"
+                    @click="navigateToCreateSummaryRequest">
+                    Tạo mới phiếu tổng hợp
+                  </button>
+                </div>
+              </div>
+            </template>
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
+              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :canView="true" :apiURL="'https://localhost:7162/Request'">
+              <template v-slot:custom-column="{ row }">
+                <input
+                  v-if="userRole === 'Finance Management Employee' && row.Status === 'Đã duyệt'"
+                  type="checkbox"
+                  :value="row.requestID"
+                  v-model="selectedRequests"
+                />
+              </template>
+            </l-table>
+          </card>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
-<script>
+<!-- <script>
 import axios from 'axios';
 import jwtDecode from 'jwt-decode'; // Giải mã token để lấy userID
 import LTable from 'src/components/Table.vue';
@@ -128,6 +173,98 @@ export default {
     this.fetchRequestData(); // Gọi API sau khi lấy được userID
   }
 };
+</script> -->
+<script>
+import axios from 'axios';
+import LTable from 'src/components/Table.vue';
+import Card from 'src/components/Cards/Card.vue';
+
+export default {
+  components: {
+    LTable,
+    Card
+  },
+  data() {
+    return {
+      table1: {
+        columns: ['Chọn', 'STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền', 'Trạng thái'],
+        data: [],
+      },
+      userID: null,
+      userRole: '',
+      department: '',
+      selectedRequests: [] // Mảng chứa các phiếu được chọn
+    };
+  },
+  methods: {
+    async fetchRequestData() {
+      try {
+        const token = localStorage.getItem('authToken');
+        let response;
+
+        if (this.userRole === 'Dep Leader') {
+          response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 100000
+          });
+        } else if (this.userRole === 'Finance Management Employee') {
+          response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
+            headers: { Authorization: `Bearer ${token}` },
+            timeout: 100000
+          });
+        }
+
+        console.log("Dữ liệu gốc API:", response.data);
+        if (response && Array.isArray(response.data)) {
+          this.table1.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+            .map((item, index) => ({
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }).replace(',', ''),
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              Status: (() => {
+                if (this.userRole === 'Dep Leader') {
+                  if (!item.isProcessedByDepLead) return "Chưa duyệt";
+                  if (item.isApprovedByDepLead) return "Đã duyệt";
+                  return "Không duyệt";
+                } else if (this.userRole === 'Finance Management Employee') {
+                  if (item.isApprovedByDepLead && !item.isProcessedByDepLead) return "Không duyệt";
+                  if (item.isApprovedByDepLead && item.isApprovedBySupLead) return "Đã duyệt";
+                  return "Chưa duyệt";
+                }
+                return "Không xác định";
+              })()
+            }));
+          console.log("Dữ liệu bảng:", this.table1.data);
+        } else {
+          console.error('Định dạng phản hồi không hợp lệ:', response);
+        }
+      } catch (error) {
+        console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
+      }
+    },
+    navigateToCreateRequest() {
+      this.$router.push('/admin/createrequest');
+    },
+    navigateToCreateSummaryRequest() {
+      this.$router.push({ path: '/admin/createsummaryrequest', query: { selected: this.selectedRequests.join(',') } });
+    }
+  },
+  mounted() {
+    this.userID = localStorage.getItem('userId');
+    this.userRole = localStorage.getItem('userRole');
+    this.department = localStorage.getItem('department');
+    this.fetchRequestData();
+  }
+};
 </script>
+
 
 <style></style>
