@@ -220,6 +220,34 @@ export default {
         console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
       }
     },
+    async updateTicket() {
+    try {
+      const token = localStorage.getItem('authToken');
+      const requestId = this.$route.params.id;
+      if (this.userRole === 'Dep Leader') {
+        const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Không duyệt thành công" + response.data);
+        this.notifySuccess('top', 'right');
+        this.$router.push('/admin/view-all-request');
+      } else if (this.userRole === 'Finance Management Employee') {
+        const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
+        console.log("Không duyệt thành công" + response.data);
+        this.notifySuccess('top', 'right');
+        this.$router.push('/admin/view-all-request');
+      }
+    } catch (error) {
+      console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
+    }
+  },
+    
   },
 };
 </script>
