@@ -68,7 +68,8 @@
                     </button> -->
           <div>
             <label for="totalAmount">Tổng cộng</label>
-            <base-input type="text" v-model="formattedTotalAmount" readonly></base-input>
+            <p class="total-amount-input">{{ formattedTotalAmount }}</p>
+            <!-- <base-input type="text" readonly class="total-amount-input"><p>{{ formattedTotalAmount }}</p></base-input> -->
           </div>
         </div>
         <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
@@ -226,13 +227,14 @@ export default {
 
 <style scoped>
 .total-amount-input {
-  color: white;
-  border: none;
+  border: 1px solid #ccc;
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 16px;
   width: 150px;
   text-align: center !important;
+  background-color: #F5F5F5;
+  color: #888888;
 }
 
 .total-amount-input:focus {
