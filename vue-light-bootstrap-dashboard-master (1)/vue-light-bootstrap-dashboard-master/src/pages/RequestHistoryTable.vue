@@ -79,7 +79,9 @@ export default {
                     return "Đã duyệt";
                   }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
                     return "Không duyệt";
-                  }else if(!item.isProcessedBySupLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
+                  }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
+                    return "Không duyệt";                 
+                  }else if(!item.isProcessedByDepLead && !item.isApprovedByDepLead && item.isApprovedBySupLead){
                     return "Không duyệt";                 
                   }
                 }               

@@ -94,10 +94,12 @@ export default {
                     return "Không duyệt";
                   }
                 }else if(this.userRole === 'Finance Management Employee') {
-                  if(item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Chưa duyệt";
+                  if(item.isApprovedByDepLead && !item.isProcessedByDepLead) {
+                    return "Không duyệt";
                   }else if(item.isApprovedByDepLead && item.isApprovedBySupLead) {
                     return "Đã duyệt";
+                  } else if(item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                    return "Chưa duyệt";
                   }
                 }
                 return "Không xác định"; // Trường hợp mặc định
