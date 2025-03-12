@@ -86,11 +86,13 @@ export default {
               'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
               Status: (() => {
                 if (this.userRole === 'Dep Leader') {
-                  if (!item.isProcessedByDepLead) {
+                  if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
                     return "Chưa duyệt";
                   } else if (item.isProcessedByDepLead && item.isApprovedByDepLead) {
                     return "Đã duyệt";
-                  } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
+                  } else if (!item.isProcessedByDepLead && item.isApprovedByDepLead) {
+                    return "Không duyệt";
+                  } else if (!item.isProcessedByDepLead && !item.isApprovedByDepLead) {
                     return "Không duyệt";
                   }
                 }else if(this.userRole === 'Finance Management Employee') {
