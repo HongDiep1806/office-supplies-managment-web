@@ -68,7 +68,8 @@
                     </button> -->
           <div>
             <label for="totalAmount">Tổng cộng</label>
-            <base-input type="text" v-model="formattedTotalAmount" readonly></base-input>
+            <p class="total-amount-input">{{ formattedTotalAmount }}</p>
+            <!-- <base-input type="text" readonly class="total-amount-input"><p>{{ formattedTotalAmount }}</p></base-input> -->
           </div>
         </div>
         <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
@@ -165,7 +166,7 @@ export default {
   methods: {
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Duyệt phiếu yêu cầu thành công</span>`,
+        message: `<span>Cập nhật phiếu yêu cầu thành công</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -174,7 +175,7 @@ export default {
     },
     async notifyError(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Duyệt phiếu yêu cầu thất bại</span>`,
+        message: `<span>Cập nhật phiếu yêu cầu thất bại</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -254,13 +255,14 @@ export default {
 
 <style scoped>
 .total-amount-input {
-  color: white;
-  border: none;
+  border: 1px solid #ccc;
   padding: 8px 12px;
   border-radius: 4px;
   font-size: 16px;
   width: 150px;
   text-align: center !important;
+  background-color: #F5F5F5;
+  color: #888888;
 }
 
 .total-amount-input:focus {
