@@ -72,7 +72,7 @@ export default {
               Status: (() => {
                 if (this.userRole === 'Employee'|| this.userRole === 'Finance Management Employee') {
                   if (!item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Chưa duyệt";
+                    return "Không duyệt";
                   } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
                     return "Đang xử lý";
                   }else if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
@@ -86,7 +86,7 @@ export default {
                       return "Đang xử lý";
                     }
                   }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Không duyệt";
+                    return "Chưa duyệt";
                   }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
                     return "Không duyệt";                 
                   }else if(!item.isProcessedByDepLead && !item.isApprovedByDepLead && item.isApprovedBySupLead){

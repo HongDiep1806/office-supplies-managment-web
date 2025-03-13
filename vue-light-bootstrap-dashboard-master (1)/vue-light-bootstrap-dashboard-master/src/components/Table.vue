@@ -241,6 +241,7 @@ export default {
       return "fa fa-times-circle";
     },
     createSummary() {
+      this.$router.push({ name: 'Create Summary', params: {requestIds: this.selectedRequests.join(',')  } });
       console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
     },
 
