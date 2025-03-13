@@ -1,5 +1,7 @@
 <template>
   <div>
+    <button v-if="showCreateSummaryButton" @click="createSummary" class="btn btn-info btn-fill float-right"
+      style="position: absolute; top: 0; right: 0;min-width: fit-content; margin: 2%;">Tạo Phiếu Tổng Hợp</button>
     <table class="table">
       <thead>
         <slot name="columns">
@@ -9,33 +11,40 @@
             <th v-if="displayActions" style="color: white;">Thao tác</th>
           </tr>
         </slot>
+
       </thead>
       <tbody>
-        <tr v-for="(item, rowIndex) in paginatedData" :key="rowIndex">
+        <tr v-for="(item, rowIndex, column) in paginatedData" :key="rowIndex">
+
           <td>{{ (currentPage - 1) * pageSize + rowIndex + 1 }}</td>
           <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
             {{ itemValueByIndex(item, colIndex + 1) }}
           </td>
 
-          <!-- Status Column (Conditional) -->
-          <td v-if="displayStatus && domain === 'request'">
+          <td v-if="displayStatus && (domain === 'request'|| domain==='summary')">
             <span :class="['status-badge', getStatusClass(item)]" style="min-width: 50px;">
               <i :class="getStatusIcon(item)"></i> {{ getStatusText(item) }}
             </span>
           </td>
 
-
           <td style="display: flex; justify-content: space-between; width: 50%;" v-if="displayActions">
             <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
               <i class="fa fa-eye"></i>
             </button>
-            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm" v-if="(item.Status === 'Chưa duyệt' &&  domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole==='Finance Management Employee'">
-              <i class="fa fa-edit"></i>    
+            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm"
+              v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole === 'Finance Management Employee'">
+              <i class="fa fa-edit"></i>
             </button>
-            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm" v-if="(item.Status==='Chưa duyệt' &&  domain === 'request' && userRole === 'Employee')|| (domain === 'product' && userRole==='Finance Management Employee')">
+            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm"
+              v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || (domain === 'product' && userRole === 'Finance Management Employee')">
               <i class="fa fa-trash"></i>
             </button>
+            <div v-if="showCheckboxColumn" class="icon btn-sm">
+              <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
+                v-show="item.Status === 'Đã duyệt'" class="icon"/>
+            </div>
           </td>
+        
         </tr>
       </tbody>
     </table>
@@ -53,7 +62,6 @@
         </li>
       </ul>
     </nav>
-    <!-- Dialog xác nhận xóa -->
     <div v-if="dialog" class="dialog-overlay">
       <div class="dialog-box">
         <p>Bạn có chắc chắn muốn xóa không?</p>
@@ -95,19 +103,34 @@ export default {
       notifications: {
         topCenter: false
       },
-      userRole: localStorage.getItem('userRole'), 
+      userRole: localStorage.getItem('userRole'),
+      selectedRequests: [],
+
     };
   },
   computed: {
-    totalPages() {
-      return Math.ceil(this.data.length / this.pageSize);
+    showCheckboxColumn() {
+      return this.domain === 'request' && this.userRole === 'Finance Management Employee';
+    },
+    showCreateSummaryButton() {
+      return this.selectedRequests.length > 0;
     },
     paginatedData() {
       const startIndex = (this.currentPage - 1) * this.pageSize;
       return this.data.slice(startIndex, startIndex + this.pageSize);
     },
+    totalPages() {
+      return Math.ceil(this.data.length / this.pageSize);
+    },
   },
   methods: {
+    itemValueByIndex(item, colIndex) {
+      const values = Object.values(item);
+      return values[colIndex] !== undefined ? values[colIndex] : '';
+    },
+    showCheckbox(item) {
+      return this.domain === 'request' && this.userRole === 'Finance Management Employee' && item.Status === 'Đã duyệt';
+    },
     itemValueByIndex(item, colIndex) {
       const values = Object.values(item);
       return values[colIndex] !== undefined ? values[colIndex] : '';
@@ -120,7 +143,7 @@ export default {
     navigateToEditForm(item) {
       if (this.domain === 'product') {
         this.$router.push({ name: 'Edit Product', params: { id: item.productID } });
-      }else if (this.domain === 'request') {
+      } else if (this.domain === 'request') {
         this.$router.push({ name: 'Edit Request', params: { id: item.requestID } });
       }
     },
@@ -134,46 +157,46 @@ export default {
       this.dialog = true;
     },
     async confirmDelete() {
-  if (this.domain === 'product') {
-    if (!this.itemToDelete) return;
-    try {
-      const productId = this.itemToDelete.productID;
-      await axios.delete(`${this.apiURL}/${productId}`);
+      if (this.domain === 'product') {
+        if (!this.itemToDelete) return;
+        try {
+          const productId = this.itemToDelete.productID;
+          await axios.delete(`${this.apiURL}/${productId}`);
 
-      const index = this.data.findIndex(product => product.productID === productId);
-      if (index !== -1) {
-        this.data.splice(index, 1);
+          const index = this.data.findIndex(product => product.productID === productId);
+          if (index !== -1) {
+            this.data.splice(index, 1);
+          }
+
+          this.dialog = false;
+          this.notifySuccess('top', 'right');
+
+        } catch (error) {
+          console.error("Delete error:", error);
+          this.dialog = false;
+          this.notifyError('top', 'right');
+        }
+      } else if (this.domain === 'request') {
+        if (!this.itemToDelete) return;
+        try {
+          const requestId = this.itemToDelete.requestID; // Sửa ở đây
+          await axios.delete(`${this.apiURL}/${requestId}`); // Sửa ở đây
+
+          const index = this.data.findIndex(r => r.requestID === requestId); // Sửa ở đây
+          if (index !== -1) {
+            this.data.splice(index, 1);
+          }
+
+          this.dialog = false;
+          this.notifySuccess('top', 'right');
+
+        } catch (error) {
+          console.error("Delete error:", error);
+          this.dialog = false;
+          this.notifyError('top', 'right');
+        }
       }
-
-      this.dialog = false;
-      this.notifySuccess('top', 'right');
-
-    } catch (error) {
-      console.error("Delete error:", error);
-      this.dialog = false;
-      this.notifyError('top', 'right');
-    }
-  } else if (this.domain === 'request') {
-    if (!this.itemToDelete) return;
-    try {
-      const requestId = this.itemToDelete.requestID; // Sửa ở đây
-      await axios.delete(`${this.apiURL}/${requestId}`); // Sửa ở đây
-
-      const index = this.data.findIndex(r => r.requestID === requestId); // Sửa ở đây
-      if (index !== -1) {
-        this.data.splice(index, 1);
-      }
-
-      this.dialog = false;
-      this.notifySuccess('top', 'right');
-
-    } catch (error) {
-      console.error("Delete error:", error);
-      this.dialog = false;
-      this.notifyError('top', 'right');
-    }
-  }
-},
+    },
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: `<span>Xóa sản phẩm thành công</span>`,
@@ -193,37 +216,70 @@ export default {
       });
     },
     getStatusText(item) {
-      console.log("log trong table"+ item.Status);
+      console.log("log trong table" + item.Status);
       return item.Status;
     },
     getStatusClass(item) {
-      if (item.Status==="Đã duyệt") {
+      if (item.Status === "Đã duyệt") {
         return "status-approved";
-      }else if(item.Status==="Đang xử lý"){
+      } else if (item.Status === "Đang xử lý") {
         return "status-pending";
-      }else if(item.Status==="Không duyệt"){
+      } else if (item.Status === "Không duyệt") {
         return "status-rejected";
-      }else if(item.Status==="Chưa duyệt"){
+      } else if (item.Status === "Chưa duyệt") {
         return "status-loading";
       }
     },
     getStatusIcon(item) {
-      if (item.Status==="Đã duyệt") {
+      if (item.Status === "Đã duyệt") {
         return "fa fa-check-circle";
-      }else if(item.Status==="Chưa duyệt"){
+      } else if (item.Status === "Chưa duyệt") {
         return "fa fa-spinner";
-      }else if(item.Status==="Đang xử lý"){
+      } else if (item.Status === "Đang xử lý") {
         return "fa fa-hourglass-half";
       }
       return "fa fa-times-circle";
-    }
+    },
+    createSummary() {
+      this.$router.push({ name: 'Create Summary', params: {requestIds: this.selectedRequests.join(',')  } });
+      console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
+    },
 
   },
- 
+
 };
 </script>
 
 <style scoped>
+input[type="checkbox"] {
+  width: 100%; /* Kích thước bằng icon view */
+  height: 100%; /* Kích thước bằng icon view */
+  border: 2px solid #ccc; /* Viền */
+  border-radius: 4px;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  outline: none;
+  position: relative;
+}
+
+input[type="checkbox"]:checked {
+  background-color: rgb(220, 68, 5);
+  border-color: rgb(220, 68, 5);
+}
+
+input[type="checkbox"]:checked::before {
+  content: '\f00c';
+  font-family: 'Font Awesome 5 Free';
+  font-weight: 900;
+  font-size: 14px; /* Điều chỉnh kích thước icon check nếu cần */
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
 .status-badge {
   display: inline-flex;
   align-items: center;
@@ -250,6 +306,7 @@ export default {
   background-color: #dc3545;
   color: white;
 }
+
 .status-loading {
   background-color: #17a2b8;
   color: white;
@@ -272,7 +329,8 @@ export default {
 tbody tr {
   transition: box-shadow 0.2s ease-in-out;
 }
-td{
+
+td {
   border: none !important;
 }
 

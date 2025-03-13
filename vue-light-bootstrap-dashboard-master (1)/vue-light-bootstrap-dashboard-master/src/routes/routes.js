@@ -19,6 +19,8 @@ import ViewRequestDetails from '../pages/ViewRequestDetails.vue'
 import EditRequest from '../pages/EditRequest.vue'
 import RequestHistoryTable from '../pages/RequestHistoryTable.vue'
 import ViewAllRequests from '../pages/ViewAllRequests.vue'
+import CreateSummary from '../pages/CreateSummary.vue'
+import SummaryTable from '../pages/SummaryTable.vue'
 const routes = [
   {
     path: '/',
@@ -59,9 +61,9 @@ const routes = [
         meta: { requiresAuth: true }
       },
       {
-        path: 'typography',
-        name: 'Typography',
-        component: Typography,
+        path: 'summary-table',
+        name: 'Summary Table',
+        component: SummaryTable,
         meta: { requiresAuth: true }
       },
       {
@@ -106,6 +108,7 @@ const routes = [
         component: CreateRequest,
         meta: { requiresAuth: true }
       },
+      
       {
         path: 'viewrequest/:id',
         name: 'View Request',
@@ -123,7 +126,13 @@ const routes = [
         name: 'View All Request',
         component: ViewAllRequests,
         meta: {requiresAuth: true}
-      }
+      },
+      {
+        path: 'createsummary/:requestIds',
+        name: 'Create Summary',
+        component: CreateSummary,
+        meta: {requiresAuth: true}
+      },
       
     ]
   },

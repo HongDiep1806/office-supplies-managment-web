@@ -18,7 +18,7 @@
         <i class="nc-icon nc-notes"></i>
         <p>QL Phiếu yêu cầu</p>
       </sidebar-link>
-      <sidebar-link to="/admin/typography">
+      <sidebar-link to="/admin/summary-table">
         <i class="nc-icon nc-paper-2"></i>
         <p>QL Phiếu tổng hợp</p>
       </sidebar-link>
