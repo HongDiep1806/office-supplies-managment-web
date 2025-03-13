@@ -21,7 +21,7 @@
             {{ itemValueByIndex(item, colIndex + 1) }}
           </td>
 
-          <td v-if="displayStatus && domain === 'request'">
+          <td v-if="displayStatus && (domain === 'request'|| domain==='summary')">
             <span :class="['status-badge', getStatusClass(item)]" style="min-width: 50px;">
               <i :class="getStatusIcon(item)"></i> {{ getStatusText(item) }}
             </span>
