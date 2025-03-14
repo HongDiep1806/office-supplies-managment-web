@@ -52,7 +52,7 @@ export default {
     };
   },
   methods: {
-    
+
     async fetchRequestData() {
       try {
         const token = localStorage.getItem('authToken');
@@ -93,22 +93,28 @@ export default {
                   } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
                     return "Không duyệt";
                   }
-                }else if(this.userRole === 'Finance Management Employee') {
-                  if(item.isApprovedByDepLead && !item.isProcessedByDepLead) {
-                    return "Không duyệt";
-                  }else if(item.isApprovedByDepLead && item.isApprovedBySupLead) {
-                    return "Đã duyệt";
-                  } else if(item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Chưa duyệt";
+                } else if (this.userRole === 'Finance Management Employee') {
+                  if (!item.isCollectedInSummary) {
+                    if (item.isApprovedByDepLead && !item.isProcessedByDepLead) {
+                      return "Không duyệt";
+                    } else if (item.isApprovedByDepLead && item.isApprovedBySupLead) {
+                      return "Đã duyệt";
+                    } else if (item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Chưa duyệt";
+                    }
+                  } else {
+                    return "Đã tổng hợp";
                   }
+
                 }
                 return "Không xác định"; // Trường hợp mặc định
-              })()
+              })(),
+              IsCollectedInSummary: item.isCollectedInSummary
 
             }
-            
-          ));
-          console.log("table data",this.table1.data);  
+
+            ));
+          console.log("table data", this.table1.data);
         } else {
           console.error('Unexpected response format:', response);
         }
@@ -117,6 +123,7 @@ export default {
       }
     },
     navigateToCreateRequest() {
+
       this.$router.push('/admin/createrequest');
     }
   },

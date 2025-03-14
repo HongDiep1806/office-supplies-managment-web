@@ -21,6 +21,7 @@ import RequestHistoryTable from '../pages/RequestHistoryTable.vue'
 import ViewAllRequests from '../pages/ViewAllRequests.vue'
 import CreateSummary from '../pages/CreateSummary.vue'
 import SummaryTable from '../pages/SummaryTable.vue'
+import ViewSummaryDetails from '../pages/ViewSummaryDetails.vue'
 const routes = [
   {
     path: '/',
@@ -134,6 +135,12 @@ const routes = [
         meta: {requiresAuth: true}
       },
       
+      {
+        path: 'viewsummary/:summaryId',
+        name: 'View Summary',
+        component: ViewSummaryDetails,
+        meta: {requiresAuth: true}
+      }
     ]
   },
   { path: '*', component: NotFound }
