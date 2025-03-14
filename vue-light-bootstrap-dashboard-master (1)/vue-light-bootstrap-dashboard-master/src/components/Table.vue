@@ -150,6 +150,8 @@ export default {
     navigateToViewForm(item) {
       if (this.domain === 'request') {
         this.$router.push({ name: 'View Request', params: { id: item.requestID, status: item.Status } });
+      }else if (this.domain === 'summary'){
+        this.$router.push ({ name: 'View Summary', params: { summaryId: item.summaryID } });
       }
     },
     openDeleteDialog(item) {

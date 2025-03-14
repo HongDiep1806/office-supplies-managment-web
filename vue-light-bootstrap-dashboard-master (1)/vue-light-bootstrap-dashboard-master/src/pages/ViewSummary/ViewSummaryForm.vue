@@ -14,25 +14,25 @@
             <span>{{ getUserFullName(summary.userID) }}</span>
           </div>
           <div class="info-item">
-            <label>Phòng ban:</label>
+            <label>Phòng ban: </label>
             <span>{{ getUserDepartment(summary.userID) }}</span>
           </div>
           <div class="info-item">
-            <label>Ngày tạo:</label>
+            <label>Ngày tạo: </label>
             <span>{{ formatDateTime(summary.createdDate) }}</span>
           </div>
           <div class="info-item">
-            <label>Tổng tiền:</label>
+            <label>Tổng tiền: </label>
             <span>{{ formatCurrency(summary.totalPrice) }}</span>
           </div>
-          <div class="info-item">
+          <!-- <div class="info-item">
             <label>Đã xử lý bởi SupLead:</label>
             <span>{{ summary.isProcessedBySupLead ? 'Có' : 'Không' }}</span>
           </div>
           <div class="info-item">
             <label>Đã duyệt bởi SupLead:</label>
             <span>{{ summary.isApprovedBySupLead ? 'Có' : 'Không' }}</span>
-          </div>
+          </div> -->
         </div>
   
         <div class="table-responsive" v-if="requests.length > 0">
@@ -127,6 +127,7 @@ export default {
       requests: [],
       users: {},
       products: [],
+      showApproveButton: false,
     };
   },
   async created() {
@@ -259,5 +260,17 @@ export default {
       }
     },
   },
+  mounted(){
+    const userRole = localStorage.getItem('userRole');  
+    if(userRole==='Sup Leader'){
+      this.showApproveButton = true;  
+    }
+  }
 };
 </script>
+<style scoped>
+span{
+  font-weight: bold;
+  margin-left: 5px;
+}
+</style>
