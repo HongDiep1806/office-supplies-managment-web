@@ -69,11 +69,9 @@ export default {
                             year: 'numeric'
                         }).replace(',', ''),
                         'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-                        Status: (item.isApprovedBySupLead && item.isApprovedByDepLead)
-                            ? "Đã duyệt"
-                            : (!item.isApprovedBySupLead && item.isApprovedByDepLead)
-                                ? "Không duyệt"
-                                : "Chưa duyệt"
+                        Status: item.isProcessedBySupLead
+                            ? (item.isApprovedBySupLead ? "Đã duyệt" : "Không duyệt")
+                            : "Chưa duyệt"
 
                     }));
                     console.log("data sum", this.table.data);
