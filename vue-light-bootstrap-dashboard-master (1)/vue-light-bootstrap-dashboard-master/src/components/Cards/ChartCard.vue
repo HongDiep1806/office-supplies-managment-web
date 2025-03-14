@@ -79,8 +79,8 @@
       },
       animateLineChart() {
         let seq = 0;
-        let durations = 500;
-        let delays = 80;
+        let durations = 20;
+        let delays = 5;
         this.chart.on('draw', (data) => {
           if (data.type === 'line' || data.type === 'area') {
             data.element.animate({
@@ -108,57 +108,81 @@
         seq = 0;
       },
       animateBarChart() {
-        let seq = 0;
-        let durations = 500;
-        let delays = 80;
-        this.chart.on('draw', (data) => {
-          if (data.type === 'bar') {
-            seq++;
-            data.element.animate({
-              opacity: {
-                begin: seq * delays,
-                dur: durations,
-                from: 0,
-                to: 1,
-                easing: 'ease'
-              }
-            });
-          }
-        });
+        // let seq = 0;
+        // let durations = 500;
+        // let delays = 80;
+        // this.chart.on('draw', (data) => {
+        //   if (data.type === 'bar') {
+        //     seq++;
+        //     data.element.animate({
+        //       opacity: {
+        //         begin: seq * delays,
+        //         dur: durations,
+        //         from: 0,
+        //         to: 1,
+        //         easing: 'ease'
+        //       }
+        //     });
+        //   }
+        // });
       },
       animateStackedBarChart() {
-        let seq = 0;
-        let durations = 500;
-        let delays = 80;
-        this.chart.on('draw', (data) => {
-          if (data.type === 'bar') {
-            seq++;
-            data.element.animate({
-              y2: {
-                begin: seq * delays,
-                dur: durations,
-                from: data.y1,
-                to: data.y2,
-                easing: 'easeInOutQuart'
-              },
-              opacity: {
-                begin: seq * delays,
-                dur: durations,
-                from: 0,
-                to: 1,
-                easing: 'ease'
-              }
-            });
-          }
-        });
+        // let seq = 0;
+        // let durations = 500;
+        // let delays = 80;
+        // this.chart.on('draw', (data) => {
+        //   if (data.type === 'bar') {
+        //     seq++;
+        //     data.element.animate({
+        //       y2: {
+        //         begin: seq * delays,
+        //         dur: durations,
+        //         from: data.y1,
+        //         to: data.y2,
+        //         easing: 'easeInOutQuart'
+        //       },
+        //       opacity: {
+        //         begin: seq * delays,
+        //         dur: durations,
+        //         from: 0,
+        //         to: 1,
+        //         easing: 'ease'
+        //       }
+        //     });
+        //   }
+        // });
       }
     },
     async mounted() {
-      this.updateChartId();
-      const Chartist = await import('chartist');
-      this.$Chartist = Chartist.default || Chartist;
-      this.initChart();
-    }
+  this.updateChartId();
+  
+  try {
+    const Chartist = await import('chartist');
+    this.$Chartist = Chartist.default || Chartist;
+
+    this.$nextTick(() => {
+      const chartElement = document.getElementById(this.chartId);
+      if (!chartElement) {
+        console.error(`Element with id ${this.chartId} not found.`);
+        return;
+      }
+
+      this.initChart(); // Khởi tạo biểu đồ lần đầu
+      this.chart.update(this.chartData, this.chartOptions); // Cập nhật dữ liệu ngay sau khi khởi tạo
+
+      const resizeObserver = new ResizeObserver(() => {
+        if (this.$Chartist && this.chart) { 
+          this.chart.update(this.chartData, this.chartOptions); // Cập nhật khi thay đổi kích thước
+        }
+      });
+      resizeObserver.observe(chartElement);
+    });
+  } catch (error) {
+    console.error("Failed to load Chartist:", error);
+  }
+}
+
+
   }
 </script>
 

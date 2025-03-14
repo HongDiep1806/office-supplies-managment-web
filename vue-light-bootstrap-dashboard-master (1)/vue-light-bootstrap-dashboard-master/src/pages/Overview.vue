@@ -18,7 +18,7 @@
         </div>
       </div>
 
-      <div class="row" v-if="userRole==='Sup Leader'">
+      <div class="row" v-if="userRole === 'Sup Leader'">
         <div class="col-xl-3 col-md-6">
           <stats-card>
             <template v-slot:header>
@@ -82,19 +82,16 @@
 
       <div class="row">
         <div class="col-md-12">
-          <chart-card 
-            :chart-data="barChart.data" 
-            :chart-options="barChart.options"
-            chart-type="StackedBar">
+          <chart-card ref="chartCard" :chart-data="barChart.data" :chart-options="barChart.options" chart-type="StackedBar">
             <template v-slot:header>
               <h4 class="card-title">Overviews</h4>
               <p class="card-category">All products including Taxes</p>
             </template>
             <template v-slot:footer>
               <div class="legend">
-                <i class="fa fa-circle text-info"></i> Tesla Model S
-                <i class="fa fa-circle text-danger"></i> BMW 5 Series
-                <i class="fa fa-circle text-warning"></i> Nissan Leaf
+                <i class="fa fa-circle text-info"></i> P. Tổ Chức Hành Chính
+                <i class="fa fa-circle text-danger"></i> P. Sản Xuất Kinh Doanh
+                <i class="fa fa-circle text-warning"></i> P. Dịch Vụ Đào Tạo
               </div>
               <hr>
               <div class="stats">
@@ -112,7 +109,9 @@
               <h4 class="card-title">Lịch sử Phiếu yêu cầu gần đây</h4>
               <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
             </template>
-            <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data" :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
+            <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
+              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
       </div>
@@ -121,19 +120,19 @@
 </template>
 
 <script>
-import ChartCard from 'src/components/Cards/ChartCard.vue'
-import StatsCard from 'src/components/Cards/StatsCard.vue'
-import LTable from 'src/components/Table.vue'
-import Card from 'src/components/Cards/Card.vue'
-import jwtDecode from 'jwt-decode'
-import axios from 'axios'
+import ChartCard from 'src/components/Cards/ChartCard.vue';
+import StatsCard from 'src/components/Cards/StatsCard.vue';
+import LTable from 'src/components/Table.vue';
+import Card from 'src/components/Cards/Card.vue';
+import jwtDecode from 'jwt-decode';
+import axios from 'axios';
 
 export default {
   components: {
     ChartCard,
     StatsCard,
     LTable,
-    Card
+    Card,
   },
   data() {
     return {
@@ -144,40 +143,40 @@ export default {
       department: '',
       permissions: [],
       tableData: {
-      columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
-      data: []
+        columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
+        data: [],
       },
       barChart: {
         data: {
           labels: ['Jan', 'Feb', 'Mar', 'Apr', 'Mai', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
-          series: [
-            [500, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200, 200],
-            [500, 200, 280, 580, 453, 353, 300, 364, 368, 410, 636, 695],
-            [500, 243, 280, 580, 453, 353, 300, 364, 368, 410, 636, 1500],
-            [500, 243, 280, 580, 453, 353, 300, 364, 368, 410, 636, 695]
-          ]
+          series: [],
         },
         options: {
           seriesBarDistance: 10,
           axisX: {
-            showGrid: false
+            showGrid: false,
           },
           height: '245px',
         },
         responsiveOptions: [
-          ['screen and (max-width: 640px)', {
+          ['screen and (max-width: 100%)', {
             seriesBarDistance: 5,
             axisX: {
               labelInterpolationFnc(value) {
-                return value[0]
-              }
-            }
-          }]
-        ]
-      }
+                return value[0];
+              },
+            },
+          }],
+        ],
+      },
+      pendingRequests: 0,
+      approvedRequests: 0,
+      pendingSummaries: 0,
+      approvedSummaries: 0,
+      departments: ['Dịch Vụ Đào Tạo', 'Sản Xuất Kinh Doanh'],
     };
   },
-  mounted() {
+  async mounted() {
     this.updateClock();
     setInterval(this.updateClock, 1000);
 
@@ -189,7 +188,7 @@ export default {
         this.userRole = decoded.Role || 'User';
         this.userID = decoded.sub || 'User';
         this.permissions = decoded.Permission || [];
-        this.department = decoded.Department || 'User'; 
+        this.department = decoded.Department || 'User';
         console.log('User name:', this.userName);
         console.log('User role:', this.userRole);
         localStorage.setItem('userName', this.userName);
@@ -202,8 +201,11 @@ export default {
       }
     }
 
-    if(this.userRole === 'Finance Management Employee' || this.userRole==='Employee') {
-      this.fetchRequestData();
+    if (this.userRole === 'Finance Management Employee' || this.userRole === 'Employee') {
+      await this.fetchRequestData();
+    }
+    if (this.userRole === 'Sup Leader') {
+      await this.fetchReportData();
     }
   },
   methods: {
@@ -212,16 +214,15 @@ export default {
       this.currentTime = now.toLocaleTimeString();
     },
     async fetchRequestData() {
-      if (!this.userID) return; // Nếu không có userID, không gọi API
+      if (!this.userID) return;
 
       try {
-        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`,{timeout:50000});
+        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
 
         this.tableData.data = response.data
-          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
-          .slice(0, 10) // Get only the top 10 elements
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .slice(0, 10)
           .map((item, index) => ({
-            // STT: index + 1,
             requestID: item.requestID,
             'Mã số phiếu': item.requestCode,
             'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
@@ -232,15 +233,66 @@ export default {
               year: 'numeric'
             }).replace(',', ''),
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            Status : item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" :"Chưa duyệt"
+            Status: item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" : "Chưa duyệt"
           }));
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
+    },
+    async fetchReportData() {
+  const currentYear = new Date().getFullYear();
+  this.barChart.data.series = [];
+
+  try {
+    for (const department of this.departments) {
+      const departmentSeries = [];
+
+      for (let month = 0; month < 12; month++) {
+        const startDate = new Date(currentYear, month, 1);
+        const endDate = new Date(currentYear, month + 1, 0);
+
+        const formattedStartDate = startDate.toISOString().split('T')[0];
+        const formattedEndDate = endDate.toISOString().split('T')[0];
+
+        const response = await axios.get('https://localhost:7162/Summary/report', {
+          params: {
+            department: department,
+            startDate: formattedStartDate,
+            endDate: formattedEndDate,
+          },
+        });
+
+        if (typeof response.data === 'number') {
+          departmentSeries.push(response.data);
+        } else {
+          console.error("Dữ liệu không phải là số:", response.data);
+          departmentSeries.push(0);
+        }
+      }
+
+      this.barChart.data.series.push(departmentSeries);
     }
+
+    // Cập nhật biểu đồ sau khi lấy dữ liệu
+    this.$nextTick(() => {
+      this.$refs.chartCard.initChart(); // Gọi lại phương thức khởi tạo biểu đồ
+    });
+
+    console.log("barChart.data.series:", this.barChart.data.series);
+  } catch (error) {
+    console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
   }
+}
+  },
 };
 </script>
+
+<style scoped>
+/* .clock {
+    font-size: 1.2rem;
+    font-weight: bold;
+} */
+</style>
 
 <style scoped>
 /* .clock {
