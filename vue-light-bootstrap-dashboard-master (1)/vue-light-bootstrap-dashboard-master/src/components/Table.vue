@@ -41,7 +41,7 @@
             </button>
             <div v-if="showCheckboxColumn" class="icon btn-sm">
               <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
-                v-show="item.Status === 'Đã duyệt'" class="icon"/>
+                v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false" class="icon"/>
             </div>
           </td>
         
@@ -150,6 +150,8 @@ export default {
     navigateToViewForm(item) {
       if (this.domain === 'request') {
         this.$router.push({ name: 'View Request', params: { id: item.requestID, status: item.Status } });
+      }else if (this.domain === 'summary'){
+        this.$router.push ({ name: 'View Summary', params: { summaryId: item.summaryID } });
       }
     },
     openDeleteDialog(item) {
@@ -228,17 +230,23 @@ export default {
         return "status-rejected";
       } else if (item.Status === "Chưa duyệt") {
         return "status-loading";
+      }else if (item.Status === "Đã tổng hợp"){
+        return "status-collected"
       }
     },
     getStatusIcon(item) {
       if (item.Status === "Đã duyệt") {
-        return "fa fa-check-circle";
-      } else if (item.Status === "Chưa duyệt") {
-        return "fa fa-spinner";
-      } else if (item.Status === "Đang xử lý") {
-        return "fa fa-hourglass-half";
-      }
-      return "fa fa-times-circle";
+    return "fa fa-check-circle";
+  } else if (item.Status === "Chưa duyệt") {
+    return "fa fa-spinner";
+  } else if (item.Status === "Đang xử lý") {
+    return "fa fa-hourglass-half";
+  } else if (item.Status === "Không duyệt") {
+    return "fa fa-times-circle";
+  } else if (item.Status === "Đã tổng hợp") {
+    return "fa fa-archive"; // Icon cho trạng thái đã tổng hợp
+  }
+  return "";
     },
     createSummary() {
       this.$router.push({ name: 'Create Summary', params: {requestIds: this.selectedRequests.join(',')  } });
@@ -310,6 +318,11 @@ input[type="checkbox"]:checked::before {
 .status-loading {
   background-color: #17a2b8;
   color: white;
+}
+.status-collected {
+  background-color: #6c757d; /* Màu xám để thể hiện đã tổng hợp */
+  color: white;
+  font-weight: bold;
 }
 
 .status-badge i {
