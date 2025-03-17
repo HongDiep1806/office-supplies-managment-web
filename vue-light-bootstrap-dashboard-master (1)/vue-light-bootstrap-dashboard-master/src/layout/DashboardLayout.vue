@@ -14,11 +14,11 @@
         <i class="nc-icon nc-notes"></i>
         <p>Lịch sử Phiếu yêu cầu</p>
       </sidebar-link>
-      <sidebar-link to="/admin/view-all-request" v-if="permissions.includes('ViewAllRequests')|| role ==='Finance Management Employee'">
+      <sidebar-link to="/admin/view-all-request" v-if="role ==='Finance Management Employee'|| role ==='Dep Leader'">
         <i class="nc-icon nc-notes"></i>
         <p>QL Phiếu yêu cầu</p>
       </sidebar-link>
-      <sidebar-link to="/admin/summary-table">
+      <sidebar-link to="/admin/summary-table" v-if="role ==='Finance Management Employee' || role ==='Sup Leader'">
         <i class="nc-icon nc-paper-2"></i>
         <p>QL Phiếu tổng hợp</p>
       </sidebar-link>
@@ -50,6 +50,7 @@ import TopNavbar from "./TopNavbar.vue";
 import ContentFooter from "./ContentFooter.vue";
 import DashboardContent from "./Content.vue";
 import MobileMenu from "./MobileMenu.vue";
+import jwtDecode from 'jwt-decode';
 
 export default {
   components: {
@@ -72,8 +73,26 @@ export default {
     },
 
   },
-  mounted() {
-    this.permissions = localStorage.getItem('permissions');
+  async mounted() {
+    // this.permissions = localStorage.getItem('permissions');
+    const token = localStorage.getItem('authToken');
+  if (token) {
+    try {
+      const decoded = jwtDecode(token);
+      this.userName = decoded.name || 'User';
+      this.userRole = decoded.Role || 'User';
+      this.userID = decoded.sub || 'User';
+      this.permissions = decoded.Permission || [];
+      this.department = decoded.Department || 'User';
+      localStorage.setItem('userName', this.userName);
+      localStorage.setItem('userRole', this.userRole);
+      localStorage.setItem('userId', this.userID);
+      localStorage.setItem('permissions', JSON.stringify(this.permissions));
+      localStorage.setItem('department', this.department);
+    } catch (error) {
+      console.error('Invalid token:', error);
+    }
+  }
     this.role = localStorage.getItem('userRole');
 
   }
