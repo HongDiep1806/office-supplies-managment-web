@@ -70,29 +70,56 @@ export default {
               }).replace(',', ''),
               'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
               Status: (() => {
-                if (this.userRole === 'Employee'|| this.userRole === 'Finance Management Employee') {
-                  if (!item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Không duyệt";
-                  } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Đang xử lý";
-                  }else if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
-                    if(item.isSummaryBeProcessed){
-                      if(item.isSummaryBeApproved){
-                        return "Đã duyệt";
+                // if (this.userRole === 'Employee'|| this.userRole === 'Finance Management Employee') {
+                //   if (!item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                //     return "Không duyệt";
+                //   } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                //     return "Đang xử lý";
+                //   }else if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
+                //     if(item.isSummaryBeProcessed){
+                //       if(item.isSummaryBeApproved){
+                //         return "Đã duyệt";
+                //       }else{
+                //         return "Không duyệt";
+                //       }
+                //     }else{
+                //       return "Đang xử lý";
+                //     }
+                //   }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                //     return "Chưa duyệt";
+                //   }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
+                //     return "Không duyệt";                 
+                //   }else if(!item.isProcessedByDepLead && !item.isApprovedByDepLead && item.isApprovedBySupLead){
+                //     return "Không duyệt";                 
+                //   }
+                // }      
+                if (this.userRole === "Employee") {
+                  if (item.isProcessedByDepLead) {
+                    if (item.isApprovedByDepLead) {
+                      if (item.isApprovedBySupLead) {
+                        if(item.isSummaryBeProcessed){
+                          if(item.isCollectedInSummary){
+                            return "Đã duyệt";
+                          }else{
+                            return "Không duyệt";
+                          }
+                        }else{
+                          return "Đang xử lý";
+                        }
                       }else{
-                        return "Không duyệt";
+                        return "Đang xử lý";
                       }
-                    }else{
-                      return "Đang xử lý";
+                    } else {
+                      return "Không duyệt";
                     }
-                  }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                    return "Chưa duyệt";
-                  }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
-                    return "Không duyệt";                 
-                  }else if(!item.isProcessedByDepLead && !item.isApprovedByDepLead && item.isApprovedBySupLead){
-                    return "Không duyệt";                 
+                  } else {
+                    if (item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Không duyệt";
+                    } else if (!item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Chưa duyệt";
+                    }
                   }
-                }               
+                }
               }
               )()
 
