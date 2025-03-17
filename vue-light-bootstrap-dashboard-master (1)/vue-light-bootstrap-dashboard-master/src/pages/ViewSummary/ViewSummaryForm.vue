@@ -14,112 +14,52 @@
           <span>{{ getUserFullName(summary.userID) }}</span>
         </div>
         <div class="info-item">
-          <label>Phòng ban: </label>
+          <label>Phòng ban:</label>
           <span>{{ getUserDepartment(summary.userID) }}</span>
         </div>
         <div class="info-item">
-          <label>Ngày tạo: </label>
+          <label>Ngày tạo:</label>
           <span>{{ formatDateTime(summary.createdDate) }}</span>
         </div>
         <div class="info-item">
-          <label>Tổng tiền: </label>
+          <label>Tổng tiền:</label>
           <span>{{ formatCurrency(summary.totalPrice) }}</span>
         </div>
-        <!-- <div class="info-item">
-            <label>Đã xử lý bởi SupLead:</label>
-            <span>{{ summary.isProcessedBySupLead ? 'Có' : 'Không' }}</span>
-          </div>
-          <div class="info-item">
-            <label>Đã duyệt bởi SupLead:</label>
-            <span>{{ summary.isApprovedBySupLead ? 'Có' : 'Không' }}</span>
-          </div> -->
       </div>
 
-      <div class="table-responsive" v-if="requests.length > 0">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Mã số Phiếu yêu cầu</th>
-              <th>Người thực hiện</th>
-              <th>Phòng ban</th>
-              <th>Ngày thực hiện</th>
-              <th>Chi tiết</th>
-            </tr>
-          </thead>
-          <tbody>
-            <template v-for="(request, index) in requests">
-              <tr>
-                <td>{{ index + 1 }}</td>
-                <td>{{ request.requestCode }}</td>
-                <td>{{ getUserFullName(request.userID) }}</td>
-                <td>{{ getUserDepartment(request.userID) }}</td>
-                <td>{{ formatDateTime(request.createdDate) }}</td>
-                <td>
-                  <button @click.prevent="toggleDetails(request)" class="btn btn-sm btn-info">
-                    {{ request.showDetails ? 'Ẩn' : 'Xem' }}
-                  </button>
-                </td>
-              </tr>
-              <tr v-if="request.showDetails" class="details-row">
-                <td colspan="6">
-                  <div class="details-container">
-                    <div class="details-header">
-                      <div class="details-item">
-                        <label for="createdBy">Người thực hiện</label>
-                        <base-input type="text" :value="getUserFullName(request.userID)" readonly></base-input>
-                      </div>
-                      <div class="details-item">
-                        <label for="department">Phòng ban</label>
-                        <base-input type="text" :value="getUserDepartment(request.userID)" readonly></base-input>
-                      </div>
-                      <div class="details-item">
-                        <label for="ticketNumber">Số phiếu</label>
-                        <base-input type="text" :value="request.requestCode" readonly></base-input>
-                      </div>
-                      <div class="details-item">
-                        <label for="createdDate">Ngày thực hiện</label>
-                        <base-input type="date" :value="formatDate(request.createdDate)" readonly></base-input>
-                      </div>
-                    </div>
-                    <div class="table-responsive">
-                      <table class="table">
-                        <thead>
-                          <tr>
-                            <th>STT</th>
-                            <th>Tên sản phẩm</th>
-                            <th>Đơn vị tính</th>
-                            <th>Số lượng</th>
-                            <th>Đơn giá</th>
-                            <th>Thành tiền</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          <tr v-for="(productRow, index) in getProductRows(request.product_Requests)" :key="index">
-                            <td>{{ index + 1 }}</td>
-                            <td>{{ getProductName(productRow.selectedProduct) }}</td>
-                            <td>{{ productRow.unitCurrency || 'Chưa có' }}</td>
-                            <td>{{ productRow.quantity }}</td>
-                            <td>{{ formatCurrency(productRow.unitPrice) }}</td>
-                            <td>{{ formatCurrency(productRow.totalPrice) }}</td>
-                          </tr>
-                        </tbody>
-                      </table>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+      <div class="request-list" v-if="requests.length > 0">
+        <div v-for="(request, index) in requests" :key="index" class="request-card">
+          <div class="request-header">
+            <span class="request-title">Phiếu yêu cầu: {{ request.requestCode }}</span>
+            <button @click.prevent="toggleDetails(request)" class="toggle-button">
+              {{ request.showDetails ? 'Ẩn' : 'Xem' }}
+            </button>
+          </div>
+          <div v-if="request.showDetails" class="request-details">
+            <div class="request-info">
+              <div><strong>Người thực hiện:</strong> {{ getUserFullName(request.userID) }}</div>
+              <div><strong>Phòng ban:</strong> {{ getUserDepartment(request.userID) }}</div>
+              <div><strong>Ngày thực hiện:</strong> {{ formatDateTime(request.createdDate) }}</div>
+            </div>
+            <div class="product-list">
+              <div v-for="(productRow, idx) in getProductRows(request.product_Requests)" :key="idx" class="product-item">
+                <div class="product-name">{{ getProductName(productRow.selectedProduct) }}</div>
+                <div class="product-meta">
+                  <span><strong>ĐVT:</strong> {{ productRow.unitCurrency || 'Chưa có' }}</span>
+                  <span><strong>SL:</strong> {{ productRow.quantity }}</span>
+                  <span><strong>Đơn giá:</strong> {{ formatCurrency(productRow.unitPrice) }}</span>
+                  <span><strong>Thành tiền:</strong> {{ formatCurrency(productRow.totalPrice) }}</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
-      <button type="button" class="btn btn-info btn-fill float-right" @click.prevent="updateSummary(true)"
-        v-if="showApproveButton">
+
+      <button type="button" class="btn btn-info btn-fill float-right" @click.prevent="updateSummary(true)" v-if="showApproveButton">
         Duyệt phiếu tổng hợp
       </button>
-
-      <button type="button" class="btn btn-danger btn-fill float-right" @click.prevent="updateSummary(false)"
-        style="margin-right: 10px;" v-if="showApproveButton">
+      <button type="button" class="btn btn-danger btn-fill float-right" @click.prevent="updateSummary(false)" style="margin-right: 10px;" v-if="showApproveButton">
         Không duyệt phiếu
       </button>
     </form>
@@ -301,7 +241,7 @@ export default {
     },
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Cập nhật phiếu tổng hợp thành công</span>`,
+        message: <span>Cập nhật phiếu tổng hợp thành công</span>,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -310,7 +250,7 @@ export default {
     },
     async notifyError(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Cập nhật phiếu tổng hợp thất bại</span>`,
+        message: <span>Cập nhật phiếu tổng hợp thất bại</span>,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -336,8 +276,67 @@ export default {
 };
 </script>
 <style scoped>
-span {
+.summary-info {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.info-item {
+  flex: 1;
+  min-width: 200px;
+}
+
+.request-list {
+  margin-top: 20px;
+}
+
+.request-card {
+  border: 1px solid #ddd;
+  border-radius: 10px;
+  padding: 15px;
+  margin-bottom: 15px;
+  background: #f9f9f9;
+}
+
+.request-header {
+  display: flex;
+  justify-content: space-between;
   font-weight: bold;
-  margin-left: 5px;
+  margin-bottom: 10px;
+}
+
+.toggle-button {
+  background: none;
+  border: none;
+  color: blue;
+  cursor: pointer;
+}
+
+.request-details {
+  background: #fff;
+  padding: 10px;
+  border-radius: 5px;
+}
+
+.product-list {
+  margin-top: 10px;
+}
+
+.product-item {
+  background: #eee;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 5px;
+}
+
+.product-name {
+  font-weight: bold;
+}
+
+.product-meta {
+  display: flex;
+  gap: 10px;
+  font-size: 14px;
 }
 </style>

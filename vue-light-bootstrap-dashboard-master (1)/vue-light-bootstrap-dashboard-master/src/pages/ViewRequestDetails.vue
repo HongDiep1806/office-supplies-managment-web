@@ -6,8 +6,8 @@
           <nav aria-label="breadcrumb">
             <ol class="breadcrumb">
               <li class="breadcrumb-item"><router-link to="/admin">Trang chủ</router-link></li>
-              <li class="breadcrumb-item">
-                <router-link :to="requestManagementPath">Quản lí Phiếu yêu cầu</router-link>
+              <li class="breadcrumb-item" v-if="userRole!=='Sup Leader'">
+                <router-link :to="requestManagementPath" >Quản lí Phiếu yêu cầu</router-link>
               </li>
               <li class="breadcrumb-item active">Chi tiết Phiếu yêu cầu</li>
             </ol>
@@ -27,12 +27,13 @@ export default {
   },
   data() {
     return {
-      requestManagementPath: '/admin/request-table', // Giá trị mặc định
+      requestManagementPath: '/admin/request-table', 
+      userRole: ''// Giá trị mặc định
     };
   },
   mounted() {
     const userRole = localStorage.getItem('userRole');
-
+    this.userRole = userRole;
     if (userRole === 'Dep Leader' || userRole === 'Finance Management Employee') {
       this.requestManagementPath = '/admin/view-all-request';
     }
