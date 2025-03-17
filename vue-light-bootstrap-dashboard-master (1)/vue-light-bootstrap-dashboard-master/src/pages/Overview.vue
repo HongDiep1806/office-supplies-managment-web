@@ -94,7 +94,12 @@
               </div>
               <div class="row">
                 <div class="col-md-12">
+<<<<<<< Updated upstream
                   <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right" style="margin-top: 5px;">Lấy Dữ Liệu</button>
+=======
+                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right"
+                    style="margin-top: 5px;">Lấy Dữ Liệu</button>
+>>>>>>> Stashed changes
                 </div>
               </div>
             </template>
@@ -133,9 +138,10 @@ export default {
       department: '',
       permissions: [],
       tableData: {
-        columns: ['STT', 'Mã số phiếu', 'Ngày tạo', 'Tổng tiền'],
+        columns: ['STT', 'Mã số phiếu','Người tạo', 'Ngày tạo', 'Tổng tiền'],
         data: [],
       },
+      token: '',
       startDate: '', // Biến cho ngày bắt đầu
       endDate: '',   // Biến cho ngày kết thúc
       barChart: {
@@ -174,15 +180,22 @@ export default {
     this.updateClock();
     setInterval(this.updateClock, 1000);
 
+<<<<<<< Updated upstream
     // Fetch departments
     await this.fetchDepartments();
 
+=======
+>>>>>>> Stashed changes
     // Gọi API để lấy dữ liệu với endDate là ngày hiện tại
     const datetimenow = new Date().toISOString().split('T')[0];
     this.endDate = datetimenow; // Gán giá trị cho endDate
     await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
 
     const token = localStorage.getItem('authToken');
+<<<<<<< Updated upstream
+=======
+    this.token = token; 
+>>>>>>> Stashed changes
     if (token) {
       try {
         const decoded = jwtDecode(token);
@@ -205,12 +218,15 @@ export default {
       await this.fetchRequestData();
     }
     if (this.userRole === 'Sup Leader') {
+<<<<<<< Updated upstream
       this.departmentColors = {};
 this.departments.forEach((department, index) => {
    this.departmentColors[department] = this.colors[index % this.colors.length];
 });
 console.log("Department Colors:", this.departmentColors);
 
+=======
+>>>>>>> Stashed changes
       await this.fetchReportData();
     }
   },
@@ -232,26 +248,99 @@ console.log("Department Colors:", this.departmentColors);
 },
     async fetchRequestData() {
       if (!this.userID) return;
-
+      let response;
       try {
-        const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
+        if(this.userRole === 'Employee'){
+        response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
+          console.log("data gốc overview test employee: ", response.data);
+        // this.tableData.data = response.data
+        //   .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+        //   .slice(0, 10)
+        //   .map((item) => ({
+        //     requestID: item.requestID,
+        //     'Mã số phiếu': item.requestCode,
+        //     'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+        //       hour: '2-digit',
+        //       minute: '2-digit',
+        //       day: '2-digit',
+        //       month: '2-digit',
+        //       year: 'numeric'
+        //     }).replace(',', ''),
+        //     'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+        //     Status: item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" : "Chưa duyệt"
+        //   }));
+        //   console.log("data test sau khi chuyển", this.tableData.data); 
+        }else if(this.userRole === 'Finance Management Employee'){
+          response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
+                headers: { Authorization: `Bearer ${this.token}` },
+                timeout: 100000
+            });
+        }
+        // 
+        if (response && Array.isArray(response.data)) {
+            const requests = response.data
+                .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)).slice(0,10);
 
-        this.tableData.data = response.data
-          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+            const promises = requests
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
           .slice(0, 10)
-          .map((item) => ({
-            requestID: item.requestID,
-            'Mã số phiếu': item.requestCode,
-            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
-              day: '2-digit',
-              month: '2-digit',
-              year: 'numeric'
-            }).replace(',', ''),
-            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            Status: item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" : "Chưa duyệt"
-          }));
+            .map(async (item, index) => {
+              let userName;
+              if(this.userRole === "Finance Management Employee"){
+                 userName = await this.getUserName(item.userID);
+              }else if(this.userRole === "Employee"){
+                userName = await this.getUserName(this.userID);
+              }
+                return {
+                    requestID: item.requestID,
+                    'Mã số phiếu': item.requestCode,
+                    'Người tạo': userName,
+                    'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        day: '2-digit',
+                        month: '2-digit',
+                        year: 'numeric'
+                    }).replace(',', ''),
+                    'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+                    Status: (() => {
+                if (this.userRole === 'Dep Leader') {
+                  if (!item.isProcessedByDepLead) {
+                    return "Chưa duyệt";
+                  } else if (item.isProcessedByDepLead && item.isApprovedByDepLead) {
+                    return "Đã duyệt";
+                  } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
+                    return "Không duyệt";
+                  }
+                } else if (this.userRole === 'Finance Management Employee') {
+                  if (!item.isCollectedInSummary) {
+                    if (item.isApprovedByDepLead && !item.isProcessedByDepLead) {
+                      return "Không duyệt";
+                    } else if (item.isApprovedByDepLead && item.isApprovedBySupLead) {
+                      return "Đã duyệt";
+                    } else if (item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Chưa duyệt";
+                    }
+                  } else {
+                    return "Đã tổng hợp";
+                  }
+
+                }else if (this.userRole === 'Employee'){
+                  return item.isApprovedBySupLead && item.isApprovedByDepLead ? "Đã duyệt" : item.isApprovedByDepLead && !item.isApprovedBySupLead ? "Đang xử lý" : "Chưa duyệt"
+                }
+                return "Không xác định"; // Trường hợp mặc định
+              })(),
+                    IsCollectedInSummary: item.isCollectedInSummary
+                };
+            });
+
+            this.tableData.data = await Promise.all(promises);
+            console.log("table data", this.tableData.data);
+          
+        } else {
+            console.error('Unexpected response format:', response);
+        }
+        
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
@@ -367,12 +456,100 @@ console.log("Department Colors:", this.departmentColors);
         alert('Vui lòng chọn ít nhất ngày kết thúc.');
       }
     },
+<<<<<<< Updated upstream
+=======
+    async fetchSummariesByDateRange() {
+      const today = new Date();
+      const selectedStartDate = new Date(this.startDate);
+      const selectedEndDate = new Date(this.endDate);
+
+      // Kiểm tra xem ngày bắt đầu và ngày kết thúc có lớn hơn ngày hiện tại không
+      if (selectedStartDate > today || selectedEndDate > today) {
+        alert('Ngày bắt đầu và ngày kết thúc không được lớn hơn ngày hiện tại.');
+        return;
+      }
+
+      // Nếu chỉ có endDate và không có startDate
+      if (!this.startDate && this.endDate) {
+        try {
+          const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+            params: {
+              endDate: this.endDate,
+            },
+          });
+
+          if (response.data && Array.isArray(response.data)) {
+            this.tableData.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .slice(0, 10)
+            .map((item) => ({
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              }).replace(',', ''),
+            }));
+          } else {
+            console.error('API trả về dữ liệu không hợp lệ:', response);
+            alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
+          }
+        } catch (error) {
+          console.error('Lỗi khi gọi API:', error);
+          alert('Lỗi khi gọi API. Vui lòng thử lại.');
+        }
+      } else if (this.startDate && this.endDate) {
+        // Nếu có cả startDate và endDate thì gọi API với cả hai tham số
+        try {
+          const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+            params: {
+              startDate: this.startDate,
+              endDate: this.endDate,
+            },
+          });
+
+          if (response.data && Array.isArray(response.data)) {
+            this.tableData.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .slice(0, 10)
+            .map((item) => ({
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric',
+              }).replace(',', ''),
+            }));
+          } else {
+            // console.error('API trả về dữ liệu không hợp lệ:', response);
+            alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
+          }
+        } catch (error) {
+          // console.error('Lỗi khi gọi API:', error);
+          alert('Lỗi khi gọi API. Vui lòng thử lại.');
+        }
+      } else {
+        alert('Vui lòng chọn ít nhất ngày kết thúc.');
+      }
+    },
+>>>>>>> Stashed changes
     async fetchReportDetailData() {
       try {
         const datetimenow = new Date().toISOString().split('T')[0];
         const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range=${datetimenow}`);
         if (response && response.data && Array.isArray(response.data)) {
-          this.tableData.data = response.data.map((item) => ({
+          this.tableData.data = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .slice(0, 10)
+          .map((item) => ({
             requestID: item.requestID,
             'Mã số phiếu': item.requestCode,
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
@@ -393,6 +570,15 @@ console.log("Department Colors:", this.departmentColors);
         alert('Lỗi khi lấy dữ liệu báo cáo chi tiết. Vui lòng thử lại sau.');
       }
     },
+    async getUserName(userID) {
+    try {
+        const response = await axios.get(`https://localhost:7162/User/getNameById${userID}`);
+        return response.data;
+    } catch (error) {
+        console.log("error getting username", error);
+        return "Không tìm thấy người dùng";
+    }
+}
   },
 };
 </script>
