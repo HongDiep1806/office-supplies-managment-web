@@ -29,7 +29,7 @@ import ViewSummaryForm from './ViewSummary/ViewSummaryForm.vue';
     },
     data() {
       return {
-        requestManagementPath: '/admin/request-table', // Giá trị mặc định
+        requestManagementPath: '/admin/summary-table', 
       };
     },
     mounted() {
