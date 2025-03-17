@@ -52,7 +52,9 @@ export default {
                 console.log("API response:", response.data);
 
                 if (response && Array.isArray(response.data)) {
-                    this.table.data = response.data.map((item, index) => ({
+                    this.table.data = response.data
+                    .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+                    .map((item, index) => ({
                         summaryID: item.summaryID,
                         'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
                             hour: '2-digit',
