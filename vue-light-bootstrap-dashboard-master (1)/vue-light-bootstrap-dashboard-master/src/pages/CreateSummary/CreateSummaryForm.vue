@@ -4,6 +4,26 @@
       <h4 class="card-title">Tạo phiếu tổng hợp</h4>
     </template>
     <form>
+      <div class="row">
+                <div class="col-md-3">
+                    <label for="createdBy">Người thực hiện</label>
+                    <base-input type="text" placeholder="Nhập người thực hiện" v-model="requester"
+                        readonly></base-input>
+                </div>
+                <div class="col-md-3">
+                    <label for="department">Phòng ban</label>
+                    <base-input type="text" placeholder="Nhập phòng ban" v-model="userDepartment" readonly></base-input>
+                </div>
+                <div class="col-md-3">
+                    <label for="ticketNumber">Mã số phiếu</label>
+                    <base-input type="text" v-model="ticketNumber" readonly></base-input>
+                </div>
+                <div class="col-md-3">
+                    <label for="createdDate">Ngày thực hiện</label>
+                    <base-input type="date" v-model="createdDate" readonly></base-input>
+                </div>
+            </div>
+
       <div class="request-list" v-if="requests.length > 0">
         <div v-for="(request, index) in requests" :key="index" class="request-card">
           <div class="request-header">
@@ -68,6 +88,10 @@ export default {
       totalAmount: 0,
       requestIds: [],
       showDetails: false, // Thêm biến showDetails
+      requester: localStorage.getItem('userName'),
+      userDepartment: localStorage.getItem('department'),
+      summaryNumber: '',
+      ticketNumber: '',
     };
   },
   computed: {
@@ -92,6 +116,12 @@ export default {
     await this.fetchRequests();
   },
   methods: {
+    generateTicketNumber() {
+            const today = new Date();
+            const month = String(today.getMonth() + 1).padStart(2, '0');
+            const year = String(today.getFullYear()).slice(-2);
+            return `PTH${year}/${month}/${this.summaryNumber}`;
+        },
     async fetchRequests() {
       try {
         const responses = await Promise.all(
@@ -205,6 +235,7 @@ export default {
       }
 
       const payload = {
+        summaryCode: this.ticketNumber,
         userID: userID,
         requestIDs: requestIDs,
       };
@@ -230,6 +261,10 @@ export default {
         },
       });
       this.products = response.data;
+      const response2 = await axios.get('https://localhost:7162/Summary/count');
+      this.summaryNumber = response2.data;
+      this.ticketNumber = this.generateTicketNumber();
+
     } catch (error) {
       console.error('Lỗi khi lấy danh sách sản phẩm:', error);
     }

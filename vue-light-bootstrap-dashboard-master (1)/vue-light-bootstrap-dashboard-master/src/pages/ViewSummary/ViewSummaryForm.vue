@@ -7,7 +7,7 @@
       <div class="summary-info">
         <div class="info-item">
           <label>Mã phiếu tổng hợp:</label>
-          <span>{{ summary.summaryID }}</span>
+          <span>{{ summary.summaryCode }}</span>
         </div>
         <div class="info-item">
           <label>Người tạo:</label>
