@@ -94,19 +94,27 @@
               <h4 class="card-title">Báo cáo chi tiết Về việc Cấp phát VPP</h4>
               <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
               <div class="row">
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label for="start-date">Ngày bắt đầu:</label>
                   <input type="date" id="start-date" v-model="startDate" class="form-control">
                 </div>
-                <div class="col-md-6">
+                <div class="col-md-4">
                   <label for="end-date">Ngày kết thúc:</label>
                   <input type="date" id="end-date" v-model="endDate" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label for="department">Phòng ban:</label>
+                  <select id="department" v-model="selectedDepartment" class="form-control">
+                    <option value="" disabled>Chọn phòng ban</option>
+                    <option v-for="department in departments" :key="department" :value="department">
+                      {{ department }}
+                    </option>
+                  </select>
                 </div>
               </div>
               <div class="row">
                 <div class="col-md-12">
-                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right"
-                    style="margin-top: 5px;">Lấy Dữ Liệu</button>
+                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right" style="margin-top: 5px;">Lấy Dữ Liệu</button>
                 </div>
               </div>
             </template>
@@ -389,25 +397,26 @@ export default {
       // Nếu chỉ có endDate và không có startDate
       if (!this.startDate && this.endDate) {
         try {
-          const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+          const response = await axios.get(`https://localhost:7162/Request/approved-requests-by-date-range-and-department`, {
             headers: { Authorization: `Bearer ${this.token}` },
             params: {
               endDate: this.endDate,
+              department: this.selectedDepartment, // Thêm phòng ban vào params
             },
           });
 
           const userPromises = response.data
           .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
           .map(item => this.getUserName(item.userID));
-            const userNames = await Promise.all(userPromises);
+          const userNames = await Promise.all(userPromises);
 
-            if (response.data && Array.isArray(response.data)) {
-                this.tableData.data = response.data
-                .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-                .map((item, index) => ({ // Thêm index vào map
-                    requestID: item.requestID,
-                    'Mã số phiếu': item.requestCode,
-                    'Người tạo': userNames[index], // Lấy tên người dùng từ mảng đã giải quyết
+          if (response.data && Array.isArray(response.data)) {
+            this.tableData.data = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+            .map((item, index) => ({ // Thêm index vào map
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Người tạo': userNames[index], // Lấy tên người dùng từ mảng đã giải quyết
               'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -428,19 +437,23 @@ export default {
       } else if (this.startDate && this.endDate) {
         // Nếu có cả startDate và endDate thì gọi API với cả hai tham số
         try {
-          const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+          const response = await axios.get(`https://localhost:7162/Request/approved-requests-by-date-range-and-department`, {
             headers: { Authorization: `Bearer ${this.token}` },
             params: {
               startDate: this.startDate,
               endDate: this.endDate,
+              department: this.selectedDepartment, // Thêm phòng ban vào params
             },
           });
 
           if (response.data && Array.isArray(response.data)) {
-            this.tableData.data = response.data.map((item) => ({
+            const userPromises = response.data.map(item => this.getUserName(item.userID));
+            const userNames = await Promise.all(userPromises);
+
+            this.tableData.data = response.data.map((item, index) => ({
               requestID: item.requestID,
               'Mã số phiếu': item.requestCode,
-              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              'Người tạo': userNames[index], // Use the resolved user names
               'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
                 hour: '2-digit',
                 minute: '2-digit',
@@ -448,19 +461,19 @@ export default {
                 month: '2-digit',
                 year: 'numeric',
               }).replace(',', ''),
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
             }));
           } else {
-            // console.error('API trả về dữ liệu không hợp lệ:', response);
+            console.error('API trả về dữ liệu không hợp lệ:', response);
             alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
           }
         } catch (error) {
-          // console.error('Lỗi khi gọi API:', error);
+          console.error('Lỗi khi gọi API:', error);
           alert('Lỗi khi gọi API. Vui lòng thử lại.');
         }
       } else {
         alert('Vui lòng chọn ít nhất ngày kết thúc.');
       }
-    
     },
     async fetchReportDetailData() {
 
