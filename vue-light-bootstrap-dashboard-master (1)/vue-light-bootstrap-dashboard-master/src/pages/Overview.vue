@@ -177,7 +177,7 @@ export default {
           }],
         ],
       },
-      departments: ['Dịch Vụ Đào Tạo', 'Sản Xuất Kinh Doanh'],
+      departments: ['Dịch Vụ Đào Tạo', 'Sản Xuất Kinh Doanh', 'Tổ Chức Hành Chính'],
     };
   },
   async mounted() {
@@ -241,7 +241,9 @@ export default {
         }
 
         // Lấy danh sách các Promise từ getUserName
-        const userPromises = response.data.map(item => this.getUserName(item.userID));
+        const userPromises = response.data
+        .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+        .map(item => this.getUserName(item.userID));
 
         // Giải quyết tất cả các Promise
         const userNames = await Promise.all(userPromises);
@@ -283,6 +285,34 @@ export default {
                     return "Đã tổng hợp";
                   }
 
+                }else if (this.userRole === 'Employee') {
+                  if (this.userRole === "Employee") {
+                  if (item.isProcessedByDepLead) {
+                    if (item.isApprovedByDepLead) {
+                      if (item.isApprovedBySupLead) {
+                        if(item.isSummaryBeProcessed){
+                          if(item.isCollectedInSummary){
+                            return "Đã duyệt";
+                          }else{
+                            return "Không duyệt";
+                          }
+                        }else{
+                          return "Đang xử lý";
+                        }
+                      }else{
+                        return "Đang xử lý";
+                      }
+                    } else {
+                      return "Không duyệt";
+                    }
+                  } else {
+                    if (item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Không duyệt";
+                    } else if (!item.isApprovedByDepLead && !item.isApprovedBySupLead) {
+                      return "Chưa duyệt";
+                    }
+                  }
+                }
                 }
                 return "Không xác định"; // Trường hợp mặc định
               })(),
@@ -364,7 +394,9 @@ export default {
             },
           });
 
-          const userPromises = response.data.map(item => this.getUserName(item.userID));
+          const userPromises = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .map(item => this.getUserName(item.userID));
             const userNames = await Promise.all(userPromises);
 
             if (response.data && Array.isArray(response.data)) {
