@@ -36,7 +36,7 @@ export default {
     data() {
         return {
             table: {
-                columns: ['STT', 'Ngày tạo', 'Ngày hết hạn', 'Tổng tiền'],
+                columns: ['STT', 'Mã phiếu','Ngày tạo', 'Tổng tiền'],
                 data: [],
             },
         };
@@ -56,6 +56,7 @@ export default {
                     .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
                     .map((item, index) => ({
                         summaryID: item.summaryID,
+                        'Mã phiếu': item.summaryCode,
                         'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
                             hour: '2-digit',
                             minute: '2-digit',
@@ -63,13 +64,7 @@ export default {
                             month: '2-digit',
                             year: 'numeric'
                         }).replace(',', ''),
-                        'Ngày hết hạn': new Date(item.expiredTime).toLocaleString('vi-VN', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                            day: '2-digit',
-                            month: '2-digit',
-                            year: 'numeric'
-                        }).replace(',', ''),
+                        
                         'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
                         Status: item.isProcessedBySupLead
                             ? (item.isApprovedBySupLead ? "Đã duyệt" : "Không duyệt")
