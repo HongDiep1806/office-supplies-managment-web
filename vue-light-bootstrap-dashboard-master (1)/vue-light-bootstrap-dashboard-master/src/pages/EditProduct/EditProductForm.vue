@@ -79,7 +79,8 @@ data() {
     type: ['success', 'danger', 'warning'],
     notifications: {
       topCenter: false
-    }
+    },
+    token: localStorage.getItem('authToken')
   }
 },
 methods: {
@@ -89,7 +90,9 @@ methods: {
   async updateProduct() {
     if (this.product.Name && this.product.Code && this.product.UnitCurrency && this.product.UnitPrice) {
       try {
-        const response = await axios.put(`https://localhost:7162/Product`, this.product);
+        const response = await axios.put(`https://localhost:7162/Product`, this.product, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        });
         
         console.log("Response:", response.data);
         await this.notifySuccess('top', 'right');
@@ -141,7 +144,7 @@ mounted() {
   console.log('Route Params:', id); 
 
   if (id) {
-    axios.get(`https://localhost:7162/Product/${id}`).then((response) => {
+    axios.get(`https://localhost:7162/Product/${id}`, {headers: { Authorization: `Bearer ${this.token}` }}).then((response) => {
       const updatingProduct = response.data;
       this.product.ProductID = updatingProduct.productID;
       this.product.Name = updatingProduct.name;

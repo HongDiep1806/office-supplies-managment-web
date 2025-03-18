@@ -77,9 +77,9 @@ export default {
       users: {},
       products: [],
       showApproveButton: false,
-      userRole:'',
+      userRole: '',
       type: ['success', 'danger', 'warning'],
-
+      token: localStorage.getItem('authToken')
     };
   },
   async created() {
@@ -95,7 +95,9 @@ export default {
   methods: {
     async fetchSummary(summaryId) {
       try {
-        const response = await axios.get(`https://localhost:7162/Summary/${summaryId}`);
+        const response = await axios.get(`https://localhost:7162/Summary/${summaryId}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
         this.summary = response.data;
         const userIds = [this.summary.userID];
         await this.fetchUsers(userIds);
@@ -120,7 +122,9 @@ export default {
     },
     async fetchRequestById(id) {
       try {
-        const response = await axios.get(`https://localhost:7162/Request/getbyid/${id}`);
+        const response = await axios.get(`https://localhost:7162/Request/getbyid/${id}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
         return response.data;
       } catch (error) {
         console.warn(`Lỗi khi lấy request ${id}:`, error);
@@ -143,7 +147,9 @@ export default {
     },
     async fetchUserById(userID) {
       try {
-        const response = await axios.get(`https://localhost:7162/User/getbyid/${userID}`);
+        const response = await axios.get(`https://localhost:7162/User/getbyid/${userID}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
         return response.data;
       } catch (error) {
         console.warn(`Lỗi khi lấy thông tin người dùng ${userID}:`, error);
@@ -200,10 +206,9 @@ export default {
     },
     async fetchProducts() {
       try {
-        const token = localStorage.getItem('authToken');
         const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
           headers: {
-            Authorization: `Bearer ${token}`,
+            Authorization: `Bearer ${this.token}`,
           },
         });
         this.products = response.data;
@@ -221,7 +226,7 @@ export default {
 
         const response = await axios.put('https://localhost:7162/Summary/update', requestData, {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('authToken')}`,
+            Authorization: `Bearer ${this.token}`,
             'Content-Type': 'application/json'
           }
         });
@@ -229,14 +234,12 @@ export default {
         this.summary.isProcessedBySupLead = true;
         this.summary.isApprovedBySupLead = isApproved;
 
-
         this.notifySuccess('top', 'right');
         this.$router.push('/admin/summary-table');
       } catch (error) {
         console.error("Lỗi khi cập nhật phiếu tổng hợp:", error);
         this.notifyError('top', 'right');
         this.$router.push('/admin/summary-table');
-
       }
     },
     async notifySuccess(verticalAlign, horizontalAlign) {
@@ -275,6 +278,7 @@ export default {
   }
 };
 </script>
+
 <style scoped>
 .summary-info {
   display: flex;

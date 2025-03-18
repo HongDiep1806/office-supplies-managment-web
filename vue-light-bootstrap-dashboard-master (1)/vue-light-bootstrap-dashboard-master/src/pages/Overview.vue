@@ -31,9 +31,9 @@
             </template>
             <template v-slot:footer>
               <div class="legend">
-                <i class="fa fa-circle text-info"></i> P. Dịch Vụ Đào Tạo
-                <i class="fa fa-circle text-danger"></i> P. Sản Xuất Kinh Doanh
-                <i class="fa fa-circle text-warning"></i> P. Tổ Chức Hành Chính
+                <i class="fa fa-circle text-info"></i> P. Chuyển đổi số
+                <i class="fa fa-circle text-danger"></i> P. Kế Toán
+                <i class="fa fa-circle text-warning"></i> P. Chăm sóc khách hàng
               </div>
               <hr>
               <div class="stats">
@@ -177,7 +177,7 @@ export default {
           }],
         ],
       },
-      departments: ['Dịch Vụ Đào Tạo', 'Sản Xuất Kinh Doanh', 'Tổ Chức Hành Chính'],
+      departments: ['CDS', 'KT', 'CSKH'],
     };
   },
   async mounted() {
@@ -187,7 +187,8 @@ export default {
     // Gọi API để lấy dữ liệu với endDate là ngày hiện tại
     const datetimenow = new Date().toISOString().split('T')[0];
     this.endDate = datetimenow; // Gán giá trị cho endDate
-    await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
+    
+     // Gọi hàm để fetch dữ liệu
 
     const token = localStorage.getItem('authToken');
     this.token = token;
@@ -197,7 +198,8 @@ export default {
         this.userName = decoded.name || 'User';
         this.userRole = decoded.Role || 'User';
         this.userID = decoded.sub || 'User';
-        this.permissions = decoded.Permission || [];
+        this.permissions = decoded.Permission;
+        console.log(this.permissions);
         this.department = decoded.Department || 'User';
         localStorage.setItem('userName', this.userName);
         localStorage.setItem('userRole', this.userRole);
@@ -208,12 +210,12 @@ export default {
         console.error('Invalid token:', error);
       }
     }
-
-    if (this.userRole === 'Finance Management Employee' || this.userRole === 'Employee'|| this.userRole === 'Dep Leader') {
-      await this.fetchRequestData();
-    }
     if (this.userRole === 'Sup Leader') {
+      await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
       await this.fetchReportData();
+    } 
+    else if (this.userRole === 'Finance Management Employee' || this.userRole === 'Employee'|| this.userRole === 'Dep Leader') {
+      await this.fetchRequestData();
     }
   },
   methods: {
@@ -233,7 +235,7 @@ export default {
           });
         } else if (this.userRole === 'Employee') {
           response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
-        }else if(this.userRole === 'Dep Leader'){
+        } else if(this.userRole === 'Dep Leader'){
           response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
                 headers: { Authorization: `Bearer ${this.token}` },
                 timeout: 100000
@@ -285,8 +287,7 @@ export default {
                     return "Đã tổng hợp";
                   }
 
-                }else if (this.userRole === 'Employee') {
-                  if (this.userRole === "Employee") {
+                } else if (this.userRole === 'Employee') {
                   if (item.isProcessedByDepLead) {
                     if (item.isApprovedByDepLead) {
                       if (item.isApprovedBySupLead) {
@@ -312,7 +313,6 @@ export default {
                       return "Chưa duyệt";
                     }
                   }
-                }
                 }
                 return "Không xác định"; // Trường hợp mặc định
               })(),
@@ -347,6 +347,7 @@ export default {
             const formattedEndDate = endDate.toISOString().split('T')[0];
 
             const response = await axios.get('https://localhost:7162/Summary/report', {
+              headers: { Authorization: `Bearer ${this.token}` },
               params: {
                 department: department,
                 startDate: formattedStartDate,
@@ -389,6 +390,7 @@ export default {
       if (!this.startDate && this.endDate) {
         try {
           const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+            headers: { Authorization: `Bearer ${this.token}` },
             params: {
               endDate: this.endDate,
             },
@@ -427,6 +429,7 @@ export default {
         // Nếu có cả startDate và endDate thì gọi API với cả hai tham số
         try {
           const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range`, {
+            headers: { Authorization: `Bearer ${this.token}` },
             params: {
               startDate: this.startDate,
               endDate: this.endDate,
@@ -457,11 +460,13 @@ export default {
       } else {
         alert('Vui lòng chọn ít nhất ngày kết thúc.');
       }
+    
     },
     async fetchReportDetailData() {
+
       try {
         const datetimenow = new Date().toISOString().split('T')[0];
-        const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range=${datetimenow}`);
+        const response = await axios.get(`https://localhost:7162/Request/requests-in-date-range=${datetimenow}`, {headers: { Authorization: `Bearer ${this.token}`} });
         if (response && response.data && Array.isArray(response.data)) {
           this.tableData.data = response.data.map((item) => ({
             requestID: item.requestID,
@@ -483,6 +488,7 @@ export default {
         console.error('Lỗi khi lấy dữ liệu báo cáo chi tiết:', error);
         alert('Lỗi khi lấy dữ liệu báo cáo chi tiết. Vui lòng thử lại sau.');
       }
+    
     },
   },
 };

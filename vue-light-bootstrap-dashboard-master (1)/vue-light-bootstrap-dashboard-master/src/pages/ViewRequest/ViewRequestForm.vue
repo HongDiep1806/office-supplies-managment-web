@@ -62,14 +62,9 @@
 
       <div class="text-center position-relative">
         <div style="display: flex; flex-direction: row; justify-content: end;">
-          <!-- <button type="button" class="btn btn-add-product" @click="addProductRow"
-                        style="border-color: rgb(220, 68, 5); max-height: fit-content;">
-                        <i class="fa fa-plus" style="color: rgb(220, 68, 5);"></i>
-                    </button> -->
           <div>
             <label for="totalAmount">Tổng cộng</label>
             <p class="total-amount-input">{{ formattedTotalAmount }}</p>
-            <!-- <base-input type="text" readonly class="total-amount-input"><p>{{ formattedTotalAmount }}</p></base-input> -->
           </div>
         </div>
         <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
@@ -108,12 +103,14 @@ export default {
       type: ['success', 'danger', 'warning'],
       userRole: '',
       requestStatus: '',  
-
+      token: localStorage.getItem('authToken')
     };
   },
   async mounted() {
+    this.token = localStorage.getItem('authToken');
+    console.log(this.token);
     const requestId = this.$route.params.id;
-    const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`);
+    const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {headers: { Authorization: `Bearer ${this.token}` }});
     this.userID = request.data.userID;
     this.requestNumber = request.data.requestCode;
     this.ticketNumber = request.data.requestCode;
@@ -121,11 +118,10 @@ export default {
     this.totalAmount = request.data.totalPrice;
     this.requestStatus = this.$route.params.status;
     try {
-      const token = localStorage.getItem('authToken');
       this.userRole = localStorage.getItem('userRole');
       const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
         headers: {
-          Authorization: `Bearer ${token}`,
+          Authorization: `Bearer ${this.token}`,
         },
       });
       this.products = response.data;
@@ -145,7 +141,7 @@ export default {
     });
 
     try {
-      const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`);
+      const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`, {headers: { Authorization: `Bearer ${this.token}` }});
       this.userDepartment = user.data.department;
       this.userName = user.data.fullName;
     } catch (error) {
@@ -153,9 +149,6 @@ export default {
     }
   },
   computed: {
-    // totalAmount() {
-    //   return this.productRows.reduce((sum, product) => sum + product.totalPrice, 0);
-    // },
     formattedTotalAmount() {
       return new Intl.NumberFormat('vi-VN', {
         style: 'currency',
@@ -193,62 +186,58 @@ export default {
     },
     async approveTicket() {
       try {
-        const token = localStorage.getItem('authToken');
         const requestId = this.$route.params.id;
         if (this.userRole === 'Dep Leader') {
-          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, {
+          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, {}, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${this.token}`,
             },
           });
           console.log("thành công" + response.data);
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/view-all-request');
+          this.notifySuccess('top', 'right');
+          this.$router.push('/admin/view-all-request');
         } else if (this.userRole === 'Finance Management Employee') {
-          const token = localStorage.getItem('authToken');
-          const response = await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}`, {
+          const response = await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}`, {}, {
             headers: {
-              Authorization: `Bearer ${token}`,
+              Authorization: `Bearer ${this.token}`,
             },
           });
           console.log("thành công" + response.data);
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/view-all-request');
-
+          this.notifySuccess('top', 'right');
+          this.$router.push('/admin/view-all-request');
         }
-        
       } catch (error) {
         console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
+        this.notifyError('top', 'right');
       }
     },
     async updateTicket() {
-    try {
-      const token = localStorage.getItem('authToken');
-      const requestId = this.$route.params.id;
-      if (this.userRole === 'Dep Leader') {
-        const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Không duyệt thành công" + response.data);
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/view-all-request');
-      } else if (this.userRole === 'Finance Management Employee') {
-        const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        console.log("Không duyệt thành công" + response.data);
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/view-all-request');
+      try {
+        const requestId = this.$route.params.id;
+        if (this.userRole === 'Dep Leader') {
+          const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}`, {}, {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          });
+          console.log("Không duyệt thành công" + response.data);
+          this.notifySuccess('top', 'right');
+          this.$router.push('/admin/view-all-request');
+        } else if (this.userRole === 'Finance Management Employee') {
+          const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}`, {}, {
+            headers: {
+              Authorization: `Bearer ${this.token}`,
+            },
+          });
+          console.log("Không duyệt thành công" + response.data);
+          this.notifySuccess('top', 'right');
+          this.$router.push('/admin/view-all-request');
+        }
+      } catch (error) {
+        console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
+        this.notifyError('top', 'right');
       }
-    } catch (error) {
-      console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
-    }
-  },
-    
+    },
   },
 };
 </script>

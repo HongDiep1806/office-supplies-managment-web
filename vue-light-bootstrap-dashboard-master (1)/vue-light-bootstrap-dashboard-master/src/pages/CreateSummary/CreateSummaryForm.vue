@@ -5,24 +5,23 @@
     </template>
     <form>
       <div class="row">
-                <div class="col-md-3">
-                    <label for="createdBy">Người thực hiện</label>
-                    <base-input type="text" placeholder="Nhập người thực hiện" v-model="requester"
-                        readonly></base-input>
-                </div>
-                <div class="col-md-3">
-                    <label for="department">Phòng ban</label>
-                    <base-input type="text" placeholder="Nhập phòng ban" v-model="userDepartment" readonly></base-input>
-                </div>
-                <div class="col-md-3">
-                    <label for="ticketNumber">Mã số phiếu</label>
-                    <base-input type="text" v-model="ticketNumber" readonly></base-input>
-                </div>
-                <div class="col-md-3">
-                    <label for="createdDate">Ngày thực hiện</label>
-                    <base-input type="date" v-model="createdDate" readonly></base-input>
-                </div>
-            </div>
+        <div class="col-md-3">
+          <label for="createdBy">Người thực hiện</label>
+          <base-input type="text" placeholder="Nhập người thực hiện" v-model="requester" readonly></base-input>
+        </div>
+        <div class="col-md-3">
+          <label for="department">Phòng ban</label>
+          <base-input type="text" placeholder="Nhập phòng ban" v-model="userDepartment" readonly></base-input>
+        </div>
+        <div class="col-md-3">
+          <label for="ticketNumber">Mã số phiếu</label>
+          <base-input type="text" v-model="ticketNumber" readonly></base-input>
+        </div>
+        <div class="col-md-3">
+          <label for="createdDate">Ngày thực hiện</label>
+          <base-input type="date" v-model="createdDate" readonly></base-input>
+        </div>
+      </div>
 
       <div class="request-list" v-if="requests.length > 0">
         <div v-for="(request, index) in requests" :key="index" class="request-card">
@@ -75,7 +74,6 @@
   </card>
 </template>
 
-
 <script>
 import axios from 'axios';
 
@@ -92,6 +90,7 @@ export default {
       userDepartment: localStorage.getItem('department'),
       summaryNumber: '',
       ticketNumber: '',
+      token: localStorage.getItem('authToken')
     };
   },
   computed: {
@@ -117,11 +116,11 @@ export default {
   },
   methods: {
     generateTicketNumber() {
-            const today = new Date();
-            const month = String(today.getMonth() + 1).padStart(2, '0');
-            const year = String(today.getFullYear()).slice(-2);
-            return `PTH${year}/${month}/${this.summaryNumber}`;
-        },
+      const today = new Date();
+      const month = String(today.getMonth() + 1).padStart(2, '0');
+      const year = String(today.getFullYear()).slice(-2);
+      return `PTH${year}/${month}/${this.summaryNumber}`;
+    },
     async fetchRequests() {
       try {
         const responses = await Promise.all(
@@ -140,7 +139,7 @@ export default {
     },
     async fetchRequestById(id) {
       try {
-        const response = await axios.get(`https://localhost:7162/Request/getbyid/${id}`);
+        const response = await axios.get(`https://localhost:7162/Request/getbyid/${id}`, {headers: { Authorization: `Bearer ${this.token}` }});
         return response.data;
       } catch (error) {
         console.warn(`Lỗi khi lấy request ${id}:`, error);
@@ -163,7 +162,7 @@ export default {
     },
     async fetchUserById(userID) {
       try {
-        const response = await axios.get(`https://localhost:7162/User/getbyid/${userID}`);
+        const response = await axios.get(`https://localhost:7162/User/getbyid/${userID}`, {headers: { Authorization: `Bearer ${this.token}` }});
         return response.data;
       } catch (error) {
         console.warn(`Lỗi khi lấy thông tin người dùng ${userID}:`, error);
@@ -176,9 +175,30 @@ export default {
     calculateTotal() {
       this.totalAmount = this.requests.reduce((total, request) => total + (request.totalPrice || 0), 0);
     },
-    createSummary() {
-      console.log('Tạo phiếu tổng hợp với requestIds:', this.requestIds);
-      console.log('Tổng tiền:', this.totalAmount);
+    async createSummary() {
+      const userID = localStorage.getItem('userId');
+      const requestIDs = this.requests.map(request => request.requestID);
+
+      if (!userID || requestIDs.length === 0) {
+        console.error('Không có request hoặc userID để tạo phiếu tổng hợp.');
+        return;
+      }
+
+      const payload = {
+        summaryCode: this.ticketNumber,
+        userID: userID,
+        requestIDs: requestIDs,
+      };
+
+      try {
+        const response = await axios.post('https://localhost:7162/Summary', payload, {
+          headers: { Authorization: `Bearer ${this.token}` }
+        });
+        console.log('Phiếu tổng hợp đã được tạo thành công:', response.data);
+        this.$router.push('/admin/summary-table');
+      } catch (error) {
+        console.error('Lỗi khi tạo phiếu tổng hợp:', error);
+      }
     },
     formatDateTime(dateString) {
       if (!dateString) return "N/A";
@@ -225,52 +245,23 @@ export default {
     formatCurrency(value) {
       return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value || 0);
     },
-    async createSummary() {
-      const userID = localStorage.getItem('userId');
-      const requestIDs = this.requests.map(request => request.requestID);
-
-      if (!userID || requestIDs.length === 0) {
-        console.error('Không có request hoặc userID để tạo phiếu tổng hợp.');
-        return;
-      }
-
-      const payload = {
-        summaryCode: this.ticketNumber,
-        userID: userID,
-        requestIDs: requestIDs,
-      };
-
-      axios.post('https://localhost:7162/Summary', payload)
-        .then(response => {
-          console.log('Phiếu tổng hợp đã được tạo thành công:', response.data);
-          // Xử lý kết quả trả về từ API (ví dụ: hiển thị thông báo thành công)
-          this.$router.push('/admin/summary-table');
-        })
-        .catch(error => {
-          console.error('Lỗi khi tạo phiếu tổng hợp:', error);
-          // Xử lý lỗi (ví dụ: hiển thị thông báo lỗi)
-        });
-    },
   },
   async mounted() {
     try {
-      const token = localStorage.getItem('authToken');
       const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
+        headers: { Authorization: `Bearer ${this.token}` }
       });
       this.products = response.data;
-      const response2 = await axios.get('https://localhost:7162/Summary/count');
+      const response2 = await axios.get('https://localhost:7162/Summary/count', {headers: { Authorization: `Bearer ${this.token}` }});
       this.summaryNumber = response2.data;
       this.ticketNumber = this.generateTicketNumber();
-
     } catch (error) {
       console.error('Lỗi khi lấy danh sách sản phẩm:', error);
     }
   },
 };
 </script>
+
 <style scoped>
 .details-row {
   background-color: #f8f9fa;

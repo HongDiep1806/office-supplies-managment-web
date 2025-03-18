@@ -103,11 +103,12 @@ export default {
             requestNumber: 0,
             totalAmountFromApi: 0,
             request: {},
+            token: localStorage.getItem('authToken')
         };
     },
     async mounted() {
         const requestId = this.$route.params.id;
-        const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`);
+        const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {headers: { Authorization: `Bearer ${this.token}` }});
         this.request= request.data;
         this.requestDate = new Date().toISOString().substr(0, 10);
         this.ticketNumber = request.data.requestCode;
@@ -116,10 +117,9 @@ export default {
         this.totalAmountFromApi = request.data.totalPrice;
 
         try {
-            const token = localStorage.getItem('authToken');
             const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${this.token}`,
                 },
             });
             this.products = response.data;
@@ -141,7 +141,7 @@ export default {
         });
 
         try {
-            const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`);
+            const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`, {headers: { Authorization: `Bearer ${this.token}` }});
             this.userDepartment = user.data.department;
             this.requester = user.data.fullName;
         } catch (error) {
@@ -201,43 +201,42 @@ export default {
             return this.products.filter((product) => !selectedProductIds.includes(product.productID) && !product.isDeleted);
         },
         async updateTicket() {
-    if (!this.productRows.some((row) => row.selectedProduct)) {
-        this.notifyWarning('top', 'right');
-        return;
-    }
+            if (!this.productRows.some((row) => row.selectedProduct)) {
+                this.notifyWarning('top', 'right');
+                return;
+            }
 
-    const updatedRequest = {
-        requestID: parseInt(this.$route.params.id),
-        totalPrice: this.totalAmount,
-        requestCode: this.ticketNumber,
-        userID: this.userID,
-        products: this.productRows
-            .filter((row) => row.selectedProduct)
-            .map((row) => ({
-                product_RequestID: row.product_RequestID,
-                productID: row.selectedProduct.productID,
-                quantity: row.quantity,
-            })),
-            isProcessedByDepLead: this.request.isProcessedByDepLead,
-            isProcessedBySupLead: this.request.isProcessedBySupLead,
-            isApprovedByDepLead: this.request.isApprovedByDepLead,
-    };
+            const updatedRequest = {
+                requestID: parseInt(this.$route.params.id),
+                totalPrice: this.totalAmount,
+                requestCode: this.ticketNumber,
+                userID: this.userID,
+                products: this.productRows
+                    .filter((row) => row.selectedProduct)
+                    .map((row) => ({
+                        product_RequestID: row.product_RequestID,
+                        productID: row.selectedProduct.productID,
+                        quantity: row.quantity,
+                    })),
+                isProcessedByDepLead: this.request.isProcessedByDepLead,
+                isProcessedBySupLead: this.request.isProcessedBySupLead,
+                isApprovedByDepLead: this.request.isApprovedByDepLead,
+            };
 
-    try {
-        const token = localStorage.getItem('authToken');
-        await axios.put(`https://localhost:7162/Request`, updatedRequest, {
-            headers: {
-                Authorization: `Bearer ${token}`,
-            },
-        });
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/request-table');
-    } catch (error) {
-        console.log(updatedRequest);
-        console.log(error);
-        this.notifyError('top', 'right');
-    }
-},
+            try {
+                await axios.put(`https://localhost:7162/Request`, updatedRequest, {
+                    headers: {
+                        Authorization: `Bearer ${this.token}`,
+                    },
+                });
+                this.notifySuccess('top', 'right');
+                this.$router.push('/admin/request-table');
+            } catch (error) {
+                console.log(updatedRequest);
+                console.log(error);
+                this.notifyError('top', 'right');
+            }
+        },
     },
     computed: {
         totalAmount() {
@@ -258,14 +257,6 @@ export default {
     color: #999 !important;
     /* Màu chữ xám */
 }
-
-
-/* .disabled-row input {
-    pointer-events: none !important;
-background-color: #e0e0e0 !important; 
-color: #666 !important;
-border: none !important;
-}  */
 
 .disabled-row .btn-danger {
     pointer-events: auto !important;

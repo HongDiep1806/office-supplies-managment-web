@@ -5,8 +5,7 @@
             <div class="row">
                 <div class="col-md-3">
                     <label for="createdBy">Người thực hiện</label>
-                    <base-input type="text" placeholder="Nhập người thực hiện" v-model="requester"
-                        readonly></base-input>
+                    <base-input type="text" placeholder="Nhập người thực hiện" v-model="requester" readonly></base-input>
                 </div>
                 <div class="col-md-3">
                     <label for="department">Phòng ban</label>
@@ -39,19 +38,16 @@
                         <tr v-for="(productRow, index) in productRows" :key="index">
                             <td>{{ index + 1 }}</td>
                             <td>
-                                <select v-model="productRow.selectedProduct" @change="updateProductDetails(index)"
-                                    class="form-control">
+                                <select v-model="productRow.selectedProduct" @change="updateProductDetails(index)" class="form-control">
                                     <option value="" disabled>Chọn sản phẩm</option>
-                                    <option v-for="product in availableProducts(index)" :key="product.id"
-                                        :value="product">
+                                    <option v-for="product in availableProducts(index)" :key="product.id" :value="product">
                                         {{ product.name }}
                                     </option>
                                 </select>
                             </td>
                             <td>{{ productRow.unitCurrency || 'Chưa có' }}</td>
                             <td>
-                                <input type="number" v-model="productRow.quantity" min="1"
-                                    @input="calculateTotal(index)" class="form-control" />
+                                <input type="number" v-model="productRow.quantity" min="1" @input="calculateTotal(index)" class="form-control" />
                             </td>
                             <td>{{ productRow.unitPrice || 0 }}</td>
                             <td>{{ productRow.totalPrice || 0 }}</td>
@@ -72,14 +68,9 @@
                     </button>
                     <div>
                         <label for="totalAmount">Tổng cộng</label>
-                        <base-input type="text" placeholder="Tổng cộng" v-model="totalAmount" readonly></base-input>
+                        <base-input type="text" placeholder="Tổng cộng" v-model="totalAmountFormatted" readonly></base-input>
                     </div>
-                   
                 </div>
-                <!-- <div class="total-amount">
-                    Tổng cộng: <span class="ml-2">{{ totalAmount }}</span>
-                </div> -->
-                
                 <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="createTicket">
                     Tạo phiếu yêu cầu
                 </button>
@@ -112,14 +103,11 @@ export default {
             userID: 0,
             userDepartment: '',
             type: ['success', 'danger', 'warning'],
-            requestNumber: 0
+            requestNumber: 0,
+            token: localStorage.getItem('authToken')
         };
     },
-    created() {
-       
-    },
     methods: {
-
         async notifySuccess(verticalAlign, horizontalAlign) {
             this.$notifications.notify({
                 message: `<span>Tạo Phiếu yêu cầu thành công</span>`,
@@ -153,15 +141,12 @@ export default {
             const year = String(today.getFullYear()).slice(-2);
             return `PYC${year}/${month}/${this.requestNumber}`;
         },
-
         addProductRow() {
             this.productRows.push({ selectedProduct: null, unitCurrency: '', unitPrice: 0, quantity: 1, totalPrice: 0 });
         },
-
         removeProductRow(index) {
             this.productRows.splice(index, 1);
         },
-
         updateProductDetails(index) {
             const selectedProduct = this.productRows[index].selectedProduct;
             if (selectedProduct) {
@@ -170,22 +155,17 @@ export default {
                 this.calculateTotal(index);
             }
         },
-
         calculateTotal(index) {
             const productRow = this.productRows[index];
             productRow.totalPrice = productRow.quantity * productRow.unitPrice;
         },
-
         async createTicket() {
-            // Validate data
             if (!this.productRows.some((row) => row.selectedProduct)) {
                 this.notifyWarning('top', 'right');
                 return;
             }
 
             try {
-                console.log('Dữ liệu productRows:', this.productRows);
-
                 const requestData = {
                     totalPrice: this.totalAmount,
                     requestCode: this.ticketNumber,
@@ -198,65 +178,50 @@ export default {
                         })),
                 };
 
-                const token = localStorage.getItem('authToken');
                 const response = await axios.post('https://localhost:7162/Request', requestData, {
                     headers: {
-                        Authorization: `Bearer ${token}`,
+                        Authorization: `Bearer ${this.token}`,
                     },
                 });
 
-                console.log('Tạo phiếu yêu cầu thành công:', response.data);
                 await this.notifySuccess('top', 'right');
                 await this.$router.push('/admin/request-table');
             } catch (error) {
-                console.error('Lỗi khi tạo phiếu yêu cầu:', error);
                 this.notifyError('top', 'right');
             }
         },
-
         availableProducts(index) {
             const selectedProductIds = this.productRows
                 .filter((row, i) => i < index && row.selectedProduct)
-                .map((row) => row.selectedProduct && row.selectedProduct.id); // Check if row.selectedProduct exists before getting id
-            const filteredSelectedProductIds = selectedProductIds.filter(id => id !== undefined); //remove undefined values from the array.
+                .map((row) => row.selectedProduct && row.selectedProduct.id);
+            const filteredSelectedProductIds = selectedProductIds.filter(id => id !== undefined);
 
-            const available = this.products.filter((product) => !filteredSelectedProductIds.includes(product.id));
-
-            console.log(`Hàng ${index + 1}:`, available); // Kiểm tra dữ liệu
-
-            return available;
+            return this.products.filter((product) => !filteredSelectedProductIds.includes(product.id));
         },
     },
     async mounted() {
         try {
-            const token = localStorage.getItem('authToken');
-            if (!token) {
-                console.error('Token không tồn tại');
-                return;
-            }
-
             const response = await axios.get('https://localhost:7162/Product', {
                 headers: {
-                    Authorization: `Bearer ${token}`,
+                    Authorization: `Bearer ${this.token}`,
                 },
             });
             this.products = response.data;
-            console.log('Danh sách sản phẩm:', this.products);
         } catch (error) {
             console.error('Lỗi khi lấy danh sách sản phẩm:', error);
         }
-       
-        const token = localStorage.getItem('authToken');
-        const decodeToken = jwtDecode(token);
+
+        const decodeToken = jwtDecode(this.token);
         this.userID = decodeToken.sub;
         this.userName = decodeToken.name;
         this.requester = this.userName;
-        const number = await axios.get('https://localhost:7162/Request/count');
-        this.requestNumber = number.data;   
+
+        const number = await axios.get('https://localhost:7162/Request/count', { headers: { Authorization: `Bearer ${this.token}` } });
+        this.requestNumber = number.data;
         this.ticketNumber = this.generateTicketNumber();
-       
+
         try {
-            const user = await axios.get(`https://localhost:7162/User/${decodeToken.email}`);
+            const user = await axios.get(`https://localhost:7162/User/${decodeToken.email}`, { headers: { Authorization: `Bearer ${this.token}` } });
             this.userDepartment = user.data.department;
         } catch (error) {
             console.error('Lỗi khi lấy thông tin người dùng:', error);
@@ -265,6 +230,9 @@ export default {
     computed: {
         totalAmount() {
             return this.productRows.reduce((sum, product) => sum + product.totalPrice, 0);
+        },
+        totalAmountFormatted() {
+            return this.totalAmount.toLocaleString('vi-VN', { style: 'currency', currency: 'VND' });
         },
     },
 };

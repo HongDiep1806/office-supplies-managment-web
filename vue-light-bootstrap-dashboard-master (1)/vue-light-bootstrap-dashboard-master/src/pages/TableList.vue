@@ -5,7 +5,7 @@
         <div class="col-12">
           <card class="strpied-tabled-with-hover" body-classes="table-full-width table-responsive">
             <template slot="header">
-              <div style="display: flex; justify-content: space-between;padding: 0px 15px;">
+              <div style="display: flex; justify-content: space-between; padding: 0px 15px;">
                 <div>
                   <h4 class="card-title">Danh mục Văn phòng phẩm</h4>
                   <p class="card-category">Danh sách mã sản phẩm</p>
@@ -15,9 +15,12 @@
                     @click="navigateToCreateProduct()">Tạo mới</button>
                 </div>
               </div>
+              <div style="display: flex; justify-content: space-between; padding: 0px 15px; margin-top: 10px;">
+                <input type="text" v-model="searchQuery" placeholder="Tìm kiếm tên sản phẩm" class="form-control" style="max-width: 300px;" />
+              </div>
             </template>
 
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
+            <l-table class="table-hover table-striped" :columns="table1.columns" :data="filteredData"
               :apiURL="'https://localhost:7162/Product'" :domain="'product'"
               :displayActions="userRole === 'Finance Management Employee'" :canEdit="true" :canDelete="true">
             </l-table>
@@ -51,7 +54,17 @@ export default {
         columns: [...tableColumns],
         data: []
       },
-      userRole: ''
+      userRole: '',
+      token: localStorage.getItem('authToken'),
+      searchQuery: ''
+    }
+  },
+  computed: {
+    filteredData() {
+      if (this.searchQuery) {
+        return this.table1.data.filter(item => item['Tên sản phẩm'].toLowerCase().includes(this.searchQuery.toLowerCase()));
+      }
+      return this.table1.data;
     }
   },
   methods: {
@@ -60,7 +73,7 @@ export default {
 
       axios.get('https://localhost:7162/Product', {
         headers: {
-          Authorization: `Bearer ${token}` // Đính kèm token vào header
+          Authorization: `Bearer ${this.token}` // Đính kèm token vào header
         }
       })
         .then(response => {
@@ -68,7 +81,6 @@ export default {
           .sort((a, b) => new Date(b.productID) - new Date(a.productID))
           .map((item, index) => ({
             productID: item.productID, // Include it in the object
-            // STT: index + 1,
             'Tên sản phẩm': item.name,
             'Mã sản phẩm': item.code,
             'Đơn vị': item.unitCurrency,
@@ -82,17 +94,17 @@ export default {
 
       const decodeToken = jwtDecode(token);
       this.userRole = decodeToken.Role;
-    }
-
-    ,
+    },
     navigateToCreateProduct() {
       this.$router.push('/admin/createproduct');
     },
+    searchProduct() {
+      // This method is intentionally left blank as the filtering is handled by the computed property `filteredData`
+    }
   },
   mounted() {
     this.fetchProductData()
   },
-
 }
 </script>
 

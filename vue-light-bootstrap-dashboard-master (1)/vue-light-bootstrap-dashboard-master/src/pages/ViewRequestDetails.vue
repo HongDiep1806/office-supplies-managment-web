@@ -28,7 +28,8 @@ export default {
   data() {
     return {
       requestManagementPath: '/admin/request-table', 
-      userRole: ''// Giá trị mặc định
+      userRole: '',// Giá trị mặc định,
+      token: localStorage.getItem('authToken')
     };
   },
   mounted() {

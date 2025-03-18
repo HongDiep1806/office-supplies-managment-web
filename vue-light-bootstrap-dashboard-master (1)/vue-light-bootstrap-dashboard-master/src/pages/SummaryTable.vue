@@ -39,6 +39,7 @@ export default {
                 columns: ['STT', 'Mã phiếu','Ngày tạo', 'Tổng tiền'],
                 data: [],
             },
+            token: localStorage.getItem('authToken')
         };
     },
     methods: {
@@ -46,7 +47,7 @@ export default {
             try {
                 const token = localStorage.getItem('authToken');
                 const response = await axios.get('https://localhost:7162/Summary', {
-                    headers: { Authorization: `Bearer ${token}` },
+                    headers: { Authorization: `Bearer ${this.token}` },
                     timeout: 100000
                 });
                 console.log("API response:", response.data);

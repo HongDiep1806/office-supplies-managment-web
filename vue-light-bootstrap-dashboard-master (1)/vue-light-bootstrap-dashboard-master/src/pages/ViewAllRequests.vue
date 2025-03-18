@@ -44,121 +44,50 @@ export default {
       table1: {
         columns: ['STT', 'Mã số phiếu','Người tạo', 'Ngày tạo', 'Tổng tiền'],
         data: [],
-
       },
       userID: null,
       userRole: '',
-      department: ''
+      department: '',
+      token: localStorage.getItem('authToken')
     };
   },
   methods: {
-
-    // async fetchRequestData() {
-    //   try {
-    //     const token = localStorage.getItem('authToken');
-    //     let response;
-
-    //     if (this.userRole === 'Dep Leader') {
-    //       response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //         timeout: 100000
-    //       });
-    //     } else if (this.userRole === 'Finance Management Employee') {
-    //       response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
-    //         headers: { Authorization: `Bearer ${token}` },
-    //         timeout: 100000
-    //       });
-    //     }
-    //     console.log("data gốc api", response.data);
-    //     if (response && Array.isArray(response.data)) {
-    //       this.table1.data = response.data
-    //         .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-    //         .map((item, index) => ({
-    //           requestID: item.requestID,
-    //           'Mã số phiếu': item.requestCode,
-    //           'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-    //             hour: '2-digit',
-    //             minute: '2-digit',
-    //             day: '2-digit',
-    //             month: '2-digit',
-    //             year: 'numeric'
-    //           }).replace(',', ''),
-    //           'Người tạo': this.getUserName(item.userID),
-    //           'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-    //           Status: (() => {
-    //             if (this.userRole === 'Dep Leader') {
-    //               if (!item.isProcessedByDepLead) {
-    //                 return "Chưa duyệt";
-    //               } else if (item.isProcessedByDepLead && item.isApprovedByDepLead) {
-    //                 return "Đã duyệt";
-    //               } else if (item.isProcessedByDepLead && !item.isApprovedByDepLead) {
-    //                 return "Không duyệt";
-    //               }
-    //             } else if (this.userRole === 'Finance Management Employee') {
-    //               if (!item.isCollectedInSummary) {
-    //                 if (item.isApprovedByDepLead && !item.isProcessedByDepLead) {
-    //                   return "Không duyệt";
-    //                 } else if (item.isApprovedByDepLead && item.isApprovedBySupLead) {
-    //                   return "Đã duyệt";
-    //                 } else if (item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-    //                   return "Chưa duyệt";
-    //                 }
-    //               } else {
-    //                 return "Đã tổng hợp";
-    //               }
-
-    //             }
-    //             return "Không xác định"; // Trường hợp mặc định
-    //           })(),
-    //           IsCollectedInSummary: item.isCollectedInSummary
-
-    //         }
-
-    //         ));
-    //       console.log("table data", this.table1.data);
-    //     } else {
-    //       console.error('Unexpected response format:', response);
-    //     }
-    //   } catch (error) {
-    //     console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
-    //   }
-    // },
     async fetchRequestData() {
-    try {
+      try {
         const token = localStorage.getItem('authToken');
         let response;
 
         if (this.userRole === 'Dep Leader') {
-            response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 100000
-            });
+          response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+            timeout: 100000
+          });
         } else if (this.userRole === 'Finance Management Employee') {
-            response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
-                headers: { Authorization: `Bearer ${token}` },
-                timeout: 100000
-            });
+          response = await axios.get(`https://localhost:7162/Request/approved-requests-list`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+            timeout: 100000
+          });
         }
         console.log("data gốc api", response.data);
         if (response && Array.isArray(response.data)) {
-            const requests = response.data
-                .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+          const requests = response.data
+            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
 
-            const promises = requests.map(async (item, index) => {
-                const userName = await this.getUserName(item.userID);
-                return {
-                    requestID: item.requestID,
-                    'Mã số phiếu': item.requestCode,
-                    'Người tạo': userName,
-                    'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-                        hour: '2-digit',
-                        minute: '2-digit',
-                        day: '2-digit',
-                        month: '2-digit',
-                        year: 'numeric'
-                    }).replace(',', ''),
-                    'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-                    Status: (() => {
+          const promises = requests.map(async (item, index) => {
+            const userName = await this.getUserName(item.userID);
+            return {
+              requestID: item.requestID,
+              'Mã số phiếu': item.requestCode,
+              'Người tạo': userName,
+              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+                hour: '2-digit',
+                minute: '2-digit',
+                day: '2-digit',
+                month: '2-digit',
+                year: 'numeric'
+              }).replace(',', ''),
+              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+              Status: (() => {
                 if (this.userRole === 'Dep Leader') {
                   if (!item.isProcessedByDepLead) {
                     return "Chưa duyệt";
@@ -179,36 +108,34 @@ export default {
                   } else {
                     return "Đã tổng hợp";
                   }
-
                 }
                 return "Không xác định"; // Trường hợp mặc định
               })(),
-                    IsCollectedInSummary: item.isCollectedInSummary
-                };
-            });
+              IsCollectedInSummary: item.isCollectedInSummary
+            };
+          });
 
-            this.table1.data = await Promise.all(promises);
-            console.log("table data", this.table1.data);
+          this.table1.data = await Promise.all(promises);
+          console.log("table data", this.table1.data);
         } else {
-            console.error('Unexpected response format:', response);
+          console.error('Unexpected response format:', response);
         }
-    } catch (error) {
+      } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
-    }
-},
+      }
+    },
     navigateToCreateRequest() {
-
       this.$router.push('/admin/createrequest');
     },
     async getUserName(userID) {
-    try {
-        const response = await axios.get(`https://localhost:7162/User/getNameById${userID}`);
+      try {
+        const response = await axios.get(`https://localhost:7162/User/getNameById${userID}`, {headers: { Authorization: `Bearer ${this.token}` }});
         return response.data;
-    } catch (error) {
+      } catch (error) {
         console.log("error getting username", error);
         return "Không tìm thấy người dùng";
+      }
     }
-}
   },
   mounted() {
     // Lấy userID từ token trong localStorage

@@ -67,7 +67,8 @@ export default {
             notifications: {
                 topCenter: false
             },
-            unitCurrencies: ['Cái', 'Quyển', 'Cây']
+            unitCurrencies: ['Cái', 'Quyển', 'Cây'],
+            token: localStorage.getItem('authToken')
         }
     },
     methods: {
@@ -80,21 +81,16 @@ export default {
                 this.product.UnitCurrency !== '' &&
                 this.product.UnitPrice !== 0) {
                 try {
-                    const token = localStorage.getItem('authToken');
-                    const response = await axios.post("https://localhost:7162/Product", this.product,
-                        {
-                            headers: {
-                                Authorization: `Bearer ${token}` // Đính kèm token vào header
-                            }
-
-                        });
+                    const response = await axios.post("https://localhost:7162/Product", this.product, {
+                        headers: {
+                            Authorization: `Bearer ${this.token}` // Đính kèm token vào header
+                        }
+                    });
                     console.log("Response:", response.data);
-                    if(response.data == true){
+                    if (response.data == true) {
                         await this.notifySuccess('top', 'right');
                         this.navigateBackToTableList();
-
-
-                    }else{
+                    } else {
                         await this.notifyError('top', 'right');
                     }
                     // Reset form after successful submission

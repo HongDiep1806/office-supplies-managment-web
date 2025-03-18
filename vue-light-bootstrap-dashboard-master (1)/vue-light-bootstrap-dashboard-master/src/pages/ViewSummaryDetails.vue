@@ -30,6 +30,7 @@ import ViewSummaryForm from './ViewSummary/ViewSummaryForm.vue';
     data() {
       return {
         requestManagementPath: '/admin/summary-table', 
+        token: localStorage.getItem('authToken')
       };
     },
     mounted() {

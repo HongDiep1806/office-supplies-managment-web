@@ -44,7 +44,8 @@ export default {
         data: []
       },
       userID: null,
-      userRole: ''
+      userRole: '',
+      token: localStorage.getItem('authToken')
     };
   },
   methods: {
@@ -53,7 +54,7 @@ export default {
 
       try {
         if (this.userRole === 'Employee' || this.userRole === 'Finance Management Employee') {
-          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
+          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`,{ headers: { Authorization: `Bearer ${this.token}`}, timeout: 50000 });
 
 
           this.table1.data = response.data
