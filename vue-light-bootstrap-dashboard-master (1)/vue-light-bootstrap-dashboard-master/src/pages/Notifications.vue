@@ -99,7 +99,7 @@ export default {
         const response = await axios.get(`https://localhost:7162/Notification/user/${this.userID}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
-        this.apiNotifications = response.data;
+        this.apiNotifications = response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
         //this.showNotifications();
       } catch (error) {
         console.error('Error fetching notifications:', error);

@@ -16,7 +16,11 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between; padding: 0px 15px; margin-top: 10px;">
-                <input type="text" v-model="searchQuery" placeholder="Tìm kiếm tên sản phẩm" class="form-control" style="max-width: 300px;" />
+                <input type="text" v-model="searchName" placeholder="Tìm kiếm tên sản phẩm" class="form-control" style="max-width: 200px;" />
+                <input type="text" v-model="searchCode" placeholder="Tìm kiếm mã sản phẩm" class="form-control" style="max-width: 200px;" />
+                <input type="number" v-model="minPrice" placeholder="Giá tối thiểu" class="form-control" style="max-width: 150px;" />
+                <input type="number" v-model="maxPrice" placeholder="Giá tối đa" class="form-control" style="max-width: 150px;" />
+                <button class="btn btn-primary" @click="searchProduct">Tìm kiếm</button>
               </div>
             </template>
 
@@ -56,6 +60,10 @@ export default {
       },
       userRole: '',
       token: localStorage.getItem('authToken'),
+      searchName: '',
+      searchCode: '',
+      minPrice: '',
+      maxPrice: '',
       searchQuery: ''
     }
   },
@@ -99,8 +107,30 @@ export default {
     navigateToCreateProduct() {
       this.$router.push('/admin/createproduct');
     },
-    searchProduct() {
-      // This method is intentionally left blank as the filtering is handled by the computed property `filteredData`
+    async searchProduct() {
+      try {
+        const response = await axios.get('https://localhost:7162/Product/search', {
+          params: {
+            name: this.searchName,
+            code: this.searchCode,
+            minPrice: this.minPrice,
+            maxPrice: this.maxPrice
+          },
+          headers: {
+            Authorization: `Bearer ${this.token}`
+          }
+        });
+        this.table1.data = response.data.map((item, index) => ({
+          productID: item.productID,
+          'Tên sản phẩm': item.name,
+          'Mã sản phẩm': item.code,
+          'Đơn vị': item.unitCurrency,
+          'Giá': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.unitPrice),
+          'Last Adjusted': new Date(item.adjustDate).toLocaleString()
+        }));
+      } catch (error) {
+        console.error('Error searching products:', error);
+      }
     }
   },
   mounted() {
