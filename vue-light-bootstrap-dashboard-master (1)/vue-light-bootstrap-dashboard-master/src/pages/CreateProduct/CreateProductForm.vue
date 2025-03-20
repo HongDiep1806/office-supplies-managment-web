@@ -61,14 +61,17 @@ export default {
                 Name: '',
                 Code: '',
                 UnitCurrency: '',
-                UnitPrice: 0
+                UnitPrice: 0,
+                CreatedDate: '',
+                UserIDCreate: ''
             },
             type: ['success', 'danger', 'warning'],
             notifications: {
                 topCenter: false
             },
             unitCurrencies: ['Cái', 'Quyển', 'Cây'],
-            token: localStorage.getItem('authToken')
+            token: localStorage.getItem('authToken'),
+            userID: localStorage.getItem('userId') // Assuming userID is stored in localStorage
         }
     },
     methods: {
@@ -81,6 +84,10 @@ export default {
                 this.product.UnitCurrency !== '' &&
                 this.product.UnitPrice !== 0) {
                 try {
+                    const now = new Date().toISOString();
+                    this.product.CreatedDate = now;
+                    this.product.UserIDCreate = this.userID;
+
                     const response = await axios.post("https://localhost:7162/Product", this.product, {
                         headers: {
                             Authorization: `Bearer ${this.token}` // Đính kèm token vào header
@@ -98,7 +105,9 @@ export default {
                         Name: "",
                         Code: "",
                         UnitCurrency: "",
-                        UnitPrice: 0
+                        UnitPrice: 0,
+                        CreatedDate: '',
+                        UserIDCreate: ''
                     };
                 } catch (error) {
                     console.error("Lỗi khi tạo sản phẩm:", error);

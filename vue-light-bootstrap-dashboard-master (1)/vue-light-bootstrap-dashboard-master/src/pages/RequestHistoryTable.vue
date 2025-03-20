@@ -54,8 +54,10 @@ export default {
 
       try {
         if (this.userRole === 'Employee' || this.userRole === 'Finance Management Employee') {
-          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`,{ headers: { Authorization: `Bearer ${this.token}`}, timeout: 50000 });
-
+          const response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { 
+            headers: { Authorization: `Bearer ${this.token}` }, 
+            timeout: 50000 
+          });
 
           this.table1.data = response.data
             .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate)) // Sort newest first
@@ -71,29 +73,6 @@ export default {
               }).replace(',', ''),
               'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
               Status: (() => {
-                // if (this.userRole === 'Employee'|| this.userRole === 'Finance Management Employee') {
-                //   if (!item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                //     return "Không duyệt";
-                //   } else if (item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                //     return "Đang xử lý";
-                //   }else if (item.isProcessedByDepLead && item.isApprovedByDepLead && item.isApprovedBySupLead) {
-                //     if(item.isSummaryBeProcessed){
-                //       if(item.isSummaryBeApproved){
-                //         return "Đã duyệt";
-                //       }else{
-                //         return "Không duyệt";
-                //       }
-                //     }else{
-                //       return "Đang xử lý";
-                //     }
-                //   }else if (item.isProcessedByDepLead && !item.isApprovedByDepLead && !item.isApprovedBySupLead) {
-                //     return "Chưa duyệt";
-                //   }else if(!item.isProcessedByDepLead && item.isApprovedByDepLead && !item.isApprovedBySupLead){
-                //     return "Không duyệt";                 
-                //   }else if(!item.isProcessedByDepLead && !item.isApprovedByDepLead && item.isApprovedBySupLead){
-                //     return "Không duyệt";                 
-                //   }
-                // }      
                 if (this.userRole === "Employee") {
                   if (item.isProcessedByDepLead) {
                     if (item.isApprovedByDepLead) {
@@ -121,17 +100,13 @@ export default {
                     }
                   }
                 }
-              }
-              )()
-
+              })()
             }));
         }
-
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
-    }
-    ,
+    },
     navigateToCreateRequest() {
       this.$router.push('/admin/createrequest');
     }

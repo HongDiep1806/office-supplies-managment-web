@@ -217,31 +217,44 @@ export default {
       }
     },
     async updateSummary(isApproved) {
-      try {
-        const requestData = {
-          summaryID: this.summary.summaryID,
-          isProcessedBySupLead: true,
-          isApprovedBySupLead: isApproved
-        };
+  try {
+    const requestData = {
+      summaryID: this.summary.summaryID,
+      isProcessedBySupLead: true,
+      isApprovedBySupLead: isApproved
+    };
 
-        const response = await axios.put('https://localhost:7162/Summary/update', requestData, {
-          headers: {
-            Authorization: `Bearer ${this.token}`,
-            'Content-Type': 'application/json'
-          }
-        });
-
-        this.summary.isProcessedBySupLead = true;
-        this.summary.isApprovedBySupLead = isApproved;
-
-        this.notifySuccess('top', 'right');
-        this.$router.push('/admin/summary-table');
-      } catch (error) {
-        console.error("Lỗi khi cập nhật phiếu tổng hợp:", error);
-        this.notifyError('top', 'right');
-        this.$router.push('/admin/summary-table');
+    const response = await axios.put('https://localhost:7162/Summary/update', requestData, {
+      headers: {
+        Authorization: `Bearer ${this.token}`,
+        'Content-Type': 'application/json'
       }
-    },
+    });
+
+    this.summary.isProcessedBySupLead = true;
+    this.summary.isApprovedBySupLead = isApproved;
+
+    if (!isApproved) {
+      // Call the API to update the approval status of all requests to rejected
+      await axios.put('https://localhost:7162/Summary/update-approval', {
+        summaryId: this.summary.summaryID,
+        isApproved: false
+      }, {
+        headers: {
+          Authorization: `Bearer ${this.token}`,
+          'Content-Type': 'application/json'
+        }
+      });
+    }
+
+    this.notifySuccess('top', 'right');
+    this.$router.push('/admin/summary-table');
+  } catch (error) {
+    console.error("Lỗi khi cập nhật phiếu tổng hợp:", error);
+    this.notifyError('top', 'right');
+    this.$router.push('/admin/summary-table');
+  }
+},
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: <span>Cập nhật phiếu tổng hợp thành công</span>,

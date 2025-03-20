@@ -60,6 +60,19 @@
         </table>
       </div>
 
+      <div class="row" v-if="userRole !== 'Sup Leader'">
+        <div class="col-md-12">
+          <label for="noteDepLead">Ghi chú của trưởng phòng</label>
+          <base-input type="text" v-model="noteDepLead" :readonly="!isNoteDepLeadEditable"></base-input>
+        </div>
+      </div>
+      <div class="row" v-if="userRole !== 'Sup Leader'">
+        <div class="col-md-12">
+          <label for="noteSupLead">Ghi chú của Phòng QLTC</label>
+          <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
+        </div>
+      </div>
+
       <div class="text-center position-relative">
         <div style="display: flex; flex-direction: row; justify-content: end;">
           <div>
@@ -70,9 +83,13 @@
         <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
           Duyệt phiếu yêu cầu
         </button>
-        <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket"
+        <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="enableNoteEditing"
           style="margin-right: 10px;" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
           Không duyệt phiếu
+        </button>
+        <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket"
+          style="margin-right: 10px;" v-if="isNoteDepLeadEditable || isNoteFinanceEditable">
+          Gửi ghi chú
         </button>
       </div>
     </form>
@@ -100,6 +117,10 @@ export default {
       userDepartment: '',
       requestNumber: 0,
       totalAmount: 0,
+      noteDepLead: '',
+      noteSupLead: '',
+      isNoteDepLeadEditable: false,
+      isNoteFinanceEditable: false,
       type: ['success', 'danger', 'warning'],
       userRole: '',
       requestStatus: '',  
@@ -116,7 +137,19 @@ export default {
     this.ticketNumber = request.data.requestCode;
     this.requestDate = request.data.createdDate.substr(0, 10);
     this.totalAmount = request.data.totalPrice;
-    this.requestStatus = this.$route.params.status;
+    this.noteDepLead = request.data.noteDepLead; // Fetch the note from the backend
+    this.noteSupLead = request.data.noteSupLead; // Fetch the note from the backend
+    //console.log IsProcessedByDepLead, IsApprovedByDepLead, IsApprovedBySupLead
+    console.log(request.data.isProcessedByDepLead)
+    const { isProcessedByDepLead, isApprovedByDepLead, isApprovedBySupLead } = request.data;
+    if (!isProcessedByDepLead  && !isApprovedByDepLead && !isApprovedBySupLead ) {
+      this.requestStatus = 'Chưa duyệt';
+    } else if (isProcessedByDepLead && isApprovedByDepLead  && !isApprovedBySupLead) {
+      this.requestStatus = 'Chưa duyệt';
+    } else {
+      this.requestStatus = 'WHAT';
+    }
+    console.log(this.requestStatus);
     try {
       this.userRole = localStorage.getItem('userRole');
       const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
@@ -187,23 +220,26 @@ export default {
     async approveTicket() {
       try {
         const requestId = this.$route.params.id;
+        const payload = { noteDepLead: this.noteDepLead, noteSupLead: this.noteSupLead };
         if (this.userRole === 'Dep Leader') {
-          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, {}, {
+          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, payload, {
             headers: {
               Authorization: `Bearer ${this.token}`,
             },
           });
           console.log("thành công" + response.data);
           this.notifySuccess('top', 'right');
+          this.sendNotifications('approve');
           this.$router.push('/admin/view-all-request');
         } else if (this.userRole === 'Finance Management Employee') {
-          const response = await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}`, {}, {
+          const response = await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}`, payload, {
             headers: {
               Authorization: `Bearer ${this.token}`,
             },
           });
           console.log("thành công" + response.data);
           this.notifySuccess('top', 'right');
+          this.sendNotifications('approve');
           this.$router.push('/admin/view-all-request');
         }
       } catch (error) {
@@ -214,23 +250,26 @@ export default {
     async updateTicket() {
       try {
         const requestId = this.$route.params.id;
+         // Use the noteDepLead for the note
         if (this.userRole === 'Dep Leader') {
-          const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}`, {}, {
+          const note = this.noteDepLead;
+          const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}?note=${encodeURIComponent(note)}`, null, {
             headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
+              Authorization: `Bearer ${this.token}` },
           });
           console.log("Không duyệt thành công" + response.data);
           this.notifySuccess('top', 'right');
+          this.sendNotifications('not approve');
           this.$router.push('/admin/view-all-request');
         } else if (this.userRole === 'Finance Management Employee') {
-          const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}`, {}, {
+          const note = this.noteSupLead;
+          const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}?note=${encodeURIComponent(note)}`, null, {
             headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
+              Authorization: `Bearer ${this.token}` },
           });
           console.log("Không duyệt thành công" + response.data);
           this.notifySuccess('top', 'right');
+          this.sendNotifications('not approve');
           this.$router.push('/admin/view-all-request');
         }
       } catch (error) {
@@ -238,9 +277,98 @@ export default {
         this.notifyError('top', 'right');
       }
     },
+    async sendNotifications(action) {
+      try {
+        const requestId = this.$route.params.id;
+        const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        const userID = request.data.userID;
+        const user = await axios.get(`https://localhost:7162/User/getbyid/${userID}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        const department = user.data.department;
+        const departmentLeaderResponse = await axios.get(`https://localhost:7162/User/department-leader?department=${department}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+        const departmentLeader = departmentLeaderResponse.data;
+
+        const notifications = [];
+
+        if (this.userRole === 'Dep Leader') {
+          if (action === 'approve') {
+            // Send notification to all users with userTypeID 4
+            const financeUsersResponse = await axios.get(`https://localhost:7162/User/users-by-type-id?userTypeID=4`, {
+              headers: { Authorization: `Bearer ${this.token}` },
+            });
+            const financeUsers = financeUsersResponse.data;
+            financeUsers.forEach((leader) => {
+              notifications.push({
+                userID: leader.userID,
+                message: `Request ${requestId} has been ${action} by department leader.`,
+                requestID: requestId,
+                sender: this.userID,
+              });
+            });
+
+            // Send notification to the user who created the request
+            notifications.push({
+              userID: userID,
+              message: `Your request ${requestId} has been ${action} by department leader.`,
+              requestID: requestId,
+              sender: this.userID,
+            });
+          } else {
+            // Send notification to the user who created the request
+            notifications.push({
+              userID: userID,
+              message: `Your request ${requestId} has been ${action} by department leader.`,
+              requestID: requestId,
+              sender: this.userID,
+            });
+          }
+        } else if (this.userRole === 'Finance Management Employee') {
+          // Send notification to the user who created the request
+          notifications.push({
+            userID: userID,
+            message: `Your request ${requestId} has been ${action} by finance management employee.`,
+            requestID: requestId,
+            sender: this.userID,
+          });
+
+          // Send notification to the department leader
+          if (departmentLeader) {
+            notifications.push({
+              userID: departmentLeader.userID,
+              message: `Request ${requestId} has been ${action} by finance management employee.`,
+              requestID: requestId,
+              sender: this.userID,
+            });
+          }
+        }
+
+        // Send each notification individually
+        for (const notification of notifications) {
+          await axios.post('https://localhost:7162/Notification', notification, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+        }
+      } catch (error) {
+        console.error('Error sending notifications:', error);
+      }
+    },
+    enableNoteEditing() {
+      if (this.userRole == 'Dep Leader') {
+        this.isNoteDepLeadEditable = true;
+      }
+      else if (this.userRole == 'Finance Management Employee') {
+        this.isNoteFinanceEditable = true;
+      }
+    }
   },
 };
 </script>
+
 
 <style scoped>
 .total-amount-input {

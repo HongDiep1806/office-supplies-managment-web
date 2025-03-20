@@ -37,7 +37,7 @@ import Card from 'src/components/Cards/Card.vue'
 import axios from 'axios'
 import jwtDecode from 'jwt-decode'
 
-const tableColumns = ['STT', 'Tên sản phẩm', 'Mã sản phẩm', 'Đơn vị', 'Giá']
+const tableColumns = ['STT', 'Tên sản phẩm', 'Mã sản phẩm', 'Đơn vị', 'Giá', 'Sửa đổi lần cuối']
 
 export default {
   components: {
@@ -84,7 +84,8 @@ export default {
             'Tên sản phẩm': item.name,
             'Mã sản phẩm': item.code,
             'Đơn vị': item.unitCurrency,
-            'Giá': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.unitPrice)
+            'Giá': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.unitPrice),
+            'Last Adjusted': new Date(item.adjustDate).toLocaleString()
           }));
           console.log(this.table1.data);
         })
