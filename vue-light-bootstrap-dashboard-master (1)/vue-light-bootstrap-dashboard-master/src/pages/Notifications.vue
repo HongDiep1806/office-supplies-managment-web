@@ -68,6 +68,7 @@
             </tbody>
           </table>
         </div>
+        <button class="btn btn-primary mt-3" @click="markAllAsRead">Mark All as Read</button>
       </card>
     </div>
   </div>
@@ -94,6 +95,19 @@ export default {
     }
   },
   methods: {
+    async markAllAsRead() {
+  try {
+    await axios.put(`https://localhost:7162/Notification/mark-all-as-read/${this.userID}`, {}, {
+      headers: { Authorization: `Bearer ${this.token}` }
+    });
+    this.apiNotifications = this.apiNotifications.map(notification => {
+      notification.isRead = true;
+      return notification;
+    });
+  } catch (error) {
+    console.error('Error marking all notifications as read:', error);
+  }
+},
     async fetchNotifications() {
       try {
         const response = await axios.get(`https://localhost:7162/Notification/user/${this.userID}`, {
