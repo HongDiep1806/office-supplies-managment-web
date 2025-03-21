@@ -234,6 +234,59 @@ export default {
     this.summary.isProcessedBySupLead = true;
     this.summary.isApprovedBySupLead = isApproved;
 
+    // Send notifications to userID and department leader of requests in the summary
+    for (const request of this.requests) {
+      const userID = request.userID;
+      const department = this.getUserDepartment(userID);
+      console.log(`Fetching department leader for department: ${department}`);
+      const departmentLeaderResponse = await axios.get(`https://localhost:7162/User/department-leader?department=${department}`, {
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
+      const departmentLeader = departmentLeaderResponse.data;
+      console.log(`Department leader: ${JSON.stringify(departmentLeader)}`);
+
+      const notifications = [
+        {
+          userID: userID,
+          message: isApproved
+            ? `Your request ${request.requestCode} has been approved in summary ${this.summary.summaryCode}.`
+            : `Your request ${request.requestCode} has been rejected in summary ${this.summary.summaryCode}.`,
+          requestID: request.requestID,
+          sender: this.userID,
+        },
+        {
+          userID: departmentLeader.userID,
+          message: isApproved
+            ? `Request ${request.requestCode} from your department has been approved in summary ${this.summary.summaryCode}.`
+            : `Request ${request.requestCode} from your department has been rejected in summary ${this.summary.summaryCode}.`,
+          requestID: request.requestID,
+          sender: this.userID,
+        }
+      ];
+
+      for (const notification of notifications) {
+        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        await axios.post('https://localhost:7162/Notification', notification, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+      }
+    }
+
+    // Notify the user who created the summary
+    const summaryCreatorNotification = {
+      userID: this.summary.userID,
+      message: isApproved
+        ? `Your summary ${this.summary.summaryCode} has been approved.`
+        : `Your summary ${this.summary.summaryCode} has been rejected.`,
+      requestID: this.summary.summaryID,
+      sender: this.userID,
+    };
+
+    console.log(`Sending notification to summary creator: ${JSON.stringify(summaryCreatorNotification)}`);
+    await axios.post('https://localhost:7162/Notification', summaryCreatorNotification, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
+
     if (!isApproved) {
       // Call the API to update the approval status of all requests to rejected
       await axios.put('https://localhost:7162/Summary/update-approval', {

@@ -144,8 +144,18 @@ export default {
     },
     viewRequest(requestID) {
       if (this.userRole === 'Sup Leader') {
-      this.$router.push(`/admin/viewsummary/${requestID}`);
+        //i message contains "product" jump to /admin/table-list instead
+        if (this.apiNotifications.find(notification => notification.requestID === requestID).message.includes("product")) {
+          this.$router.push('/admin/table-list');
+          return;
+        }
+        else this.$router.push(`/admin/viewsummary/${requestID}`);
       } else {
+        if (this.apiNotifications.find(notification => notification.requestID === requestID).message.includes("product")) {
+          this.$router.push(`/admin/editproduct/${requestID}`);
+          return;
+        }
+        else
         this.$router.push(`/admin/viewrequest/${requestID}`);
       }
     }

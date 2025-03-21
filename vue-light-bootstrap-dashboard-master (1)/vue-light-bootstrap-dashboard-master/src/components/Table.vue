@@ -105,7 +105,9 @@ export default {
       },
       userRole: localStorage.getItem('userRole'),
       selectedRequests: [],
-
+      token: localStorage.getItem('authToken'),
+      userID: localStorage.getItem('userId'),
+      productname: '',
     };
   },
   computed: {
@@ -159,46 +161,131 @@ export default {
       this.dialog = true;
     },
     async confirmDelete() {
-      if (this.domain === 'product') {
-        if (!this.itemToDelete) return;
-        try {
-          const productId = this.itemToDelete.productID;
-          await axios.delete(`${this.apiURL}/${productId}`);
+  if (this.domain === 'product') {
+    if (!this.itemToDelete) return;
+    try {
+      const productId = this.itemToDelete.productID;
 
-          const index = this.data.findIndex(product => product.productID === productId);
-          if (index !== -1) {
-            this.data.splice(index, 1);
-          }
+      // Fetch the product details by its ID to get the product name
+      const productResponse = await axios.get(`${this.apiURL}/${productId}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
+      const productName = productResponse.data.name;
+      console.log('Fetched product name:', productName);
+      await axios.delete(`${this.apiURL}/${productId}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
 
-          this.dialog = false;
-          this.notifySuccess('top', 'right');
-
-        } catch (error) {
-          console.error("Delete error:", error);
-          this.dialog = false;
-          this.notifyError('top', 'right');
-        }
-      } else if (this.domain === 'request') {
-        if (!this.itemToDelete) return;
-        try {
-          const requestId = this.itemToDelete.requestID; // Sửa ở đây
-          await axios.delete(`${this.apiURL}/${requestId}`); // Sửa ở đây
-
-          const index = this.data.findIndex(r => r.requestID === requestId); // Sửa ở đây
-          if (index !== -1) {
-            this.data.splice(index, 1);
-          }
-
-          this.dialog = false;
-          this.notifySuccess('top', 'right');
-
-        } catch (error) {
-          console.error("Delete error:", error);
-          this.dialog = false;
-          this.notifyError('top', 'right');
-        }
+      const index = this.data.findIndex(product => product.productID === productId);
+      if (index !== -1) {
+        this.data.splice(index, 1);
       }
-    },
+
+      // Fetch the username by userID
+      const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
+      const username = usernameResponse.data;
+      console.log('Fetched username:', username);
+
+      // Fetch users with userTypeID == 2
+      const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
+      const usersWithUserType2 = usersType2Response.data;
+
+      // Fetch users with userTypeID == 4
+      const usersType4Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=4', {
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
+      const usersWithUserType4 = usersType4Response.data;
+
+      // Combine users with userTypeID == 2 and userTypeID == 4
+      const usersToNotify = [...usersWithUserType2, ...usersWithUserType4];
+
+      // Send notifications to users with userTypeID == 2 and userTypeID == 4
+      const notifications = usersToNotify.map(user => ({
+        userID: user.userID,
+        message: `The product ${productName} has been deleted by ${username}.`,
+        requestID: productId,
+        sender: this.userID,
+      }));
+
+      for (const notification of notifications) {
+        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        await axios.post('https://localhost:7162/Notification', notification, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+      }
+
+      this.dialog = false;
+      this.notifySuccess('top', 'right');
+
+    } catch (error) {
+      console.error("Delete error:", error);
+      this.dialog = false;
+      this.notifyError('top', 'right');
+    }
+  } else if (this.domain === 'request') {
+    if (!this.itemToDelete) return;
+    try {
+      const requestId = this.itemToDelete.requestID;
+      await axios.delete(`${this.apiURL}/${requestId}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
+
+      const index = this.data.findIndex(r => r.requestID === requestId);
+      if (index !== -1) {
+        this.data.splice(index, 1);
+      }
+
+      // Fetch the username by userID
+      const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+      });
+      const username = usernameResponse.data;
+      console.log('Fetched username:', username);
+
+      // Fetch the department leader
+      const department = this.getUserDepartment(this.itemToDelete.userID);
+      const departmentLeaderResponse = await axios.get(`https://localhost:7162/User/department-leader?department=${department}`, {
+        headers: { Authorization: `Bearer ${this.token}` },
+      });
+      const departmentLeader = departmentLeaderResponse.data;
+
+      // Send notifications to userID and department leader
+      const notifications = [
+        {
+          userID: this.itemToDelete.userID,
+          message: `Your request ${requestId} has been deleted by ${username}.`,
+          requestID: requestId,
+          sender: this.userID,
+        },
+        {
+          userID: departmentLeader.userID,
+          message: `Request ${requestId} from your department has been deleted by ${username}.`,
+          requestID: requestId,
+          sender: this.userID,
+        }
+      ];
+
+      for (const notification of notifications) {
+        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        await axios.post('https://localhost:7162/Notification', notification, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+      }
+
+      this.dialog = false;
+      this.notifySuccess('top', 'right');
+
+    } catch (error) {
+      console.error("Delete error:", error);
+      this.dialog = false;
+      this.notifyError('top', 'right');
+    }
+  }
+},
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: `<span>Xóa sản phẩm thành công</span>`,
