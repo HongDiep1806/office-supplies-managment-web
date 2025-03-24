@@ -80,11 +80,11 @@
             <p class="total-amount-input">{{ formattedTotalAmount }}</p>
           </div>
         </div>
-        <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
+        <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'">
           Duyệt phiếu yêu cầu
         </button>
         <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="enableNoteEditing"
-          style="margin-right: 10px;" v-if="userRole !== 'Employee' && requestStatus === 'Chưa duyệt'">
+          style="margin-right: 10px;" v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'">
           Không duyệt phiếu
         </button>
         <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket"
@@ -129,7 +129,6 @@ export default {
   },
   async mounted() {
     this.token = localStorage.getItem('authToken');
-    console.log(this.token);
     const requestId = this.$route.params.id;
     const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {headers: { Authorization: `Bearer ${this.token}` }});
     this.userID = request.data.userID;
@@ -140,16 +139,33 @@ export default {
     this.noteDepLead = request.data.noteDepLead; // Fetch the note from the backend
     this.noteSupLead = request.data.noteSupLead; // Fetch the note from the backend
     //console.log IsProcessedByDepLead, IsApprovedByDepLead, IsApprovedBySupLead
-    console.log(request.data.isProcessedByDepLead)
+    //console.log(request.data.isProcessedByDepLead)
     const { isProcessedByDepLead, isApprovedByDepLead, isApprovedBySupLead } = request.data;
+    const { isCollectedInSummary, IsSummaryBeProcessed, IsSummaryBeApproved} = request.data;
     if (!isProcessedByDepLead  && !isApprovedByDepLead && !isApprovedBySupLead ) {
-      this.requestStatus = 'Chưa duyệt';
+      this.requestStatus = 'Dep chưa duyệt';
+    } else if (isProcessedByDepLead && !isApprovedByDepLead  && !isApprovedBySupLead) {
+      this.requestStatus = 'Dep từ chối';
     } else if (isProcessedByDepLead && isApprovedByDepLead  && !isApprovedBySupLead) {
-      this.requestStatus = 'Chưa duyệt';
-    } else {
-      this.requestStatus = 'WHAT';
+      this.requestStatus = 'QLTC chưa duyệt';
+    } else if (!isProcessedByDepLead && isApprovedByDepLead  && !isApprovedBySupLead) {
+      this.requestStatus = 'QLTC từ chối';
     }
-    console.log(this.requestStatus);
+    else {
+      if (isCollectedInSummary && IsSummaryBeProcessed && IsSummaryBeApproved){
+        this.requestStatus = 'Đã duyệt';
+      }
+      else if (isCollectedInSummary && IsSummaryBeProcessed && !IsSummaryBeApproved){
+        this.requestStatus = 'QLTC từ chối';
+      }
+      else if (isCollectedInSummary && !IsSummaryBeProcessed && !IsSummaryBeApproved){
+        this.requestStatus = 'Chờ duyệt';
+      }
+      else if (!isCollectedInSummary && !IsSummaryBeProcessed && !IsSummaryBeApproved){
+        this.requestStatus = 'Chờ duyệt';
+      }
+    }
+    //console.log(this.requestStatus);
     try {
       this.userRole = localStorage.getItem('userRole');
       const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
@@ -227,7 +243,7 @@ export default {
               Authorization: `Bearer ${this.token}`,
             },
           });
-          console.log("thành công" + response.data);
+          //console.log("thành công" + response.data);
           this.notifySuccess('top', 'right');
           this.sendNotifications('approve');
           this.$router.push('/admin/view-all-request');
@@ -237,7 +253,7 @@ export default {
               Authorization: `Bearer ${this.token}`,
             },
           });
-          console.log("thành công" + response.data);
+          //console.log("thành công" + response.data);
           this.notifySuccess('top', 'right');
           this.sendNotifications('approve');
           this.$router.push('/admin/view-all-request');
@@ -257,7 +273,7 @@ export default {
             headers: {
               Authorization: `Bearer ${this.token}` },
           });
-          console.log("Không duyệt thành công" + response.data);
+          //console.log("Không duyệt thành công" + response.data);
           this.notifySuccess('top', 'right');
           this.sendNotifications('not approve');
           this.$router.push('/admin/view-all-request');
@@ -267,7 +283,7 @@ export default {
             headers: {
               Authorization: `Bearer ${this.token}` },
           });
-          console.log("Không duyệt thành công" + response.data);
+          //console.log("Không duyệt thành công" + response.data);
           this.notifySuccess('top', 'right');
           this.sendNotifications('not approve');
           this.$router.push('/admin/view-all-request');
@@ -292,7 +308,7 @@ export default {
           headers: { Authorization: `Bearer ${this.token}` },
         });
         const departmentLeader = departmentLeaderResponse.data;
-
+        const requestCode = request.data.requestCode;
         const notifications = [];
 
         if (this.userRole === 'Dep Leader') {
@@ -305,7 +321,7 @@ export default {
             financeUsers.forEach((leader) => {
               notifications.push({
                 userID: leader.userID,
-                message: `Request ${requestId} has been ${action} by department leader.`,
+                message: `Request ${requestCode} has been ${action} by department leader.`,
                 requestID: requestId,
                 sender: this.userID,
               });
@@ -314,7 +330,7 @@ export default {
             // Send notification to the user who created the request
             notifications.push({
               userID: userID,
-              message: `Your request ${requestId} has been ${action} by department leader.`,
+              message: `Your request ${requestCode} has been ${action} by department leader.`,
               requestID: requestId,
               sender: this.userID,
             });
@@ -322,7 +338,7 @@ export default {
             // Send notification to the user who created the request
             notifications.push({
               userID: userID,
-              message: `Your request ${requestId} has been ${action} by department leader.`,
+              message: `Your request ${requestCode} has been ${action} by department leader.`,
               requestID: requestId,
               sender: this.userID,
             });
@@ -331,7 +347,7 @@ export default {
           // Send notification to the user who created the request
           notifications.push({
             userID: userID,
-            message: `Your request ${requestId} has been ${action} by finance management employee.`,
+            message: `Your request ${requestCode} has been ${action} by finance management employee.`,
             requestID: requestId,
             sender: this.userID,
           });
@@ -340,7 +356,7 @@ export default {
           if (departmentLeader) {
             notifications.push({
               userID: departmentLeader.userID,
-              message: `Request ${requestId} has been ${action} by finance management employee.`,
+              message: `Request ${requestCode} has been ${action} by finance management employee.`,
               requestID: requestId,
               sender: this.userID,
             });

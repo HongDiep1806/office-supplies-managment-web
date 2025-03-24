@@ -171,7 +171,7 @@ export default {
         headers: { Authorization: `Bearer ${this.token}` }
       });
       const productName = productResponse.data.name;
-      console.log('Fetched product name:', productName);
+      //console.log('Fetched product name:', productName);
       await axios.delete(`${this.apiURL}/${productId}`, {
         headers: { Authorization: `Bearer ${this.token}` }
       });
@@ -186,7 +186,7 @@ export default {
         headers: { Authorization: `Bearer ${this.token}` }
       });
       const username = usernameResponse.data;
-      console.log('Fetched username:', username);
+      //console.log('Fetched username:', username);
 
       // Fetch users with userTypeID == 2
       const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
@@ -212,7 +212,7 @@ export default {
       }));
 
       for (const notification of notifications) {
-        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        //console.log(`Sending notification: ${JSON.stringify(notification)}`);
         await axios.post('https://localhost:7162/Notification', notification, {
           headers: { Authorization: `Bearer ${this.token}` },
         });
@@ -244,7 +244,7 @@ export default {
         headers: { Authorization: `Bearer ${this.token}` }
       });
       const username = usernameResponse.data;
-      console.log('Fetched username:', username);
+      //console.log('Fetched username:', username);
 
       // Fetch the department leader
       const department = this.getUserDepartment(this.itemToDelete.userID);
@@ -270,7 +270,7 @@ export default {
       ];
 
       for (const notification of notifications) {
-        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        //console.log(`Sending notification: ${JSON.stringify(notification)}`);
         await axios.post('https://localhost:7162/Notification', notification, {
           headers: { Authorization: `Bearer ${this.token}` },
         });
@@ -305,7 +305,7 @@ export default {
       });
     },
     getStatusText(item) {
-      console.log("log trong table" + item.Status);
+      //console.log("log trong table" + item.Status);
       return item.Status;
     },
     getStatusClass(item) {
@@ -337,7 +337,7 @@ export default {
     },
     createSummary() {
       this.$router.push({ name: 'Create Summary', params: {requestIds: this.selectedRequests.join(',')  } });
-      console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
+      //console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
     },
 
   },

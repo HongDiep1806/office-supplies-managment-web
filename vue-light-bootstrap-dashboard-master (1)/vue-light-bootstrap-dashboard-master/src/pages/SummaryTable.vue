@@ -72,7 +72,7 @@ export default {
                             : "Chưa duyệt"
 
                     }));
-                    console.log("data sum", this.table.data);
+                    //console.log("data sum", this.table.data);
                 } else {
                     console.error('Unexpected response format:', response);
                 }

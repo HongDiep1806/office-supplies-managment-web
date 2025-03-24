@@ -242,7 +242,7 @@ export default {
             timeout: 100000
           });
         } else if (this.userRole === 'Employee') {
-          response = await axios.get(`https://localhost:7162/Request/${this.userID}`, { timeout: 50000 });
+          response = await axios.get(`https://localhost:7162/Request/${this.userID}`, {headers: { Authorization: `Bearer ${this.token}` }, timeout: 50000 });
         } else if(this.userRole === 'Dep Leader'){
           response = await axios.get(`https://localhost:7162/Request/department/${this.department}`, {
                 headers: { Authorization: `Bearer ${this.token}` },
@@ -333,14 +333,19 @@ export default {
       }
     },
     async getUserName(userID) {
-      try {
-        const response = await axios.get(`https://localhost:7162/User/getNameById${userID}`, { timeout: 50000 });
-        return response.data;
-      } catch (error) {
-        console.error('Lỗi khi lấy tên người dùng:', error);
-        return 'Người dùng không xác định'; // Trả về giá trị mặc định nếu có lỗi
-      }
-    },
+  try {
+    const response = await axios.get(`https://localhost:7162/User/getNameById${userID}`, {
+      headers: { Authorization: `Bearer ${this.token}` },
+      timeout: 50000
+    });
+    return response.data;
+  } catch (error) {
+    console.error('Lỗi khi lấy tên người dùng:', error);
+    return 'Người dùng không xác định'; // Trả về giá trị mặc định nếu có lỗi
+  }
+}
+
+,
     async fetchReportData() {
       const currentYear = new Date().getFullYear();
       this.barChart.data.series = [];

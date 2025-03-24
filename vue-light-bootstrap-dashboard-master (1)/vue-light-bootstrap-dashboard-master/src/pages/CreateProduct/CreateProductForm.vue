@@ -93,21 +93,21 @@ export default {
           Authorization: `Bearer ${this.token}` // Đính kèm token vào header
         }
       });
-      console.log("Response:", response.data);
+      //("Response:", response.data);
       if (response.data == true) {
         // Fetch the product by its code to get the productID
         const productResponse = await axios.get(`https://localhost:7162/Product/get-by-code?code=${encodeURIComponent(this.product.Code)}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
         const productID = productResponse.data.productID;
-        console.log('Fetched productID:', productID);
+        //console.log('Fetched productID:', productID);
 
         // Fetch the username by userID
         const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
         const username = usernameResponse.data;
-        console.log('Fetched username:', username);
+        //console.log('Fetched username:', username);
 
         // Fetch users with userTypeID == 2
         const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
@@ -133,7 +133,7 @@ export default {
         }));
 
         for (const notification of notifications) {
-          console.log(`Sending notification: ${JSON.stringify(notification)}`);
+          //console.log(`Sending notification: ${JSON.stringify(notification)}`);
           await axios.post('https://localhost:7162/Notification', notification, {
             headers: { Authorization: `Bearer ${this.token}` },
           });
