@@ -191,7 +191,7 @@
             noteSupLead: 'pending'
           };
   
-          console.log('Request Data:', requestData); // Log the request data for debugging
+          //console.log('Request Data:', requestData); // Log the request data for debugging
   
           const response = await axios.post('https://localhost:7162/Request', requestData, {
             headers: {
@@ -199,7 +199,7 @@
             },
           });
   
-          console.log('Response:', response.data); // Log the response data for debugging
+          //console.log('Response:', response.data); // Log the response data for debugging
   
           // Create notification
           const notificationData = {

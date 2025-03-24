@@ -196,14 +196,14 @@ export default {
         const response = await axios.post('https://localhost:7162/Summary', payload, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
-        console.log('Phiếu tổng hợp đã được tạo thành công:', response.data);
+        //console.log('Phiếu tổng hợp đã được tạo thành công:', response.data);
         await this.sendSummaryNotifications();
         // Fetch the summary by its code to get the summaryID
         const summaryResponse = await axios.get(`https://localhost:7162/Summary/get-by-code?summaryCode=${encodeURIComponent(this.ticketNumber)}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
         this.summaryID = summaryResponse.data.summaryID;
-        console.log('Fetched summaryID:', this.summaryID);
+        //console.log('Fetched summaryID:', this.summaryID);
         this.$router.push('/admin/summary-table');
         //get summaryID back
       } catch (error) {
@@ -222,12 +222,12 @@ export default {
     for (const request of this.requests) {
       const userID = request.userID;
       const department = this.getUserDepartment(userID);
-      console.log(`Fetching department leader for department: ${department}`);
+      //console.log(`Fetching department leader for department: ${department}`);
       const departmentLeaderResponse = await axios.get(`https://localhost:7162/User/department-leader?department=${department}`, {
         headers: { Authorization: `Bearer ${this.token}` },
       });
       const departmentLeader = departmentLeaderResponse.data;
-      console.log(`Department leader: ${JSON.stringify(departmentLeader)}`);
+      //console.log(`Department leader: ${JSON.stringify(departmentLeader)}`);
 
       const notifications = [
         {
@@ -245,7 +245,7 @@ export default {
       ];
 
       for (const notification of notifications) {
-        console.log(`Sending notification: ${JSON.stringify(notification)}`);
+        //console.log(`Sending notification: ${JSON.stringify(notification)}`);
         await axios.post('https://localhost:7162/Notification', notification, {
           headers: { Authorization: `Bearer ${this.token}` },
         });
@@ -268,7 +268,7 @@ export default {
         ...summaryNotification,
         userID: user.userID,
       };
-      console.log(`Sending notification to userTypeID == 2: ${JSON.stringify(notification)}`);
+      //console.log(`Sending notification to userTypeID == 2: ${JSON.stringify(notification)}`);
       await axios.post('https://localhost:7162/Notification', notification, {
         headers: { Authorization: `Bearer ${this.token}` },
       });

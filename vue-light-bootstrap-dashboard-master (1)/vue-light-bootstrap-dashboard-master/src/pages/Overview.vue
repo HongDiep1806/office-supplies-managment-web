@@ -31,15 +31,18 @@
             </template>
             <template v-slot:footer>
               <div class="legend">
-                <i class="fa fa-circle text-info"></i> P. Chuyển đổi số
-                <i class="fa fa-circle text-danger"></i> P. Kế Toán
-                <i class="fa fa-circle text-warning"></i> P. Chăm sóc khách hàng
-              </div>
-              <hr>
-              <div class="stats">
-                <i class="fa fa-check"></i> Data information certified
-              </div>
-            </template>
+  <span v-for="(department, index) in departments" :key="index">
+    <i class="fa fa-circle" :style="{ color: colorPalette[index % colorPalette.length] }"></i> {{ department }}
+  </span>
+</div>
+
+
+
+  <hr>
+  <div class="stats">
+    <i class="fa fa-check"></i> Data information certified
+  </div>
+</template>
           </chart-card>
         </div>
       </div>
@@ -145,6 +148,26 @@ export default {
   },
   data() {
     return {
+//       ::v-deep .ct-series-a .ct-bar { stroke: #17a2b8; } 
+// ::v-deep .ct-series-b .ct-bar { stroke: #ffc107; } 
+// ::v-deep .ct-series-c .ct-bar { stroke: #6f42c1; } 
+// ::v-deep .ct-series-d .ct-bar { stroke: #28a745; } 
+// ::v-deep .ct-series-e .ct-bar { stroke: #dc3545; } 
+// ::v-deep .ct-series-f .ct-bar { stroke: #007bff; } 
+// ::v-deep .ct-series-g .ct-bar { stroke: #fd7e14; } 
+// ::v-deep .ct-series-h .ct-bar { stroke: #6610f2; }
+// ::v-deep .ct-series-i .ct-bar { stroke: #6c757d; } 
+// ::v-deep .ct-series-j .ct-bar { stroke: #17a2b8; } 
+      colorPalette: ['#17a2b8',  '#dc3545', '#ffc107', '#6f42c1', '#28a745', '#007bff', '#fd7e14', '#6610f2', '#6c757d', '#17a2b8'],
+      departmentColors: {
+  // CDS: '#17a2b8',  // Blue
+  // ABC: '#dc3545',   // Red
+  // KT: '#ffc107',      // Orange
+  // CSKH: '#6f42c1',    // Purple
+  // SXKD: '#28a745',    // Green
+       
+},
+// Map to hold department -> color
       selectedDepartment: '',
       currentTime: '',
       userName: 'Nguyen Van A',
@@ -170,7 +193,7 @@ export default {
             showGrid: true,
           },
           axisY: {
-            offset: 50,
+            offset: 100,
           },
           height: '300px',
           width: '100%',
@@ -185,8 +208,10 @@ export default {
             },
           }],
         ],
+        
       },
-      departments: ['CDS', 'KT', 'CSKH'],
+      departments: [],
+      legendClasses: ['text-info', 'text-danger', 'text-warning', 'text-success'],
     };
   },
   async mounted() {
@@ -219,14 +244,39 @@ export default {
       }
     }
     if (this.userRole === 'Sup Leader') {
+      await this.fetchDepartmentData();
+      console.log("log departments", this.departments);
       await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
       await this.fetchReportData();
+      console.log("series", JSON.stringify(this.barChart.data.series, null, 2));
+
     } 
     else if (this.userRole === 'Finance Management Employee' || this.userRole === 'Employee'|| this.userRole === 'Dep Leader') {
       await this.fetchRequestData();
     }
   },
   methods: {
+    getLegendClass(index) {
+      return this.legendClasses[index % this.legendClasses.length];
+  },
+    //method use this api to get list of department names data
+    //https://localhost:7162/User/unique-departments
+    async fetchDepartmentData() {
+  try {
+    const response = await axios.get('https://localhost:7162/User/unique-departments', {
+      headers: { Authorization: `Bearer ${this.token}` },
+      timeout: 50000
+    });
+    this.departments = response.data;
+
+    // Populate departmentColors with the correct colors
+    this.departments.forEach((department, index) => {
+      this.departmentColors[department] = this.colorPalette[index % this.colorPalette.length];
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách phòng ban:', error);
+  }
+},
     updateClock() {
       const now = new Date();
       this.currentTime = now.toLocaleTimeString();
@@ -346,50 +396,60 @@ export default {
 }
 
 ,
-    async fetchReportData() {
-      const currentYear = new Date().getFullYear();
-      this.barChart.data.series = [];
+async fetchReportData() {
+    const currentYear = new Date().getFullYear();
+    this.barChart.data.series = [];
+    this.departmentColors = {}; // reset map
 
-      try {
-        for (const department of this.departments) {
-          const departmentSeries = [];
+    try {
+      for (const [index, department] of this.departments.entries()) {
+        const departmentSeries = [];
 
-          for (let month = 0; month < 12; month++) {
-            const startDate = new Date(currentYear, month, 1);
-            const endDate = new Date(currentYear, month + 1, 0);
+        for (let month = 0; month < 12; month++) {
+          const startDate = new Date(currentYear, month, 1);
+          const endDate = new Date(currentYear, month + 1, 0);
+          const formattedStartDate = startDate.toISOString().split('T')[0];
+          const formattedEndDate = endDate.toISOString().split('T')[0];
 
-            const formattedStartDate = startDate.toISOString().split('T')[0];
-            const formattedEndDate = endDate.toISOString().split('T')[0];
+          const response = await axios.get('https://localhost:7162/Summary/report', {
+            headers: { Authorization: `Bearer ${this.token}` },
+            params: {
+              department: department,
+              startDate: formattedStartDate,
+              endDate: formattedEndDate,
+            },
+          });
 
-            const response = await axios.get('https://localhost:7162/Summary/report', {
-              headers: { Authorization: `Bearer ${this.token}` },
-              params: {
-                department: department,
-                startDate: formattedStartDate,
-                endDate: formattedEndDate,
-              },
-            });
-
-            if (typeof response.data === 'number') {
-              departmentSeries.push(response.data);
-            } else {
-              console.error("Dữ liệu không phải là số:", response.data);
-              departmentSeries.push(0);
-            }
-          }
-
-          this.barChart.data.series.push(departmentSeries);
+          departmentSeries.push(typeof response.data === 'number' ? response.data : 0);
         }
 
-        this.$nextTick(() => {
-          this.$refs.chartCard.initChart(); // Gọi lại phương thức khởi tạo biểu đồ
-        });
+        // After computing departmentSeries
+if (departmentSeries.some(value => value > 0)) {
+  this.barChart.data.series.push({
+    name: department,
+    data: departmentSeries,
+  });
+}
 
-        //console.log("barChart.data.series:", this.barChart.data.series);
-      } catch (error) {
-        console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
+
+
       }
-    },
+      // ✅ Just re-map color for safety
+Object.keys(this.departmentColors).forEach((dep) => {
+  if (!this.departmentColors[dep]) {
+    this.departmentColors[dep] = this.colorPalette[this.departments.indexOf(dep) % this.colorPalette.length];
+  }
+});
+
+      this.$nextTick(() => {
+        this.$refs.chartCard.initChart();
+      });
+
+      console.log("barChart.data.series:", this.barChart.data.series);
+    } catch (error) {
+      console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
+    }
+  },
     async fetchSummariesByDateRange() {
       const today = new Date();
       const selectedStartDate = new Date(this.startDate);
@@ -515,8 +575,20 @@ export default {
 </script>
 
 <style scoped>
-/* .clock {
-    font-size: 1.2rem;
-    font-weight: bold;
-} */
+::v-deep .ct-series-a .ct-bar { stroke: #17a2b8; } /* CDS - Blue */
+::v-deep .ct-series-b .ct-bar { stroke: #ffc107; } /* KT - Orange */
+::v-deep .ct-series-c .ct-bar { stroke: #6f42c1; } /* CSKH - Purple */
+::v-deep .ct-series-d .ct-bar { stroke: #28a745; } /* SXKD - Green */
+::v-deep .ct-series-e .ct-bar { stroke: #dc3545; } /* ABC - Red */
+::v-deep .ct-series-f .ct-bar { stroke: #007bff; } /* Others - Blue */
+::v-deep .ct-series-g .ct-bar { stroke: #fd7e14; } /* Nhân sự */
+::v-deep .ct-series-h .ct-bar { stroke: #6610f2; } /* Hành chính */
+::v-deep .ct-series-i .ct-bar { stroke: #6c757d; } /* IT */
+::v-deep .ct-series-j .ct-bar { stroke: #17a2b8; } /* CDS */
+
+
+
+.legend i {
+  margin-right: 5px;
+}
 </style>

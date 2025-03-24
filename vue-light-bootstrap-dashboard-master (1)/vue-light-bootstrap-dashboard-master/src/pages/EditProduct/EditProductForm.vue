@@ -159,14 +159,14 @@ export default {
           headers: { Authorization: `Bearer ${this.token}` }
         });
 
-        console.log("Response:", response.data);
+        //console.log("Response:", response.data);
 
         // Fetch the username by userID
         const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
         const username = usernameResponse.data;
-        console.log('Fetched username:', username);
+        //console.log('Fetched username:', username);
 
         // Fetch users with userTypeID == 2
         const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
@@ -192,7 +192,7 @@ export default {
         }));
 
         for (const notification of notifications) {
-          console.log(`Sending notification: ${JSON.stringify(notification)}`);
+          //console.log(`Sending notification: ${JSON.stringify(notification)}`);
           await axios.post('https://localhost:7162/Notification', notification, {
             headers: { Authorization: `Bearer ${this.token}` },
           });
@@ -258,7 +258,7 @@ export default {
 },
 mounted() {
   const id = this.$route.params.id;
-  console.log('Route Params:', id); 
+  //console.log('Route Params:', id); 
 
   if (id) {
     axios.get(`https://localhost:7162/Product/${id}`, {headers: { Authorization: `Bearer ${this.token}` }}).then((response) => {
@@ -272,7 +272,7 @@ mounted() {
       this.product.AdjustDate = new Date(updatingProduct.adjustDate).toLocaleString();
       this.product.UserIDCreate = updatingProduct.userIDCreate;
       this.product.UserIDAdjust = updatingProduct.userIDAdjust;
-      console.log("Product fetched:", updatingProduct);
+      //console.log("Product fetched:", updatingProduct);
       this.fetchUserName(this.product.UserIDCreate, 'created');
       this.fetchUserName(this.product.UserIDAdjust, 'adjusted');
     }).catch(error => {

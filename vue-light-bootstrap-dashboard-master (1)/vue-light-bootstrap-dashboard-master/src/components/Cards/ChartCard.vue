@@ -57,6 +57,13 @@
         this.chartOptions.stackBars = this.chartType === 'StackedBar';
         this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](chartIdQuery, this.chartData, this.chartOptions, this.responsiveOptions);
         this.$emit('initialized', this.chart);
+        this.chartOptions.stackBars = this.chartType === 'StackedBar';
+this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
+  chartIdQuery,
+  this.chartData,         // ✅ Make sure this has series as [{ data: [...], className: ... }]
+  this.chartOptions,
+  this.responsiveOptions
+);
 
         if (this.chartType === 'Line') {
           this.animateLineChart();
@@ -188,4 +195,11 @@
 
 <style>
 /* Add any necessary styles for chart-container here */
+.ct-series-a .ct-bar { stroke: #17a2b8; } /* CDS */
+.ct-series-b .ct-bar { stroke: #dc3545; } /* ABC */
+.ct-series-c .ct-bar { stroke: #ffc107; } /* KT */
+.ct-series-d .ct-bar { stroke: #6f42c1; } /* CSKH */
+.ct-series-e .ct-bar { stroke: #28a745; } /* SXKD */
+
+
 </style>
