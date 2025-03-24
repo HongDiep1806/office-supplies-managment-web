@@ -22,17 +22,21 @@
         <i class="nc-icon nc-paper-2"></i>
         <p>QL Phiếu tổng hợp</p>
       </sidebar-link>
-      <sidebar-link to="/admin/icons">
+      <!-- <sidebar-link to="/admin/icons">
         <i class="nc-icon nc-atom"></i>
         <p>Icons</p>
       </sidebar-link>
       <sidebar-link to="/admin/maps">
         <i class="nc-icon nc-pin-3"></i>
         <p>Maps</p>
-      </sidebar-link>
+      </sidebar-link> -->
       <sidebar-link to="/admin/notifications">
         <i class="nc-icon nc-bell-55"></i>
-        <p>Notifications</p>
+        <p>Thông Báo</p>
+      </sidebar-link>
+      <sidebar-link to="#" @click.native="logout">
+        <i class="nc-icon nc-button-power"></i>
+        <p>Đăng xuất</p>
       </sidebar-link>
     </side-bar>
     <div class="main-panel">
@@ -71,6 +75,10 @@ export default {
         this.$sidebar.displaySidebar(false);
       }
     },
+    logout() {
+      localStorage.clear();
+      this.$router.push("/login");
+    }
 
   },
   async mounted() {

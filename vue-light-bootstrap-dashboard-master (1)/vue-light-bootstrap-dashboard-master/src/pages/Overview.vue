@@ -145,6 +145,7 @@ export default {
   },
   data() {
     return {
+      selectedDepartment: '',
       currentTime: '',
       userName: 'Nguyen Van A',
       userRole: '',
@@ -207,7 +208,6 @@ export default {
         this.userRole = decoded.Role || 'User';
         this.userID = decoded.sub || 'User';
         this.permissions = decoded.Permission;
-        console.log(this.permissions);
         this.department = decoded.Department || 'User';
         localStorage.setItem('userName', this.userName);
         localStorage.setItem('userRole', this.userRole);
@@ -327,7 +327,7 @@ export default {
                 return "Không xác định"; // Trường hợp mặc định
               })(),
           }));
-          console.log("log data sau khi map", this.tableData.data);
+          //console.log("log data sau khi map", this.tableData.data);
       } catch (error) {
         console.error('Lỗi khi lấy danh sách phiếu yêu cầu:', error);
       }
@@ -385,7 +385,7 @@ export default {
           this.$refs.chartCard.initChart(); // Gọi lại phương thức khởi tạo biểu đồ
         });
 
-        console.log("barChart.data.series:", this.barChart.data.series);
+        //console.log("barChart.data.series:", this.barChart.data.series);
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
       }
