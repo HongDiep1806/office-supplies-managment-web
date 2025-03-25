@@ -16,11 +16,26 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between; padding: 0px 15px; margin-top: 10px;">
-                <input type="text" v-model="searchName" placeholder="Tìm kiếm tên sản phẩm" class="form-control" style="max-width: 200px;" />
-                <input type="text" v-model="searchCode" placeholder="Tìm kiếm mã sản phẩm" class="form-control" style="max-width: 200px;" />
-                <input type="number" v-model="minPrice" placeholder="Giá tối thiểu" class="form-control" style="max-width: 150px;" />
-                <input type="number" v-model="maxPrice" placeholder="Giá tối đa" class="form-control" style="max-width: 150px;" />
-                <button class="btn btn-primary" @click="searchProduct">Tìm kiếm</button>
+                <div class="search-filters d-flex flex-wrap align-items-center gap-3 p-3 bg-light rounded">
+  <div class="form-group mb-0">
+    <label>Tên sản phẩm</label>
+    <input v-model="searchName" class="form-control" placeholder="Nhập tên sản phẩm" />
+  </div>
+  <div class="form-group mb-0">
+    <label>Mã sản phẩm</label>
+    <input v-model="searchCode" class="form-control" placeholder="Nhập mã sản phẩm" />
+  </div>
+  <div class="form-group mb-0">
+    <label>Giá tối thiểu</label>
+    <input v-model="minPrice" type="number" class="form-control" placeholder="Tối thiểu" />
+  </div>
+  <div class="form-group mb-0">
+    <label>Giá tối đa</label>
+    <input v-model="maxPrice" type="number" class="form-control" placeholder="Tối đa" />
+  </div>
+  <button class="btn btn-primary mt-3" @click="searchProduct">Tìm kiếm</button>
+</div>
+                
               </div>
             </template>
 
@@ -95,7 +110,7 @@ export default {
             'Giá': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.unitPrice),
             'Last Adjusted': new Date(item.adjustDate).toLocaleString()
           }));
-          console.log(this.table1.data);
+          //console.log(this.table1.data);
         })
         .catch(error => {
           console.error('Error fetching data:', error);
