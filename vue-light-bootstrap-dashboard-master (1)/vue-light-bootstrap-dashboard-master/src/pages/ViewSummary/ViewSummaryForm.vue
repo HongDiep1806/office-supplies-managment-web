@@ -79,7 +79,8 @@ export default {
       showApproveButton: false,
       userRole: '',
       type: ['success', 'danger', 'warning'],
-      token: localStorage.getItem('authToken')
+      token: localStorage.getItem('authToken'),
+      userID: localStorage.getItem('userId'),
     };
   },
   async created() {

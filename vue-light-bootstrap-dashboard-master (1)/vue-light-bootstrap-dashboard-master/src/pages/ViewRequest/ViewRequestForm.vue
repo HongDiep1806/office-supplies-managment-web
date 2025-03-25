@@ -1,6 +1,9 @@
 <template>
   <card>
-    <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
+    <div class="header-container">
+      <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
+      <div class="status-box">{{ requestStatus }}</div>
+    </div>
     <form>
       <div class="row">
         <div class="col-md-3">
@@ -141,7 +144,7 @@ export default {
     //console.log IsProcessedByDepLead, IsApprovedByDepLead, IsApprovedBySupLead
     //console.log(request.data.isProcessedByDepLead)
     const { isProcessedByDepLead, isApprovedByDepLead, isApprovedBySupLead } = request.data;
-    const { isCollectedInSummary, IsSummaryBeProcessed, IsSummaryBeApproved} = request.data;
+    const { isCollectedInSummary, isSummaryBeProcessed, isSummaryBeApproved} = request.data;
     if (!isProcessedByDepLead  && !isApprovedByDepLead && !isApprovedBySupLead ) {
       this.requestStatus = 'Dep chưa duyệt';
     } else if (isProcessedByDepLead && !isApprovedByDepLead  && !isApprovedBySupLead) {
@@ -152,17 +155,20 @@ export default {
       this.requestStatus = 'QLTC từ chối';
     }
     else {
-      if (isCollectedInSummary && IsSummaryBeProcessed && IsSummaryBeApproved){
+      if (isCollectedInSummary && isSummaryBeProcessed && isSummaryBeApproved){
         this.requestStatus = 'Đã duyệt';
       }
-      else if (isCollectedInSummary && IsSummaryBeProcessed && !IsSummaryBeApproved){
+      else if (isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'QLTC từ chối';
       }
-      else if (isCollectedInSummary && !IsSummaryBeProcessed && !IsSummaryBeApproved){
+      else if (isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'Chờ duyệt';
       }
-      else if (!isCollectedInSummary && !IsSummaryBeProcessed && !IsSummaryBeApproved){
-        this.requestStatus = 'Chờ duyệt';
+      else if (!isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
+        this.requestStatus = 'Chờ tổng hợp';
+      }
+      else {
+        this.requestStatus = 'Không xác định';
       }
     }
     //console.log(this.requestStatus);
@@ -388,6 +394,21 @@ export default {
 
 <style scoped>
 .total-amount-input {
+  .header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.status-box {
+  background-color: #f5f5f5;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 8px 12px;
+  font-size: 16px;
+  color: #888888;
+}
+
   border: 1px solid #ccc;
   padding: 8px 12px;
   border-radius: 4px;

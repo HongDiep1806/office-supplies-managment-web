@@ -254,8 +254,36 @@ export default {
     else if (this.userRole === 'Finance Management Employee' || this.userRole === 'Employee'|| this.userRole === 'Dep Leader') {
       await this.fetchRequestData();
     }
+    //delay about 1500ms
+    // await new Promise(resolve => setTimeout(resolve, 1500));
+    await this.fetchUnreadNotifications();
   },
   methods: {
+    async fetchUnreadNotifications() {
+  try {
+    const response = await axios.get(`https://localhost:7162/Notification/unread-by-user`, {
+      headers: { Authorization: `Bearer ${this.token}` },
+      params: {
+        userId: this.userID
+      }
+    });
+
+    if (response.data && response.data.length > 0) {
+      this.notifySuccess('top', 'right', 'Bạn có thông báo mới');
+    }
+  } catch (error) {
+    console.error('Error fetching unread notifications:', error);
+  }
+},
+async notifySuccess(verticalAlign, horizontalAlign, message) {
+  this.$notifications.notify({
+    message: `<span>${message}</span>`,
+    icon: 'nc-icon nc-app',
+    horizontalAlign: horizontalAlign,
+    verticalAlign: verticalAlign,
+    type: 'info'
+  });
+},
     getLegendClass(index) {
       return this.legendClasses[index % this.legendClasses.length];
   },

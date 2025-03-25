@@ -200,6 +200,14 @@ this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
 .ct-series-c .ct-bar { stroke: #ffc107; } /* KT */
 .ct-series-d .ct-bar { stroke: #6f42c1; } /* CSKH */
 .ct-series-e .ct-bar { stroke: #28a745; } /* SXKD */
+/* Add any necessary 5 styles for chart-container here */
+.ct-series-f .ct-bar { stroke: #007bff; } /* Kế toán */
+.ct-series-g .ct-bar { stroke: #fd7e14; } /* Nhân sự */
+.ct-series-h .ct-bar { stroke: #6610f2; } /* Hành chính */
+.ct-series-i .ct-bar { stroke: #6c757d; } /* IT */
+.ct-series-j .ct-bar { stroke: #17a2b8; } /* CDS */
+
+
 
 
 </style>

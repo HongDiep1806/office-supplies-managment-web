@@ -128,6 +128,8 @@ export default {
       }
     },
     viewRequest(requestID) {
+      //also mark as read
+      
       if (this.userRole === 'Sup Leader') {
         if (this.apiNotifications.find(notification => notification.requestID === requestID).message.includes("product")) {
           this.$router.push('/admin/table-list');

@@ -158,7 +158,17 @@ export default {
         const response = await axios.put(`https://localhost:7162/Product`, this.product, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
-
+        const requestsResponse = await axios.get(`https://localhost:7162/Request/requests-by-product/${this.product.ProductID}`, {
+        headers: { Authorization: `Bearer ${this.token}` }
+        });
+        const requests = requestsResponse.data;
+        for (const request of requests) {
+          await axios.post('https://localhost:7162/Request/recalculate-total-price', {
+            requestID: request.requestID
+          }, {
+            headers: { Authorization: `Bearer ${this.token}` }
+          });
+        }
         //console.log("Response:", response.data);
 
         // Fetch the username by userID
