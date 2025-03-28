@@ -244,7 +244,7 @@ export default {
       }
     }
     if (this.userRole === 'Sup Leader') {
-      
+      await this.fetchDepartmentData();
       await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
       await this.fetchReportData();
       console.log("log departments", this.departments);
@@ -259,6 +259,22 @@ export default {
     await this.fetchUnreadNotifications();
   },
   methods: {
+    async fetchDepartmentData() {
+  try {
+    const response = await axios.get('https://localhost:7162/User/unique-departments', {
+      headers: { Authorization: `Bearer ${this.token}` },
+      timeout: 50000
+    });
+    this.departments = response.data;
+
+    // Populate departmentColors with the correct colors
+    this.departments.forEach((department, index) => {
+      this.departmentColors[department] = this.colorPalette[index % this.colorPalette.length];
+    });
+  } catch (error) {
+    console.error('Lỗi khi lấy danh sách phòng ban:', error);
+  }
+},
     async fetchUnreadNotifications() {
   try {
     const response = await axios.get(`https://localhost:7162/Notification/unread-by-user`, {
