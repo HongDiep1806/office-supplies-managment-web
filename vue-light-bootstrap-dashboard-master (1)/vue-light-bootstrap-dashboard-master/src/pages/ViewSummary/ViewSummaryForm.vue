@@ -250,16 +250,16 @@ export default {
         {
           userID: userID,
           message: isApproved
-            ? `Your request ${request.requestCode} has been approved in summary ${this.summary.summaryCode}.`
-            : `Your request ${request.requestCode} has been rejected in summary ${this.summary.summaryCode}.`,
+            ? `Phiếu yêu cầu ${request.requestCode} đã được chấp thuận trong phiếu tổng hợp ${this.summary.summaryCode}.`
+            : `Phiếu yêu cầu ${request.requestCode} đã bị từ chối trong phiếu tổng hợp ${this.summary.summaryCode}.`,
           requestID: request.requestID,
           sender: this.userID,
         },
         {
           userID: departmentLeader.userID,
           message: isApproved
-            ? `Request ${request.requestCode} from your department has been approved in summary ${this.summary.summaryCode}.`
-            : `Request ${request.requestCode} from your department has been rejected in summary ${this.summary.summaryCode}.`,
+            ? `Phiếu yêu cầu ${request.requestCode} từ phòng ban của bạn đã được chấp thuận trong phiếu tổng hợp ${this.summary.summaryCode}.`
+            : `Phiếu yêu cầu ${request.requestCode} từ phòng ban của bạn đã bị từ chối trong phiếu tổng hợp ${this.summary.summaryCode}.`,
           requestID: request.requestID,
           sender: this.userID,
         }
@@ -277,8 +277,8 @@ export default {
     const summaryCreatorNotification = {
       userID: this.summary.userID,
       message: isApproved
-        ? `Your summary ${this.summary.summaryCode} has been approved.`
-        : `Your summary ${this.summary.summaryCode} has been rejected.`,
+        ? `Phiếu tổng hợp ${this.summary.summaryCode} đã được chấp thuận.`
+        : `Phiếu tổng hợp ${this.summary.summaryCode} đã bị từ chối.`,
       requestID: this.summary.summaryID,
       sender: this.userID,
     };

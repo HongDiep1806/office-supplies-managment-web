@@ -204,7 +204,7 @@
           // Create notification
           const notificationData = {
             userID: departmentLeader.userID,
-            message: `New request created by ${this.userName}. Click to view details.`,
+            message: `Phiêu yêu cầu được tạo bởi ${this.userName}. Xem chi tiết.`,
             requestID: response.data.requestID,
             sender: this.userID,
             url: `/admin/request-details/${response.data.requestID}`

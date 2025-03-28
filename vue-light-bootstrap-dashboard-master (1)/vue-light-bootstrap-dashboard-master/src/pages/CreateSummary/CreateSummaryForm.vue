@@ -232,13 +232,13 @@ export default {
       const notifications = [
         {
           userID: userID,
-          message: `Your request ${request.requestCode} has been collected in summary ${this.ticketNumber}.`,
+          message: `Phiếu yêu cầu ${request.requestCode} đã được tổng hợp trong phiếu tổng hợp ${this.ticketNumber}.`,
           requestID: request.requestID,
           sender: this.userID,
         },
         {
           userID: departmentLeader.userID,
-          message: `Request ${request.requestCode} from your department has been collected in summary ${this.ticketNumber}.`,
+          message: `Phiếu yêu cầu ${request.requestCode} từ phòng ban của bạn đã được tổng hợp trong phiếu tổng hợp ${this.ticketNumber}.`,
           requestID: request.requestID,
           sender: this.userID,
         }
@@ -257,7 +257,7 @@ export default {
     this.summaryID = summaryResponse.data.summaryID;
     // Send notifications to users with userTypeID == 2 only once
     const summaryNotification = {
-      message: `A new summary ${this.ticketNumber} has been created.`,
+      message: `Phiếu tổng hợp ${this.ticketNumber} đã được tạo.`,
       sender: this.userID,
       requestID: this.summaryID,
       

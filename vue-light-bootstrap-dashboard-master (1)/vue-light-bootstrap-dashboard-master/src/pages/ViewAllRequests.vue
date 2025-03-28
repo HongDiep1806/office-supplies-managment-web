@@ -68,7 +68,7 @@ export default {
             timeout: 100000
           });
         }
-        console.log("data gốc api", response.data);
+        //console.log("data gốc api", response.data);
         if (response && Array.isArray(response.data)) {
           const requests = response.data
             .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
@@ -118,7 +118,7 @@ export default {
           });
 
           this.table1.data = await Promise.all(promises);
-          console.log("table data", this.table1.data);
+          //console.log("table data", this.table1.data);
         } else {
           console.error('Unexpected response format:', response);
         }

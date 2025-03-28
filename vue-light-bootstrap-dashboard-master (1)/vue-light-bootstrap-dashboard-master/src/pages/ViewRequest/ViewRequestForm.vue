@@ -316,7 +316,7 @@ export default {
         const departmentLeader = departmentLeaderResponse.data;
         const requestCode = request.data.requestCode;
         const notifications = [];
-
+        const action_viet = action === 'approve' ? 'được chấp thuận' : 'bị từ chối';
         if (this.userRole === 'Dep Leader') {
           if (action === 'approve') {
             // Send notification to all users with userTypeID 4
@@ -324,10 +324,11 @@ export default {
               headers: { Authorization: `Bearer ${this.token}` },
             });
             const financeUsers = financeUsersResponse.data;
+            // action approve => chấp thuận, else từ chối
             financeUsers.forEach((leader) => {
               notifications.push({
                 userID: leader.userID,
-                message: `Request ${requestCode} has been ${action} by department leader.`,
+                message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi trưởng phòng.`,
                 requestID: requestId,
                 sender: this.userID,
               });
@@ -336,7 +337,7 @@ export default {
             // Send notification to the user who created the request
             notifications.push({
               userID: userID,
-              message: `Your request ${requestCode} has been ${action} by department leader.`,
+              message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi trưởng phòng.`,
               requestID: requestId,
               sender: this.userID,
             });
@@ -344,7 +345,7 @@ export default {
             // Send notification to the user who created the request
             notifications.push({
               userID: userID,
-              message: `Your request ${requestCode} has been ${action} by department leader.`,
+              message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi trưởng phòng.`,
               requestID: requestId,
               sender: this.userID,
             });
@@ -353,7 +354,7 @@ export default {
           // Send notification to the user who created the request
           notifications.push({
             userID: userID,
-            message: `Your request ${requestCode} has been ${action} by finance management employee.`,
+            message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi P.QLTC.`,
             requestID: requestId,
             sender: this.userID,
           });
@@ -362,7 +363,7 @@ export default {
           if (departmentLeader) {
             notifications.push({
               userID: departmentLeader.userID,
-              message: `Request ${requestCode} has been ${action} by finance management employee.`,
+              message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi P.QLTC.`,
               requestID: requestId,
               sender: this.userID,
             });

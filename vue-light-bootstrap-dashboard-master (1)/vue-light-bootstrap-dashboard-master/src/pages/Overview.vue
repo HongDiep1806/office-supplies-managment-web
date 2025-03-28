@@ -31,8 +31,8 @@
             </template>
             <template v-slot:footer>
               <div class="legend">
-  <span v-for="(department, index) in departments" :key="index">
-    <i class="fa fa-circle" :style="{ color: colorPalette[index % colorPalette.length] }"></i> {{ department }}
+  <span v-for="(seriesItem, index) in barChart.data.series" :key="index">
+    <i class="fa fa-circle" :style="{ color: departmentColors[seriesItem.name] }"></i> {{ seriesItem.name }}
   </span>
 </div>
 
@@ -244,10 +244,10 @@ export default {
       }
     }
     if (this.userRole === 'Sup Leader') {
-      await this.fetchDepartmentData();
-      console.log("log departments", this.departments);
+      
       await this.fetchSummariesByDateRange(); // Gọi hàm để fetch dữ liệu
       await this.fetchReportData();
+      console.log("log departments", this.departments);
       console.log("series", JSON.stringify(this.barChart.data.series, null, 2));
 
     } 
@@ -287,24 +287,7 @@ async notifySuccess(verticalAlign, horizontalAlign, message) {
     getLegendClass(index) {
       return this.legendClasses[index % this.legendClasses.length];
   },
-    //method use this api to get list of department names data
-    //https://localhost:7162/User/unique-departments
-    async fetchDepartmentData() {
-  try {
-    const response = await axios.get('https://localhost:7162/User/unique-departments', {
-      headers: { Authorization: `Bearer ${this.token}` },
-      timeout: 50000
-    });
-    this.departments = response.data;
-
-    // Populate departmentColors with the correct colors
-    this.departments.forEach((department, index) => {
-      this.departmentColors[department] = this.colorPalette[index % this.colorPalette.length];
-    });
-  } catch (error) {
-    console.error('Lỗi khi lấy danh sách phòng ban:', error);
-  }
-},
+ 
     updateClock() {
       const now = new Date();
       this.currentTime = now.toLocaleTimeString();
@@ -425,20 +408,27 @@ async notifySuccess(verticalAlign, horizontalAlign, message) {
 
 ,
 async fetchReportData() {
-    const currentYear = new Date().getFullYear();
-    this.barChart.data.series = [];
-    this.departmentColors = {}; // reset map
+  const currentYear = new Date().getFullYear();
+  this.barChart.data.series = [];
+  this.departmentColors = {}; // Reset departmentColors
 
-    try {
-      for (const [index, department] of this.departments.entries()) {
-        const departmentSeries = [];
+  try {
+    // Fetch the list of unique departments
+    const departmentResponse = await axios.get('https://localhost:7162/User/unique-departments', {
+      headers: { Authorization: `Bearer ${this.token}` },
+      timeout: 50000,
+    });
 
-        for (let month = 0; month < 12; month++) {
-          const startDate = new Date(currentYear, month, 1);
-          const endDate = new Date(currentYear, month + 1, 0);
-          const formattedStartDate = startDate.toISOString().split('T')[0];
-          const formattedEndDate = endDate.toISOString().split('T')[0];
+    for (const department of departmentResponse.data) {
+      const departmentSeries = [];
 
+      for (let month = 0; month < 12; month++) {
+        const startDate = new Date(currentYear, month, 1);
+        const endDate = new Date(currentYear, month + 1, 0);
+        const formattedStartDate = startDate.toISOString().split('T')[0];
+        const formattedEndDate = endDate.toISOString().split('T')[0];
+
+        try {
           const response = await axios.get('https://localhost:7162/Summary/report', {
             headers: { Authorization: `Bearer ${this.token}` },
             params: {
@@ -449,35 +439,36 @@ async fetchReportData() {
           });
 
           departmentSeries.push(typeof response.data === 'number' ? response.data : 0);
+        } catch (error) {
+          departmentSeries.push(0); // Default to 0 if there's an error
         }
-
-        // After computing departmentSeries
-if (departmentSeries.some(value => value > 0)) {
-  this.barChart.data.series.push({
-    name: department,
-    data: departmentSeries,
-  });
-}
-
-
-
       }
-      // ✅ Just re-map color for safety
-Object.keys(this.departmentColors).forEach((dep) => {
-  if (!this.departmentColors[dep]) {
-    this.departmentColors[dep] = this.colorPalette[this.departments.indexOf(dep) % this.colorPalette.length];
-  }
-});
 
-      this.$nextTick(() => {
-        this.$refs.chartCard.initChart();
-      });
-
-      console.log("barChart.data.series:", this.barChart.data.series);
-    } catch (error) {
-      console.error('Lỗi khi lấy dữ liệu báo cáo:', error);
+      // Only add the department to the chart if it has non-zero data
+      if (departmentSeries.some(value => value > 0)) {
+        this.barChart.data.series.push({
+          name: department,
+          data: departmentSeries,
+        });
+      }
     }
-  },
+
+    // Assign colors based on the order of the series data
+    this.barChart.data.series.forEach((seriesItem, index) => {
+      this.departmentColors[seriesItem.name] = this.colorPalette[index % this.colorPalette.length];
+    });
+
+    console.log("barChart.data.series:", this.barChart.data.series);
+    console.log("Department colors:", this.departmentColors);
+
+    // Update the chart
+    this.$nextTick(() => {
+      this.$refs.chartCard.initChart();
+    });
+  } catch (error) {
+    console.error('Error fetching report data:', error);
+  }
+},
     async fetchSummariesByDateRange() {
       const today = new Date();
       const selectedStartDate = new Date(this.startDate);
@@ -603,16 +594,6 @@ Object.keys(this.departmentColors).forEach((dep) => {
 </script>
 
 <style scoped>
-::v-deep .ct-series-a .ct-bar { stroke: #17a2b8; } /* CDS - Blue */
-::v-deep .ct-series-b .ct-bar { stroke: #ffc107; } /* KT - Orange */
-::v-deep .ct-series-c .ct-bar { stroke: #6f42c1; } /* CSKH - Purple */
-::v-deep .ct-series-d .ct-bar { stroke: #28a745; } /* SXKD - Green */
-::v-deep .ct-series-e .ct-bar { stroke: #dc3545; } /* ABC - Red */
-::v-deep .ct-series-f .ct-bar { stroke: #007bff; } /* Others - Blue */
-::v-deep .ct-series-g .ct-bar { stroke: #fd7e14; } /* Nhân sự */
-::v-deep .ct-series-h .ct-bar { stroke: #6610f2; } /* Hành chính */
-::v-deep .ct-series-i .ct-bar { stroke: #6c757d; } /* IT */
-::v-deep .ct-series-j .ct-bar { stroke: #17a2b8; } /* CDS */
 
 
 

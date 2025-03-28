@@ -127,7 +127,7 @@ export default {
         // Send notifications to users with userTypeID == 2 and userTypeID == 4
         const notifications = usersToNotify.map(user => ({
           userID: user.userID,
-          message: `A new product ${this.product.Name} has been created by ${username}.`,
+          message: `Sản phẩm ${this.product.Name} đã được tạo bởi ${username}.`,
           requestID: productID,
           sender: this.userID,
         }));
