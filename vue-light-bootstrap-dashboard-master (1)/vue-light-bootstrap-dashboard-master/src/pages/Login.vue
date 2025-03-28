@@ -73,7 +73,7 @@ export default {
     },
     async handleLogin() {
       if (this.email === '' || this.password === '') {
-        this.notifyWarning('top', 'center');
+        this.notifyWarning('bottom', 'center');
       } else {
 
         try {
@@ -89,7 +89,7 @@ export default {
 
             // Chuyển hướng đến trang admin
             this.$router.push('/admin');
-            await this.notifySuccess('top', 'right');
+            await this.notifySuccess('bottom', 'right');
           } else {
             this.errorMessage = 'Invalid email or password';
           }
@@ -98,14 +98,14 @@ export default {
             // Nếu API trả về lỗi 401 (Unauthorized)
             if (error.response.status === 401) {
               this.errorMessage = 'Email hoặc mật khẩu không đúng';
-              await this.notifyError('top', 'right');
+              await this.notifyError('bottom', 'right');
             } else {
               this.errorMessage = 'Đã xảy ra lỗi. Vui lòng thử lại';
             }
           } else {
             // Lỗi không có phản hồi từ server (network error)
             this.errorMessage = 'Không thể kết nối đến server';
-            await this.notifyError('top', 'right');
+            await this.notifyError('bottom', 'right');
           }
         }
       }

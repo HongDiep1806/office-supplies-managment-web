@@ -16,24 +16,26 @@
                 </div>
               </div>
               <div style="display: flex; justify-content: space-between; padding: 0px 15px; margin-top: 10px;">
-                <div class="search-filters d-flex flex-wrap align-items-center gap-3 p-3 bg-light rounded">
+                <div class="search-filters d-flex flex-wrap align-items-center gap-3 p-3 bg-light rounded shadow-sm">
   <div class="form-group mb-0">
-    <label>Tên sản phẩm</label>
+    <label class="form-label">Tên sản phẩm</label>
     <input v-model="searchName" class="form-control" placeholder="Nhập tên sản phẩm" />
   </div>
   <div class="form-group mb-0">
-    <label>Mã sản phẩm</label>
+    <label class="form-label">Mã sản phẩm</label>
     <input v-model="searchCode" class="form-control" placeholder="Nhập mã sản phẩm" />
   </div>
   <div class="form-group mb-0">
-    <label>Giá tối thiểu</label>
+    <label class="form-label">Giá tối thiểu</label>
     <input v-model="minPrice" type="number" class="form-control" placeholder="Tối thiểu" />
   </div>
   <div class="form-group mb-0">
-    <label>Giá tối đa</label>
+    <label class="form-label">Giá tối đa</label>
     <input v-model="maxPrice" type="number" class="form-control" placeholder="Tối đa" />
   </div>
-  <button class="btn btn-primary mt-3" @click="searchProduct">Tìm kiếm</button>
+  <button class="btn btn-primary mt-3 btn-search" @click="searchProduct">
+    <i class="fa fa-search"></i> Tìm kiếm
+  </button>
 </div>
                 
               </div>
@@ -153,6 +155,46 @@ export default {
   },
 }
 </script>
+
+<style scoped>
+.search-filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 15px; /* Adds spacing between filter items */
+  padding: 15px;
+  background-color: #f8f9fa; /* Light background for better contrast */
+  border-radius: 8px; /* Rounded corners */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Subtle shadow for a modern look */
+}
+
+.search-filters .form-group {
+  flex: 1; /* Ensures all inputs take equal space */
+  min-width: 200px; /* Prevents inputs from becoming too small */
+}
+
+.search-filters .form-label {
+  font-weight: bold;
+  font-size: 0.9rem;
+  margin-bottom: 5px;
+  display: block;
+}
+
+.search-filters .form-control {
+  border-radius: 5px;
+  border: 1px solid #ced4da;
+  padding: 8px 12px;
+}
+
+.btn-search {
+  white-space: nowrap; /* Prevents text wrapping */
+  padding: 10px 20px;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 5px; /* Adds spacing between the icon and text */
+}
+</style>
 
 <style>
 @media (max-width: 768px) {

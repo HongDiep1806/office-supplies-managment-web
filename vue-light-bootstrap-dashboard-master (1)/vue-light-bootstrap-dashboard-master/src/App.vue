@@ -34,9 +34,5 @@
       opacity: 0;
       transform: scale(1.2, 0.7);
     }
-    .ct-series-a .ct-bar { fill: #17a2b8; }
-.ct-series-b .ct-bar { fill: #dc3545; }
-.ct-series-c .ct-bar { fill: #ffc107; }
-.ct-series-d .ct-bar { fill: #28a745; }
   }
 </style>

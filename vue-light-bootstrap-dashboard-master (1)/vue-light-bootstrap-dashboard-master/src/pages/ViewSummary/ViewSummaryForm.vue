@@ -161,10 +161,10 @@ export default {
       this.$set(request, 'showDetails', !request.showDetails);
     },
     formatDateTime(dateString) {
-      if (!dateString) return "N/A";
-      const date = new Date(dateString);
-      return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
-    },
+  if (!dateString) return "N/A";
+  const date = new Date(dateString);
+  return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
+},
     getUserFullName(userID) {
       if (this.users[userID] && this.users[userID].fullName) {
         return this.users[userID].fullName;
@@ -301,11 +301,11 @@ export default {
       });
     }
 
-    this.notifySuccess('top', 'right');
+    this.notifySuccess('bottom', 'right');
     this.$router.push('/admin/summary-table');
   } catch (error) {
     console.error("Lỗi khi cập nhật phiếu tổng hợp:", error);
-    this.notifyError('top', 'right');
+    this.notifyError('bottom', 'right');
     this.$router.push('/admin/summary-table');
   }
 },

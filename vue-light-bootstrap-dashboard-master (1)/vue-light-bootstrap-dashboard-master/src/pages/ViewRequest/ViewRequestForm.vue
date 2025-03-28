@@ -1,102 +1,132 @@
 <template>
-  <card>
-    <div class="header-container">
-      <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
-      <div class="status-box">{{ requestStatus }}</div>
-    </div>
-    <form>
-      <div class="row">
-        <div class="col-md-3">
-          <label for="createdBy">Người thực hiện</label>
-          <base-input type="text" :value="userName" readonly></base-input>
-        </div>
-        <div class="col-md-3">
-          <label for="department">Phòng ban</label>
-          <base-input type="text" :value="userDepartment" readonly></base-input>
-        </div>
-        <div class="col-md-3">
-          <label for="ticketNumber">Số phiếu</label>
-          <base-input type="text" :value="ticketNumber" readonly></base-input>
-        </div>
-        <div class="col-md-3">
-          <label for="createdDate">Ngày thực hiện</label>
-          <base-input type="date" :value="requestDate" readonly></base-input>
-        </div>
+  <div>
+    <card>
+      <div class="header-container">
+        <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
+        <div class="status-box">{{ requestStatus }}</div>
       </div>
-
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
-            <tr>
-              <th>STT</th>
-              <th>Tên sản phẩm</th>
-              <th>Đơn vị tính</th>
-              <th>Số lượng</th>
-              <th>Đơn giá</th>
-              <th>Thành tiền</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(productRow, index) in productRows" :key="index">
-              <td>{{ index + 1 }}</td>
-              <td>{{ productRow.selectedProduct ? productRow.selectedProduct.name : 'Chưa chọn' }}</td>
-              <td>{{ productRow.unitCurrency || 'Chưa có' }}</td>
-              <td>{{ productRow.quantity }}</td>
-              <td>
-                {{
-                  new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                  }).format(productRow.unitPrice || 0)
-                }}
-              </td>
-              <td>
-                {{
-                  new Intl.NumberFormat('vi-VN', {
-                    style: 'currency',
-                    currency: 'VND',
-                  }).format(productRow.totalPrice || 0)
-                }}
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
-
-      <div class="row" v-if="userRole !== 'Sup Leader'">
-        <div class="col-md-12">
-          <label for="noteDepLead">Ghi chú của trưởng phòng</label>
-          <base-input type="text" v-model="noteDepLead" :readonly="!isNoteDepLeadEditable"></base-input>
-        </div>
-      </div>
-      <div class="row" v-if="userRole !== 'Sup Leader'">
-        <div class="col-md-12">
-          <label for="noteSupLead">Ghi chú của Phòng QLTC</label>
-          <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
-        </div>
-      </div>
-
-      <div class="text-center position-relative">
-        <div style="display: flex; flex-direction: row; justify-content: end;">
-          <div>
-            <label for="totalAmount">Tổng cộng</label>
-            <p class="total-amount-input">{{ formattedTotalAmount }}</p>
+      <form>
+        <div class="row">
+          <div class="col-md-3">
+            <label for="createdBy">Người thực hiện</label>
+            <base-input type="text" :value="userName" readonly></base-input>
+          </div>
+          <div class="col-md-3">
+            <label for="department">Phòng ban</label>
+            <base-input type="text" :value="userDepartment" readonly></base-input>
+          </div>
+          <div class="col-md-3">
+            <label for="ticketNumber">Số phiếu</label>
+            <base-input type="text" :value="ticketNumber" readonly></base-input>
+          </div>
+          <div class="col-md-3">
+            <label for="createdDate">Ngày thực hiện</label>
+            <base-input type="text" :value="requestDate" readonly></base-input>
           </div>
         </div>
-        <button type="submit" class="btn btn-info btn-fill float-right" @click.prevent="approveTicket" v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'">
-          Duyệt phiếu yêu cầu
-        </button>
-        <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="enableNoteEditing"
-          style="margin-right: 10px;" v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'">
-          Không duyệt phiếu
-        </button>
-        <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket"
-          style="margin-right: 10px;" v-if="isNoteDepLeadEditable || isNoteFinanceEditable">
-          Gửi ghi chú
-        </button>
+
+        <div class="table-responsive">
+          <table class="table">
+            <thead>
+              <tr>
+                <th>STT</th>
+                <th>Tên sản phẩm</th>
+                <th>Đơn vị tính</th>
+                <th>Số lượng</th>
+                <th>Đơn giá</th>
+                <th>Thành tiền</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(productRow, index) in productRows" :key="index">
+                <td>{{ index + 1 }}</td>
+                <td>{{ productRow.selectedProduct ? productRow.selectedProduct.name : 'Chưa chọn' }}</td>
+                <td>{{ productRow.unitCurrency || 'Chưa có' }}</td>
+                <td>{{ productRow.quantity }}</td>
+                <td>
+                  {{
+                    new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(productRow.unitPrice || 0)
+                  }}
+                </td>
+                <td>
+                  {{
+                    new Intl.NumberFormat('vi-VN', {
+                      style: 'currency',
+                      currency: 'VND',
+                    }).format(productRow.totalPrice || 0)
+                  }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <div class="row" v-if="userRole !== 'Sup Leader'">
+          <div class="col-md-12">
+            <label for="noteDepLead">Ghi chú của trưởng phòng</label>
+            <base-input type="text" v-model="noteDepLead" :readonly="!isNoteDepLeadEditable"></base-input>
+          </div>
+        </div>
+        <div class="row" v-if="userRole !== 'Sup Leader'">
+          <div class="col-md-12">
+            <label for="noteSupLead">Ghi chú của Phòng QLTC</label>
+            <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
+          </div>
+        </div>
+
+        <div class="text-center position-relative">
+          <div style="display: flex; flex-direction: row; justify-content: end;">
+            <div>
+              <label for="totalAmount">Tổng cộng</label>
+              <p class="total-amount-input">{{ formattedTotalAmount }}</p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="btn btn-info btn-fill float-right"
+            @click="showModal('accept')"
+            v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
+          >
+            Duyệt phiếu yêu cầu
+          </button>
+          <button
+            type="button"
+            class="btn btn-cancel btn-fill float-right"
+            @click="showModal('reject')"
+            style="margin-right: 10px;"
+            v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
+          >
+            Không duyệt phiếu
+          </button>
+          <button type="submit" class="btn btn-cancel btn-fill float-right" @click.prevent="updateTicket"
+            style="margin-right: 10px;" v-if="isNoteDepLeadEditable || isNoteFinanceEditable">
+            Gửi ghi chú
+          </button>
+        </div>
+      </form>
+    </card>
+
+    <!-- Modal -->
+    <div v-if="isModalVisible" class="modal-overlay">
+      <div class="modal-content">
+        <h4>{{ modalTitle }}</h4>
+        <p>{{ modalMessage }}</p>
+        <textarea
+          v-model="modalNote"
+          class="form-control"
+          placeholder="Nhập ghi chú..."
+          rows="4"
+        ></textarea>
+        <div class="modal-actions">
+          <button class="btn btn-secondary cancel-btn" @click="closeModal">Hủy</button>
+          <button class="btn btn-primary confirm-btn" @click="submitModalAction">Xác nhận</button>
+        </div>
       </div>
-    </form>
-  </card>
+    </div>
+  </div>
 </template>
 
 <script>
@@ -126,8 +156,13 @@ export default {
       isNoteFinanceEditable: false,
       type: ['success', 'danger', 'warning'],
       userRole: '',
-      requestStatus: '',  
-      token: localStorage.getItem('authToken')
+      requestStatus: '',
+      token: localStorage.getItem('authToken'),
+      isModalVisible: false,
+      modalTitle: '',
+      modalMessage: '',
+      modalNote: '',
+      modalAction: '',
     };
   },
   async mounted() {
@@ -137,12 +172,16 @@ export default {
     this.userID = request.data.userID;
     this.requestNumber = request.data.requestCode;
     this.ticketNumber = request.data.requestCode;
-    this.requestDate = request.data.createdDate.substr(0, 10);
+    this.requestDate = new Date(request.data.createdDate).toLocaleString('vi-VN', {
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+      hour: '2-digit',
+      minute: '2-digit',
+    }).replace(',', '');
     this.totalAmount = request.data.totalPrice;
     this.noteDepLead = request.data.noteDepLead; // Fetch the note from the backend
     this.noteSupLead = request.data.noteSupLead; // Fetch the note from the backend
-    //console.log IsProcessedByDepLead, IsApprovedByDepLead, IsApprovedBySupLead
-    //console.log(request.data.isProcessedByDepLead)
     const { isProcessedByDepLead, isApprovedByDepLead, isApprovedBySupLead } = request.data;
     const { isCollectedInSummary, isSummaryBeProcessed, isSummaryBeApproved} = request.data;
     if (!isProcessedByDepLead  && !isApprovedByDepLead && !isApprovedBySupLead ) {
@@ -161,17 +200,16 @@ export default {
       else if (isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'QLTC từ chối';
       }
-      else if (isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
+      else if (isCollectedInSummary && !isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'Chờ duyệt';
       }
-      else if (!isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
+      else if (!isCollectedInSummary && !isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'Chờ tổng hợp';
       }
       else {
         this.requestStatus = 'Không xác định';
       }
     }
-    //console.log(this.requestStatus);
     try {
       this.userRole = localStorage.getItem('userRole');
       const response = await axios.get('https://localhost:7162/Product/allproductsincludedeleted', {
@@ -242,61 +280,82 @@ export default {
     async approveTicket() {
       try {
         const requestId = this.$route.params.id;
+        const currentDateTime = new Date().toLocaleString('vi-VN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).replace(',', '');
+
+        // Set the note to "Chấp thuận" with the current date and time
+        const actionNote = `Chấp thuận - ${currentDateTime}`;
+        const fullNote = `${this.modalNote.trim()} (${actionNote})`;
+
+        if (this.userRole === 'Dep Leader') {
+          this.noteDepLead = fullNote; // Update the note for Dep Leader
+        } else if (this.userRole === 'Finance Management Employee') {
+          this.noteSupLead = fullNote; // Update the note for Finance Management Employee
+        }
+        const returnnote =''
         const payload = { noteDepLead: this.noteDepLead, noteSupLead: this.noteSupLead };
         if (this.userRole === 'Dep Leader') {
-          const response = await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}`, payload, {
-            headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
+          await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`, payload, {
+            headers: { Authorization: `Bearer ${this.token}` },
           });
-          //console.log("thành công" + response.data);
-          this.notifySuccess('top', 'right');
-          this.sendNotifications('approve');
-          this.$router.push('/admin/view-all-request');
         } else if (this.userRole === 'Finance Management Employee') {
-          const response = await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}`, payload, {
-            headers: {
-              Authorization: `Bearer ${this.token}`,
-            },
+          await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`, payload, {
+            headers: { Authorization: `Bearer ${this.token}` },
           });
-          //console.log("thành công" + response.data);
-          this.notifySuccess('top', 'right');
-          this.sendNotifications('approve');
-          this.$router.push('/admin/view-all-request');
         }
+        
+        
+        this.notifySuccess('bottom', 'right');
+        this.sendNotifications('approve');
+        this.$router.push('/admin/view-all-request');
       } catch (error) {
         console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
-        this.notifyError('top', 'right');
+        this.notifyError('bottom', 'right');
       }
     },
+
     async updateTicket() {
       try {
         const requestId = this.$route.params.id;
-         // Use the noteDepLead for the note
+        const currentDateTime = new Date().toLocaleString('vi-VN', {
+          year: 'numeric',
+          month: '2-digit',
+          day: '2-digit',
+          hour: '2-digit',
+          minute: '2-digit',
+        }).replace(',', '');
+
+        // Set the note to "Từ chối" with the current date and time
+        const actionNote = `Từ chối - ${currentDateTime}`;
+        const fullNote = `${this.modalNote.trim()} (${actionNote})`;
+
         if (this.userRole === 'Dep Leader') {
-          const note = this.noteDepLead;
-          const response = await axios.put(`https://localhost:7162/Request/notapproveByDepLeader/${requestId}?note=${encodeURIComponent(note)}`, null, {
-            headers: {
-              Authorization: `Bearer ${this.token}` },
-          });
-          //console.log("Không duyệt thành công" + response.data);
-          this.notifySuccess('top', 'right');
-          this.sendNotifications('not approve');
-          this.$router.push('/admin/view-all-request');
+          this.noteDepLead = fullNote; // Update the note for Dep Leader
+          await axios.put(
+            `https://localhost:7162/Request/notapproveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`,
+            null,
+            { headers: { Authorization: `Bearer ${this.token}` } }
+          );
         } else if (this.userRole === 'Finance Management Employee') {
-          const note = this.noteSupLead;
-          const response = await axios.put(`https://localhost:7162/Request/notapproveByFinEmployee/${requestId}?note=${encodeURIComponent(note)}`, null, {
-            headers: {
-              Authorization: `Bearer ${this.token}` },
-          });
-          //console.log("Không duyệt thành công" + response.data);
-          this.notifySuccess('top', 'right');
-          this.sendNotifications('not approve');
-          this.$router.push('/admin/view-all-request');
+          this.noteSupLead = fullNote; // Update the note for Finance Management Employee
+          await axios.put(
+            `https://localhost:7162/Request/notapproveByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`,
+            null,
+            { headers: { Authorization: `Bearer ${this.token}` } }
+          );
         }
+
+        this.notifySuccess('bottom', 'right');
+        this.sendNotifications('not approve');
+        this.$router.push('/admin/view-all-request');
       } catch (error) {
         console.error('Lỗi khi cập nhật phiếu yêu cầu:', error);
-        this.notifyError('top', 'right');
+        this.notifyError('bottom', 'right');
       }
     },
     async sendNotifications(action) {
@@ -319,12 +378,10 @@ export default {
         const action_viet = action === 'approve' ? 'được chấp thuận' : 'bị từ chối';
         if (this.userRole === 'Dep Leader') {
           if (action === 'approve') {
-            // Send notification to all users with userTypeID 4
             const financeUsersResponse = await axios.get(`https://localhost:7162/User/users-by-type-id?userTypeID=4`, {
               headers: { Authorization: `Bearer ${this.token}` },
             });
             const financeUsers = financeUsersResponse.data;
-            // action approve => chấp thuận, else từ chối
             financeUsers.forEach((leader) => {
               notifications.push({
                 userID: leader.userID,
@@ -334,7 +391,6 @@ export default {
               });
             });
 
-            // Send notification to the user who created the request
             notifications.push({
               userID: userID,
               message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi trưởng phòng.`,
@@ -342,7 +398,6 @@ export default {
               sender: this.userID,
             });
           } else {
-            // Send notification to the user who created the request
             notifications.push({
               userID: userID,
               message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi trưởng phòng.`,
@@ -351,7 +406,6 @@ export default {
             });
           }
         } else if (this.userRole === 'Finance Management Employee') {
-          // Send notification to the user who created the request
           notifications.push({
             userID: userID,
             message: `Phiếu yêu cầu ${requestCode} đã ${action_viet} bởi P.QLTC.`,
@@ -359,7 +413,6 @@ export default {
             sender: this.userID,
           });
 
-          // Send notification to the department leader
           if (departmentLeader) {
             notifications.push({
               userID: departmentLeader.userID,
@@ -370,7 +423,6 @@ export default {
           }
         }
 
-        // Send each notification individually
         for (const notification of notifications) {
           await axios.post('https://localhost:7162/Notification', notification, {
             headers: { Authorization: `Bearer ${this.token}` },
@@ -387,28 +439,45 @@ export default {
       else if (this.userRole == 'Finance Management Employee') {
         this.isNoteFinanceEditable = true;
       }
-    }
+    },
+    showModal(action) {
+      this.isModalVisible = true;
+      this.modalAction = action;
+      this.modalTitle = action === 'accept' ? 'Xác nhận duyệt phiếu yêu cầu' : 'Xác nhận không duyệt phiếu yêu cầu';
+      this.modalMessage = action === 'accept' ? 'Bạn có chắc chắn muốn duyệt phiếu yêu cầu này?' : 'Bạn có chắc chắn không muốn duyệt phiếu yêu cầu này?';
+    },
+    closeModal() {
+      this.isModalVisible = false;
+      this.modalNote = '';
+    },
+    async submitModalAction() {
+      if (this.modalAction === 'accept') {
+        await this.approveTicket();
+      } else if (this.modalAction === 'reject') {
+        await this.updateTicket();
+      }
+      this.closeModal();
+    },
   },
 };
 </script>
 
-
 <style scoped>
 .total-amount-input {
   .header-container {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
 
-.status-box {
-  background-color: #f5f5f5;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  padding: 8px 12px;
-  font-size: 16px;
-  color: #888888;
-}
+  .status-box {
+    background-color: #f5f5f5;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 16px;
+    color: #888888;
+  }
 
   border: 1px solid #ccc;
   padding: 8px 12px;
@@ -422,5 +491,32 @@ export default {
 
 .total-amount-input:focus {
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 400px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
 }
 </style>

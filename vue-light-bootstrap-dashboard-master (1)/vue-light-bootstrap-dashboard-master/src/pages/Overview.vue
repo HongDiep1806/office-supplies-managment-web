@@ -221,8 +221,10 @@ export default {
     // Gọi API để lấy dữ liệu với endDate là ngày hiện tại
     const datetimenow = new Date().toISOString().split('T')[0];
     this.endDate = datetimenow; // Gán giá trị cho endDate
-    
-     // Gọi hàm để fetch dữ liệu
+    //startDAte default is 3 month prior
+    const startDate = new Date().toISOString().split('T')[0];
+    const threeMonthsPrior = new Date(new Date(startDate).setMonth(new Date(startDate).getMonth() - 3)).toISOString().split('T')[0];
+    this.startDate = threeMonthsPrior; // Gán giá trị cho startDate
 
     const token = localStorage.getItem('authToken');
     this.token = token;
@@ -285,7 +287,7 @@ export default {
     });
 
     if (response.data && response.data.length > 0) {
-      this.notifySuccess('top', 'right', 'Bạn có thông báo mới');
+      this.notifySuccess('bottom', 'right', 'Bạn có thông báo mới');
     }
   } catch (error) {
     console.error('Error fetching unread notifications:', error);

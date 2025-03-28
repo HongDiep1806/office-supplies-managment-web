@@ -161,7 +161,7 @@
       },
       async createTicket() {
         if (!this.productRows.some((row) => row.selectedProduct)) {
-          this.notifyWarning('top', 'right');
+          this.notifyWarning('bottom', 'right');
           return;
         }
   
@@ -186,9 +186,9 @@
               })),
             isProcessedByDepLead: true,
             dateDepLeadApprove: new Date().toISOString(),
-            noteDepLead: 'pending',
+            noteDepLead: 'Chờ duyệt',
             dateSupLeadApprove: new Date().toISOString(),
-            noteSupLead: 'pending'
+            noteSupLead: 'Chờ duyệt'
           };
   
           //console.log('Request Data:', requestData); // Log the request data for debugging
@@ -216,7 +216,7 @@
             },
           });
   
-          await this.notifySuccess('top', 'right');
+          await this.notifySuccess('bottom', 'right');
           await this.$router.push('/admin/request-table');
         } catch (error) {
           if (error.response && error.response.data && error.response.data.errors) {
@@ -224,7 +224,7 @@
           } else {
             console.error('Error creating ticket:', error.response ? error.response.data : error); // Log the error response for debugging
           }
-          this.notifyError('top', 'right');
+          this.notifyError('bottom', 'right');
         }
       },
       availableProducts(index) {

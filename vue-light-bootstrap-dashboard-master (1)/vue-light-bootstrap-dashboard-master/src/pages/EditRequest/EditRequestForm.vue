@@ -202,7 +202,7 @@ export default {
         },
         async updateTicket() {
             if (!this.productRows.some((row) => row.selectedProduct)) {
-                this.notifyWarning('top', 'right');
+                this.notifyWarning('bottom', 'right');
                 return;
             }
 
@@ -229,12 +229,12 @@ export default {
                         Authorization: `Bearer ${this.token}`,
                     },
                 });
-                this.notifySuccess('top', 'right');
+                this.notifySuccess('bottom', 'right');
                 this.$router.push('/admin/request-table');
             } catch (error) {
                 console.log(updatedRequest);
                 console.log(error);
-                this.notifyError('top', 'right');
+                this.notifyError('bottom', 'right');
             }
         },
     },

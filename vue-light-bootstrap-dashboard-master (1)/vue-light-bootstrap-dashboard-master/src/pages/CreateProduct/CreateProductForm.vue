@@ -139,10 +139,10 @@ export default {
           });
         }
 
-        await this.notifySuccess('top', 'right');
+        await this.notifySuccess('bottom', 'right');
         this.navigateBackToTableList();
       } else {
-        await this.notifyError('top', 'right');
+        await this.notifyError('bottom', 'right');
       }
       // Reset form after successful submission
       this.product = {
@@ -155,10 +155,10 @@ export default {
       };
     } catch (error) {
       console.error("Lỗi khi tạo sản phẩm:", error);
-      this.notifyError('top', 'right');
+      this.notifyError('bottom', 'right');
     }
   } else {
-    this.notifyWarning('top', 'right');
+    this.notifyWarning('bottom', 'right');
   }
 },
   async notifySuccess(verticalAlign, horizontalAlign) {

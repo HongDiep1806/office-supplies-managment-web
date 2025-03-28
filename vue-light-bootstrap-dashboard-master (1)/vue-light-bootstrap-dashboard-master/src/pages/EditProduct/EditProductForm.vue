@@ -208,14 +208,14 @@ export default {
           });
         }
 
-        await this.notifySuccess('top', 'right');
+        await this.notifySuccess('bottom', 'right');
         this.navigateBackToTableList();
       } catch (error) {
         console.error("Error updating product:", error);
-        this.notifyError('top', 'right');
+        this.notifyError('bottom', 'right');
       }
     } else {
-      this.notifyWarning('top', 'right');
+      this.notifyWarning('bottom', 'right');
     }
   },
   async notifySuccess(verticalAlign, horizontalAlign) {
