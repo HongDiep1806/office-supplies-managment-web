@@ -1,7 +1,7 @@
 <template>
-  <div :class="{'nav-open': $sidebar.showSidebar}">
+  <div id="app" :class="{'nav-open': $sidebar.showSidebar}">
     <notifications></notifications>
-    <router-view></router-view>
+    <router-view :key="$route.fullPath"></router-view>
   </div>
 </template>
 
