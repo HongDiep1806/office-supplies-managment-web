@@ -514,6 +514,17 @@ export default {
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
 
+.modal-content textarea {
+  resize: none; /* Prevent resizing */
+  width: 100%; /* Make it take the full width of the modal */
+  height: 100px; /* Set a fixed height */
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  padding: 10px;
+  font-size: 14px;
+  box-sizing: border-box; /* Include padding and border in the element's total width and height */
+}
+
 .modal-actions {
   display: flex;
   justify-content: space-between;

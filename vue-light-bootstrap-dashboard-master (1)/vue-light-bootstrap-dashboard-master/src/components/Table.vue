@@ -4,14 +4,34 @@
       style="position: absolute; top: 0; right: 0;min-width: fit-content; margin: 2%;">Tạo Phiếu Tổng Hợp</button>
     <table class="table">
       <thead>
-        <slot name="columns">
-          <tr style="background-color: rgb(220, 68, 5); color: white;">
-            <th v-for="column in columns" :key="column" style="color: white;">{{ column }}</th>
-            <th v-if="displayStatus" style="color: white;">Trạng thái</th>
-            <th v-if="displayActions" style="color: white;">Thao tác</th>
-          </tr>
-        </slot>
-
+        <tr style="background-color: rgb(220, 68, 5); color: white;">
+          <th v-for="column in columns" :key="column" style="color: white;">
+            <div class="d-flex align-items-center justify-content-between">
+              <span>{{ column }}</span>
+              <!-- Only show sort icons for "Giá" -->
+              <span v-if="enableSorting && column === 'Giá'" class="sort-icons">
+                <span
+                  class="sort-arrow"
+                  :class="{ active: sortColumn === column && sortDirection === 'asc' }"
+                  @click="toggleSort(column, 'asc')"
+                >
+                  ▲
+                </span>
+                <span
+                  class="sort-arrow"
+                  :class="{ active: sortColumn === column && sortDirection === 'desc' }"
+                  @click="toggleSort(column, 'desc')"
+                >
+                  ▼
+                </span>
+              </span>
+            </div>
+          </th>
+          <th v-if="displayStatus" style="color: white;">Trạng thái</th>
+          <th v-if="displayActions" style="color: white;">
+            
+          </th>
+        </tr>
       </thead>
       <tbody>
         <tr v-for="(item, rowIndex, column) in paginatedData" :key="rowIndex">
@@ -27,21 +47,23 @@
             </span>
           </td>
 
-          <td style="display: flex; justify-content: space-between; width: 50%;" v-if="displayActions">
-            <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
-              <i class="fa fa-eye"></i>
-            </button>
-            <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm"
-              v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole === 'Finance Management Employee'">
-              <i class="fa fa-edit"></i>
-            </button>
-            <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm"
-              v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || (domain === 'product' && userRole === 'Finance Management Employee')">
-              <i class="fa fa-trash"></i>
-            </button>
-            <div v-if="showCheckboxColumn" class="icon btn-sm">
-              <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
-                v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false" class="icon"/>
+          <td v-if="displayActions" style="text-align: center; vertical-align: middle;">
+            <div style="display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
+              <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
+                <i class="fa fa-eye"></i>
+              </button>
+              <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm"
+                v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole === 'Finance Management Employee'">
+                <i class="fa fa-edit"></i>
+              </button>
+              <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm"
+                v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || (domain === 'product' && userRole === 'Finance Management Employee')">
+                <i class="fa fa-trash"></i>
+              </button>
+              <div v-if="showCheckboxColumn" class="icon btn-sm">
+                <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
+                  v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false" class="icon"/>
+              </div>
             </div>
           </td>
         
@@ -92,16 +114,23 @@ export default {
     displayStatus: Boolean,
     canEdit: Boolean,
     canView: Boolean,
-    canDelete: Boolean
+    canDelete: Boolean,
+    enableSorting: {  // New prop to enable/disable sorting
+      type: Boolean,
+      default: false
+    }
   },
   data() {
     return {
       currentPage: 1,
       dialog: false,
       itemToDelete: null,
+      sortColumn: '', // Current column being sorted
+      sortDirection: '', // Current sort direction ('asc' or 'desc')
+      sortableColumns: ['Giá', 'Sửa đổi lần cuối'], // Only these two columns will be sortable
       type: ['success', 'danger', 'warning'],
       notifications: {
-        topCenter: false
+        topCenter: false,
       },
       userRole: localStorage.getItem('userRole'),
       selectedRequests: [],
@@ -124,6 +153,10 @@ export default {
     totalPages() {
       return Math.ceil(this.data.length / this.pageSize);
     },
+    sortableColumnsArray() {
+      // Make sure we have a valid array to prevent the "includes" error
+      return this.sortableColumns || [];
+    }
   },
   methods: {
     itemValueByIndex(item, colIndex) {
@@ -339,7 +372,164 @@ export default {
       this.$router.push({ name: 'Create Summary', params: {requestIds: this.selectedRequests.join(',')  } });
       //console.log("Tạo phiếu tổng hợp từ các request:", this.selectedRequests);
     },
+    toggleSort(column, direction) {
+      console.log(`Toggling sort for ${column} in ${direction} direction`);
+      
+      if (this.sortColumn === column && this.sortDirection === direction) {
+        // If already sorted in the same direction, reset sorting
+        this.sortColumn = '';
+        this.sortDirection = '';
+      } else {
+        // Set the column and direction for sorting
+        this.sortColumn = column;
+        this.sortDirection = direction;
+      }
+      
+      // Sort the data
+      this.sortData();
+    },
+    
+    sortData() {
+      // This method actually sorts the data
+      if (!this.sortColumn || !this.data) {
+        return; // No sorting needed
+      }
+      
+      this.data.sort((a, b) => {
+        let valueA = a[this.sortColumn];
+        let valueB = b[this.sortColumn];
+        
+        // Handle numeric values (including currency)
+        if (this.isNumericColumn(this.sortColumn)) {
+          // Extract numeric value from formatted strings (like "1.000.000 ₫")
+          valueA = this.extractNumericValue(valueA);
+          valueB = this.extractNumericValue(valueB);
+          
+          // Compare as numbers
+          return this.sortDirection === 'asc' 
+            ? valueA - valueB 
+            : valueB - valueA;
+        }
+        
+        // Handle date values
+        if (this.isDateColumn(this.sortColumn)) {
+          // Convert date strings to timestamps for comparison
+          try {
+            // Try to handle various date formats
+            let timestampA = this.parseDateToTimestamp(valueA);
+            let timestampB = this.parseDateToTimestamp(valueB);
+            
+            return this.sortDirection === 'asc' 
+              ? timestampA - timestampB 
+              : timestampB - timestampA;
+          } catch (error) {
+            console.error('Date parsing error:', error);
+            // Fall back to string comparison if date parsing fails
+            if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+            if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+          }
+        }
+        
+        // Default: string comparison
+        if (typeof valueA === 'string') valueA = valueA.toLowerCase();
+        if (typeof valueB === 'string') valueB = valueB.toLowerCase();
+        
+        if (this.sortDirection === 'asc') {
+          return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+        } else {
+          return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+        }
+      });
+    },
 
+    // Helper method to check if a column contains numeric values
+    isNumericColumn(column) {
+      return column === 'Giá' || column.includes('Price') || column.includes('Amount') || column.includes('Cost');
+    },
+
+    // Helper method to check if a column contains date values
+    isDateColumn(column) {
+      return column.includes('Date') || column.includes('Time') || column === 'Sửa đổi lần cuối' || column === 'Last Adjusted';
+    },
+
+    // Helper method to extract numeric value from formatted strings
+    extractNumericValue(value) {
+      if (typeof value !== 'string') {
+        return value;
+      }
+      
+      // Remove currency symbols, spaces, and replace decimal commas with points
+      const numericString = value
+        .replace(/[^\d.,]/g, '') // Remove everything except digits, dots, and commas
+        .replace(/\./g, '')      // Remove dots (thousands separators in Vietnamese format)
+        .replace(/,/g, '.');     // Replace commas with dots for decimal places
+        
+      return parseFloat(numericString) || 0;
+    },
+
+    // Improved date parsing method
+    parseDateToTimestamp(dateStr) {
+      if (!dateStr) return 0;
+      
+      // If it's already a Date object
+      if (dateStr instanceof Date) return dateStr.getTime();
+
+      // For debugging
+      console.log('Parsing date:', dateStr);
+      
+      // Handle common Vietnamese date format: DD/MM/YYYY
+      if (typeof dateStr === 'string') {
+        // Try DD/MM/YYYY format first (most likely for Vietnamese dates)
+        const dateRegex = /(\d{1,2})\/(\d{1,2})\/(\d{4})/;
+        const match = dateStr.match(dateRegex);
+        
+        if (match) {
+          const day = parseInt(match[1], 10);
+          const month = parseInt(match[2], 10) - 1; // Months are 0-based in JS
+          const year = parseInt(match[3], 10);
+          
+          // Check if we have time components
+          let hours = 0, minutes = 0, seconds = 0;
+          const timeMatch = dateStr.match(/(\d{1,2}):(\d{1,2})(:(\d{1,2}))?/);
+          if (timeMatch) {
+            hours = parseInt(timeMatch[1], 10) || 0;
+            minutes = parseInt(timeMatch[2], 10) || 0;
+            seconds = parseInt(timeMatch[4], 10) || 0;
+          }
+          
+          const date = new Date(year, month, day, hours, minutes, seconds);
+          const timestamp = date.getTime();
+          
+          if (!isNaN(timestamp)) {
+            console.log('Parsed timestamp:', timestamp, 'from', dateStr, 'as', date.toLocaleString());
+            return timestamp;
+          }
+        }
+      }
+      
+      // Try direct parsing as a fallback
+      const timestamp = new Date(dateStr).getTime();
+      
+      // Return timestamp, or 0 if parsing failed
+      if (isNaN(timestamp)) {
+        console.warn('Failed to parse date:', dateStr);
+        return 0;
+      }
+      
+      console.log('Direct parsed timestamp:', timestamp, 'from', dateStr);
+      return timestamp;
+    },
+
+    // Add this method to your methods section
+    getFieldNameForColumn(column) {
+      // Map display column names to actual field names in the data
+      const columnMapping = {
+        'Sửa đổi lần cuối': 'updatedDate',  // Replace with your actual field name
+        'Giá': 'price'                      // Replace with your actual field name
+      };
+      
+      return columnMapping[column] || column;
+    },
   },
 
 };
@@ -536,5 +726,34 @@ tbody tr:hover {
 .btn-delete {
   background: red;
   color: white;
+}
+
+/* Add or update this CSS in your <style> section */
+.sort-icons {
+  display: flex;
+  flex-direction: column;
+  margin-left: 5px;
+  z-index: 10; /* Ensure it's above other elements */
+}
+
+.sort-arrow {
+  font-size: 0.9rem; /* Make slightly larger */
+  color: #ffffff;
+  padding: 3px; /* Add padding to increase clickable area */
+  cursor: pointer !important; /* Force pointer cursor */
+  user-select: none; /* Prevent text selection */
+  transition: transform 0.2s, color 0.2s;
+  line-height: 1;
+  display: block; /* Ensure it takes up space */
+}
+
+.sort-arrow:hover {
+  transform: scale(1.2);
+  color: #ffc107; /* Highlight on hover */
+}
+
+.sort-arrow.active {
+  color: #ffc107; /* Yellow for active sort */
+  font-weight: bold;
 }
 </style>

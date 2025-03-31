@@ -17,33 +17,67 @@
               </div>
               <div style="display: flex; justify-content: space-between; padding: 0px 15px; margin-top: 10px;">
                 <div class="search-filters d-flex flex-wrap align-items-center gap-3 p-3 bg-light rounded shadow-sm">
-  <div class="form-group mb-0">
+  <div class="form-group mb-0 col">
     <label class="form-label">Tên sản phẩm</label>
     <input v-model="searchName" class="form-control" placeholder="Nhập tên sản phẩm" />
   </div>
-  <div class="form-group mb-0">
+  <div class="form-group mb-0 col">
     <label class="form-label">Mã sản phẩm</label>
     <input v-model="searchCode" class="form-control" placeholder="Nhập mã sản phẩm" />
   </div>
-  <div class="form-group mb-0">
+  <div class="form-group mb-0 col">
     <label class="form-label">Giá tối thiểu</label>
     <input v-model="minPrice" type="number" class="form-control" placeholder="Tối thiểu" />
   </div>
-  <div class="form-group mb-0">
+  <div class="form-group mb-0 col">
     <label class="form-label">Giá tối đa</label>
     <input v-model="maxPrice" type="number" class="form-control" placeholder="Tối đa" />
   </div>
-  <button class="btn btn-primary mt-3 btn-search" @click="searchProduct">
-    <i class="fa fa-search"></i> Tìm kiếm
-  </button>
+  <div class="form-group mb-0 col-auto">
+    <label class="form-label d-block">&nbsp;</label> <!-- Empty label for alignment -->
+    <button class="btn btn-primary btn-search" @click="searchProduct">
+      <i class="fa fa-search"></i> Tìm kiếm
+    </button>
+  </div>
 </div>
                 
               </div>
             </template>
 
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="filteredData"
-              :apiURL="'https://localhost:7162/Product'" :domain="'product'"
-              :displayActions="userRole === 'Finance Management Employee'" :canEdit="true" :canDelete="true">
+            <l-table
+            class="table-hover table-striped"
+  :columns="table1.columns"
+  :data="table1.data" 
+  :apiURL="'https://localhost:7162/Product'"
+  :domain="'product'"
+  :displayActions="userRole === 'Finance Management Employee'"
+  :canEdit="true"
+  :canDelete="true"
+  :enableSorting="true"
+  :sortableColumns="sortableColumns"
+            >
+              <template #header="{ column }">
+                <div class="d-flex align-items-center justify-content-between">
+                  <span>{{ column }}</span>
+                  <span v-if="sortableColumns.includes(column)" class="sort-icons">
+                    <span
+                      class="sort-arrow"
+                      :class="{ active: sortColumn === column && sortDirection === 'asc' }"
+                      @click="toggleSort(column, 'asc')"
+                    >
+                      ▲
+                    </span>
+                    <span
+                      class="sort-arrow"
+                      :class="{ active: sortColumn === column && sortDirection === 'desc' }"
+                      @click="toggleSort(column, 'desc')"
+                    >
+                      ▼
+                    </span>
+                    <div>▲ ▼</div>
+                  </span>
+                </div>
+              </template>
             </l-table>
           </card>
         </div>
@@ -81,7 +115,10 @@ export default {
       searchCode: '',
       minPrice: '',
       maxPrice: '',
-      searchQuery: ''
+      searchQuery: '',
+      sortColumn: '',
+      sortDirection: '',
+      sortableColumns: ['Tên sản phẩm', 'Mã sản phẩm', 'Giá'] // Define sortable columns
     }
   },
   computed: {
@@ -90,6 +127,20 @@ export default {
         return this.table1.data.filter(item => item['Tên sản phẩm'].toLowerCase().includes(this.searchQuery.toLowerCase()));
       }
       return this.table1.data;
+    },
+    sortedData() {
+      if (this.sortColumn) {
+        return [...this.filteredData].sort((a, b) => {
+          const valueA = a[this.sortColumn];
+          const valueB = b[this.sortColumn];
+          if (this.sortDirection === 'asc') {
+            return valueA > valueB ? 1 : -1;
+          } else {
+            return valueA < valueB ? 1 : -1;
+          }
+        });
+      }
+      return this.filteredData;
     }
   },
   methods: {
@@ -148,6 +199,10 @@ export default {
       } catch (error) {
         console.error('Error searching products:', error);
       }
+    },
+    toggleSort(column, direction) {
+      this.sortColumn = column;
+      this.sortDirection = direction;
     }
   },
   mounted() {
@@ -194,6 +249,21 @@ export default {
   align-items: center;
   gap: 5px; /* Adds spacing between the icon and text */
 }
+
+.sort-icons {
+  cursor: pointer;
+  margin-left: 5px;
+}
+
+.sort-icons .sort-arrow {
+  font-size: 0.9rem;
+  color: #6c757d;
+  margin: 0 2px;
+}
+
+.sort-icons .sort-arrow.active {
+  color: #007bff; /* Highlight active sort direction */
+}
 </style>
 
 <style>
@@ -205,3 +275,4 @@ export default {
   }
 }
 </style>
+

@@ -17,24 +17,26 @@
       </button>
       <div class="collapse navbar-collapse justify-content-end">
         <ul class="navbar-nav ml-auto">
-          <!-- Bell Icon with Unread Count -->
-          <li class="nav-item notification-bell" @click="toggleNotificationMenu">
-            <i class="fa fa-bell"></i>
-            <span v-if="unreadCount > 0" class="notification-count">{{ unreadCount }}</span>
-          </li>
+          <div class="notification-container">
+            <!-- Bell Icon with Unread Count -->
+            <div class="notification-bell" @click="toggleNotificationMenu">
+              <i class="fa fa-bell"></i>
+              <span v-if="unreadCount > 0" class="notification-count">{{ unreadCount }}</span>
+            </div>
 
-          <!-- Notification Dropdown Menu -->
-          <div v-if="showNotificationMenu" class="notification-menu">
-            <ul>
-              <li
-                v-for="notification in recentUnreadNotifications"
-                :key="notification.notificationID"
-                @click="viewNotification(notification)"
-              >
-                {{ notification.message }}
-              </li>
-              <li v-if="recentUnreadNotifications.length === 0">Không có thông báo mới</li>
-            </ul>
+            <!-- Notification Dropdown Menu -->
+            <div v-if="showNotificationMenu" class="notification-menu">
+              <ul>
+                <li
+                  v-for="notification in recentUnreadNotifications"
+                  :key="notification.notificationID"
+                  @click="viewNotification(notification)"
+                >
+                  {{ notification.message }}
+                </li>
+                <li v-if="recentUnreadNotifications.length === 0">Không có thông báo mới</li>
+              </ul>
+            </div>
           </div>
 
           <!-- Welcome Text -->
@@ -142,7 +144,7 @@ export default {
           (n) => n.notificationID !== notification.notificationID
         );
 
-        // Navigate to the appropriate page
+        // Determine the target route
         const requestID = notification.requestID;
         let targetRoute = "";
 
@@ -170,11 +172,14 @@ export default {
 
         // Force navigation even if the target route is the same
         if (this.$route.path === targetRoute) {
-          await this.$router.replace({ path: "/refresh" }); // Temporary route
+          await this.$router.replace({ path: "/refresh" }); // Navigate to a temporary route
           await this.$router.replace(targetRoute); // Navigate to the target route
         } else {
           await this.$router.push(targetRoute);
         }
+
+        // Close the notification menu after navigation
+        this.showNotificationMenu = false;
       } catch (error) {
         console.error("Error marking notification as read or navigating:", error);
       }
@@ -188,6 +193,12 @@ export default {
 </script>
 
 <style scoped>
+/* Notification Container */
+.notification-container {
+  position: relative;
+  display: inline-block;
+}
+
 /* Bell Icon Styling */
 .notification-bell {
   position: relative;
@@ -195,7 +206,7 @@ export default {
   cursor: pointer;
   font-size: 24px;
   color: #6c757d;
-  margin-right: 15px;
+  margin-right: 10px; /* Adjusted from 15px to 10px to move it left */
 }
 
 .notification-bell:hover {
@@ -217,14 +228,16 @@ export default {
 /* Notification Dropdown Menu */
 .notification-menu {
   position: absolute;
-  top: 50px;
-  right: 15px;
+  top: 40px; /* Adjust to align below the bell icon */
+  right: 0; /* Align with the bell icon */
   background-color: white;
   border: 1px solid #ddd;
   border-radius: 5px;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
   z-index: 1000;
   width: 300px;
+  max-height: 300px; /* Limit height to show more notifications */
+  overflow-y: auto; /* Add vertical scrollbar */
 }
 
 .notification-menu ul {

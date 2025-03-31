@@ -19,7 +19,9 @@
             </template>
             <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
               :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
-              :canView="true" :apiURL="'https://localhost:7162/Request'">
+              :canView="true" :apiURL="'https://localhost:7162/Request'"
+              :enableSorting="false">
+              
             </l-table>
           </card>
         </div>

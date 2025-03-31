@@ -108,7 +108,8 @@
                 <div class="col-md-4">
                   <label for="department">Phòng ban:</label>
                   <select id="department" v-model="selectedDepartment" class="form-control">
-                    <option value="" disabled>Chọn phòng ban</option>
+                    <!-- <option value="x">Chọn phòng ban</option> -->
+                    <option value="">Tất cả phòng ban</option> <!-- New option for all departments -->
                     <option v-for="department in departments" :key="department" :value="department">
                       {{ department }}
                     </option>
@@ -431,53 +432,47 @@ async fetchReportData() {
   this.departmentColors = {}; // Reset departmentColors
 
   try {
-    // Fetch the list of unique departments
-    const departmentResponse = await axios.get('https://localhost:7162/User/unique-departments', {
-      headers: { Authorization: `Bearer ${this.token}` },
-      timeout: 50000,
-    });
+    // Generate monthly date ranges
+    const monthlyDateRanges = this.getMonthlyDateRanges(currentYear);
 
-    for (const department of departmentResponse.data) {
-      const departmentSeries = [];
-
-      for (let month = 0; month < 12; month++) {
-        const startDate = new Date(currentYear, month, 1);
-        const endDate = new Date(currentYear, month + 1, 0);
-        const formattedStartDate = startDate.toISOString().split('T')[0];
-        const formattedEndDate = endDate.toISOString().split('T')[0];
-
-        try {
-          const response = await axios.get('https://localhost:7162/Summary/report', {
-            headers: { Authorization: `Bearer ${this.token}` },
-            params: {
-              department: department,
-              startDate: formattedStartDate,
-              endDate: formattedEndDate,
-            },
-          });
-
-          departmentSeries.push(typeof response.data === 'number' ? response.data : 0);
-        } catch (error) {
-          departmentSeries.push(0); // Default to 0 if there's an error
-        }
-      }
-
-      // Only add the department to the chart if it has non-zero data
-      if (departmentSeries.some(value => value > 0)) {
-        this.barChart.data.series.push({
-          name: department,
-          data: departmentSeries,
+    // Fetch department costs for each month
+    for (const { startDate, endDate } of monthlyDateRanges) {
+      try {
+        const response = await axios.get('https://localhost:7162/Summary/department-costs', {
+          headers: { Authorization: `Bearer ${this.token}` },
+          params: { startDate, endDate },
         });
+
+        if (response.data && Array.isArray(response.data)) {
+          response.data.forEach((item) => {
+            // Find or create the department series
+            let departmentSeries = this.barChart.data.series.find(
+              (series) => series.name === item.department
+            );
+
+            if (!departmentSeries) {
+              departmentSeries = { name: item.department, data: Array(12).fill(0) };
+              this.barChart.data.series.push(departmentSeries);
+            }
+
+            // Update the cost for the current month
+            const monthIndex = new Date(startDate).getMonth();
+            departmentSeries.data[monthIndex] = item.cost;
+
+            // Assign a color to the department if not already assigned
+            if (!this.departmentColors[item.department]) {
+              const colorIndex = Object.keys(this.departmentColors).length % this.colorPalette.length;
+              this.departmentColors[item.department] = this.colorPalette[colorIndex];
+            }
+          });
+        }
+      } catch (error) {
+        console.error(`Error fetching data for ${startDate} - ${endDate}:`, error);
       }
     }
 
-    // Assign colors based on the order of the series data
-    this.barChart.data.series.forEach((seriesItem, index) => {
-      this.departmentColors[seriesItem.name] = this.colorPalette[index % this.colorPalette.length];
-    });
-
-    console.log("barChart.data.series:", this.barChart.data.series);
-    console.log("Department colors:", this.departmentColors);
+    console.log('barChart.data.series:', this.barChart.data.series);
+    console.log('Department colors:', this.departmentColors);
 
     // Update the chart
     this.$nextTick(() => {
@@ -492,91 +487,64 @@ async fetchReportData() {
       const selectedStartDate = new Date(this.startDate);
       const selectedEndDate = new Date(this.endDate);
 
-      // Kiểm tra xem ngày bắt đầu và ngày kết thúc có lớn hơn ngày hiện tại không
+      // Validate date inputs
       if (selectedStartDate > today || selectedEndDate > today) {
         alert('Ngày bắt đầu và ngày kết thúc không được lớn hơn ngày hiện tại.');
         return;
       }
 
-      // Nếu chỉ có endDate và không có startDate
-      if (!this.startDate && this.endDate) {
-        try {
-          const response = await axios.get(`https://localhost:7162/Request/approved-requests-by-date-range-and-department`, {
-            headers: { Authorization: `Bearer ${this.token}` },
-            params: {
-              endDate: this.endDate,
-              department: this.selectedDepartment, // Thêm phòng ban vào params
-            },
-          });
+      if (!this.startDate || !this.endDate) {
+        alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.');
+        return;
+      }
 
-          const userPromises = response.data
-          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-          .map(item => this.getUserName(item.userID));
+      try {
+        // Prepare API parameters
+        const params = {
+          startDate: this.startDate,
+          endDate: this.endDate,
+        };
+
+        // Add department to params only if a specific department is selected
+        if (this.selectedDepartment) {
+          params.department = this.selectedDepartment;
+        }
+
+        // Fetch data from the API
+        const response = await axios.get(
+          `https://localhost:7162/Request/approved-requests-by-date-range-and-department`,
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+            params,
+          }
+        );
+
+        if (response.data && Array.isArray(response.data)) {
+          // Resolve user names for each request
+          const userPromises = response.data.map((item) => this.getUserName(item.userID));
           const userNames = await Promise.all(userPromises);
 
-          if (response.data && Array.isArray(response.data)) {
-            this.tableData.data = response.data
-            .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
-            .map((item, index) => ({ // Thêm index vào map
-              requestID: item.requestID,
-              'Mã số phiếu': item.requestCode,
-              'Người tạo': userNames[index], // Lấy tên người dùng từ mảng đã giải quyết
-              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              }).replace(',', ''),
-              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            }));
-          } else {
-            console.error('API trả về dữ liệu không hợp lệ:', response);
-            alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
-          }
-        } catch (error) {
-          console.error('Lỗi khi gọi API:', error);
-          alert('Lỗi khi gọi API. Vui lòng thử lại.');
+          // Map the response data to the table format
+          this.tableData.data = response.data.map((item, index) => ({
+            requestID: item.requestID,
+            'Mã số phiếu': item.requestCode,
+            'Người tạo': userNames[index],
+            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+              day: '2-digit',
+              month: '2-digit',
+              year: 'numeric',
+            }).replace(',', ''),
+            'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
+          }));
+        } else {
+          console.error('API trả về dữ liệu không hợp lệ:', response);
+          alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
         }
-      } else if (this.startDate && this.endDate) {
-        // Nếu có cả startDate và endDate thì gọi API với cả hai tham số
-        try {
-          const response = await axios.get(`https://localhost:7162/Request/approved-requests-by-date-range-and-department`, {
-            headers: { Authorization: `Bearer ${this.token}` },
-            params: {
-              startDate: this.startDate,
-              endDate: this.endDate,
-              department: this.selectedDepartment, // Thêm phòng ban vào params
-            },
-          });
-
-          if (response.data && Array.isArray(response.data)) {
-            const userPromises = response.data.map(item => this.getUserName(item.userID));
-            const userNames = await Promise.all(userPromises);
-
-            this.tableData.data = response.data.map((item, index) => ({
-              requestID: item.requestID,
-              'Mã số phiếu': item.requestCode,
-              'Người tạo': userNames[index], // Use the resolved user names
-              'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-                hour: '2-digit',
-                minute: '2-digit',
-                day: '2-digit',
-                month: '2-digit',
-                year: 'numeric',
-              }).replace(',', ''),
-              'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            }));
-          } else {
-            console.error('API trả về dữ liệu không hợp lệ:', response);
-            alert('Lỗi khi lấy dữ liệu. Vui lòng thử lại.');
-          }
-        } catch (error) {
-          console.error('Lỗi khi gọi API:', error);
-          alert('Lỗi khi gọi API. Vui lòng thử lại.');
-        }
-      } else {
-        alert('Vui lòng chọn ít nhất ngày kết thúc.');
+      } catch (error) {
+        console.error('Lỗi khi gọi API:', error);
+        alert('Lỗi khi gọi API. Vui lòng thử lại.');
       }
     },
     async fetchReportDetailData() {
@@ -606,6 +574,44 @@ async fetchReportData() {
         alert('Lỗi khi lấy dữ liệu báo cáo chi tiết. Vui lòng thử lại sau.');
       }
     
+    },
+    getMonthlyDateRanges(year) {
+      // Array of first dates for each month
+      const firstDates = [
+        '01/01', '01/02', '01/03', '01/04', '01/05', '01/06',
+        '01/07', '01/08', '01/09', '01/10', '01/11', '01/12',
+      ];
+
+      // Array of last dates for each month in a non-leap year
+      const lastDatesNonLeap = [
+        '31/01', '28/02', '31/03', '30/04', '31/05', '30/06',
+        '31/07', '31/08', '30/09', '31/10', '30/11', '31/12',
+      ];
+
+      // Array of last dates for each month in a leap year
+      const lastDatesLeap = [
+        '31/01', '29/02', '31/03', '30/04', '31/05', '30/06',
+        '31/07', '31/08', '30/09', '31/10', '30/11', '31/12',
+      ];
+
+      // Determine if the year is a leap year
+      const isLeapYear = (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0;
+
+      // Select the appropriate last dates array
+      const lastDates = isLeapYear ? lastDatesLeap : lastDatesNonLeap;
+
+      // Generate the date ranges
+      const dateRanges = [];
+      for (let i = 0; i < 12; i++) {
+        const startDate = `${year}-${firstDates[i].split('/')[1]}-${firstDates[i].split('/')[0]}`;
+        const endDate = `${year}-${lastDates[i].split('/')[1]}-${lastDates[i].split('/')[0]}`;
+        dateRanges.push({
+          startDate,
+          endDate,
+        });
+      }
+
+      return dateRanges;
     },
   },
 };
