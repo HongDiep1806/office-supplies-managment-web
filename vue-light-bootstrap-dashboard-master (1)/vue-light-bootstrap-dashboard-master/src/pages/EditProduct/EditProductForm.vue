@@ -93,6 +93,33 @@
         </div>
       </div>
 
+      <div class="recommendations-panel">
+        <h5>Gợi ý sản phẩm</h5>
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Sản phẩm</th>
+              <th>Số lượng</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="(recommendation, index) in recommendations" :key="index">
+              <td>{{ recommendation.Product }}</td>
+              <td>{{ recommendation.Quantity }}</td>
+              <td>
+                <button
+                  class="btn btn-sm btn-primary"
+                  @click.prevent="addRecommendedProduct(recommendation)"
+                >
+                  Thêm
+                </button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
       <div class="text-center">
         <button type="button" class="btn btn-info btn-fill float-right" @click.prevent="updateProduct">
           Cập nhật sản phẩm
@@ -134,7 +161,8 @@ export default {
         topCenter: false
       },
       token: localStorage.getItem('authToken'),
-      userID: localStorage.getItem('userId') // Assuming userID is stored in localStorage
+      userID: localStorage.getItem('userId'), // Assuming userID is stored in localStorage
+      recommendations: [] // Added for recommendations
     }
   },
   methods: {
@@ -264,35 +292,76 @@ export default {
     } catch (error) {
       console.error("Error fetching user name:", error);
     }
+  },
+  async fetchRecommendations() {
+    try {
+      const department = localStorage.getItem('department'); // Get department from localStorage
+      console.log('Department:', department); // Debug the department value
+      if (!department) {
+        console.error('Department is not set in localStorage.');
+        return;
+      }
+      const response = await axios.get(`http://localhost:5000/recommend_ml?department=${department}`);
+      console.log('Recommendations API Response:', response.data); // Debug the API response
+      this.recommendations = response.data; // Store the recommendations in a data property
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  },
+  addRecommendedProduct(recommendation) {
+    const product = this.products.find(p => p.name === recommendation.Product);
+    if (product) {
+      this.product.Name = product.name;
+      this.product.Code = product.code;
+      this.product.UnitCurrency = product.unitCurrency;
+      this.product.UnitPrice = product.unitPrice;
+    } else {
+      console.warn('Product not found in available products:', recommendation.Product);
+    }
   }
 },
 mounted() {
   const id = this.$route.params.id;
-  //console.log('Route Params:', id); 
 
   if (id) {
-    axios.get(`https://localhost:7162/Product/${id}`, {headers: { Authorization: `Bearer ${this.token}` }}).then((response) => {
-      const updatingProduct = response.data;
-      this.product.ProductID = updatingProduct.productID;
-      this.product.Name = updatingProduct.name;
-      this.product.Code = updatingProduct.code;
-      this.product.UnitCurrency = updatingProduct.unitCurrency;
-      this.product.UnitPrice = updatingProduct.unitPrice;
-      this.product.CreatedDate = new Date(updatingProduct.createDate).toLocaleString();
-      this.product.AdjustDate = new Date(updatingProduct.adjustDate).toLocaleString();
-      this.product.UserIDCreate = updatingProduct.userIDCreate;
-      this.product.UserIDAdjust = updatingProduct.userIDAdjust;
-      //console.log("Product fetched:", updatingProduct);
-      this.fetchUserName(this.product.UserIDCreate, 'created');
-      this.fetchUserName(this.product.UserIDAdjust, 'adjusted');
-    }).catch(error => {
-      console.error("Error fetching product:", error);
-    });
+    axios.get(`https://localhost:7162/Product/${id}`, { headers: { Authorization: `Bearer ${this.token}` } })
+      .then((response) => {
+        const updatingProduct = response.data;
+        this.product.ProductID = updatingProduct.productID;
+        this.product.Name = updatingProduct.name;
+        this.product.Code = updatingProduct.code;
+        this.product.UnitCurrency = updatingProduct.unitCurrency;
+        this.product.UnitPrice = updatingProduct.unitPrice;
+        this.product.CreatedDate = new Date(updatingProduct.createDate).toLocaleString();
+        this.product.AdjustDate = new Date(updatingProduct.adjustDate).toLocaleString();
+        this.product.UserIDCreate = updatingProduct.userIDCreate;
+        this.product.UserIDAdjust = updatingProduct.userIDAdjust;
+        this.fetchUserName(this.product.UserIDCreate, 'created');
+        this.fetchUserName(this.product.UserIDAdjust, 'adjusted');
+        localStorage.setItem('department', response.data.department);
+      })
+      .catch(error => {
+        console.error("Error fetching product:", error);
+      });
   } else {
     console.error("Product ID is undefined!");
   }
+
+  // Fetch recommendations
+  this.fetchRecommendations();
 }
 };
 </script>
 
-<style></style>
+<style scoped>
+.recommendations-panel {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  background-color: #f9f9f9;
+}
+.recommendations-panel h5 {
+  margin-bottom: 15px;
+}
+</style>

@@ -60,6 +60,33 @@
             </tbody>
           </table>
         </div>
+
+        <div class="recommendations-panel">
+          <h5>Gợi ý sản phẩm</h5>
+          <table class="table">
+            <thead>
+              <tr>
+                <th>Sản phẩm</th>
+                <th>Số lượng</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(recommendation, index) in recommendations" :key="index">
+                <td>{{ recommendation.Product }}</td>
+                <td>{{ recommendation.Quantity }}</td>
+                <td>
+                  <button
+                    class="btn btn-sm btn-primary"
+                    @click.prevent="addRecommendedProduct(recommendation)"
+                  >
+                    Thêm
+                  </button>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
   
         <div class="text-center position-relative">
           <div style="display: flex; flex-direction: row; justify-content: space-between;">
@@ -104,7 +131,8 @@
         userDepartment: '',
         type: ['success', 'danger', 'warning'],
         requestNumber: 0,
-        token: localStorage.getItem('authToken')
+        token: localStorage.getItem('authToken'),
+        recommendations: [] // Added recommendations data property
       };
     },
     methods: {
@@ -235,6 +263,37 @@
   
         return this.products.filter((product) => !filteredSelectedProductIds.includes(product.id));
       },
+      async fetchRecommendations() {
+        try {
+          const department = localStorage.getItem('department'); // Get department from localStorage
+          const response = await axios.get(`http://localhost:5000/recommend_ml?department=${department}`);
+          this.recommendations = response.data; // Store the recommendations in a data property
+        } catch (error) {
+          console.error('Error fetching recommendations:', error);
+        }
+      },
+      addRecommendedProduct(recommendation) {
+        const product = this.products.find(p => p.name === recommendation.Product);
+        if (product) {
+          if (this.productRows.length === 1 && !this.productRows[0].selectedProduct) {
+            // Update the first product row directly
+            this.productRows[0].selectedProduct = product;
+            this.productRows[0].unitCurrency = product.unitCurrency;
+            this.productRows[0].unitPrice = product.unitPrice;
+            this.productRows[0].quantity = recommendation.Quantity;
+            this.productRows[0].totalPrice = product.unitPrice * recommendation.Quantity;
+          } else {
+            // Add a new product row
+            this.productRows.push({
+              selectedProduct: product,
+              unitCurrency: product.unitCurrency,
+              unitPrice: product.unitPrice,
+              quantity: recommendation.Quantity,
+              totalPrice: product.unitPrice * recommendation.Quantity,
+            });
+          }
+        }
+      }
     },
     async mounted() {
       try {
@@ -263,6 +322,9 @@
       } catch (error) {
         console.error('Lỗi khi lấy thông tin người dùng:', error);
       }
+
+      // Fetch recommendations
+      await this.fetchRecommendations();
     },
     computed: {
       totalAmount() {
