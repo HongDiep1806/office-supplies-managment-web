@@ -128,7 +128,7 @@ export default {
       },
       createdByName: '',
       adjustedByName: '',
-      unitCurrencies: ['Cái', 'Quyển', 'Cây'],
+      unitCurrencies: ['Cái', 'Quyển', 'Cây','Bộ', 'Hộp', 'Thùng', 'Bịch', 'Gói', 'Chiếc'],
       type: ['success', 'danger', 'warning'],
       notifications: {
         topCenter: false
