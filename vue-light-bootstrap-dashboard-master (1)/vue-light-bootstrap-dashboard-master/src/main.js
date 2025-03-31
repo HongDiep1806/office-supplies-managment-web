@@ -22,8 +22,13 @@ const router = new VueRouter({
   routes,
   linkActiveClass: "nav-item active",
   scrollBehavior: (to) => {
-    if (to.hash) {
-      return { selector: to.hash };
+    if (to.hash && to.hash !== '#') {
+      try {
+        return { selector: to.hash };
+      } catch (e) {
+        console.error('Invalid scroll selector', e);
+        return { x: 0, y: 0 };
+      }
     } else {
       return { x: 0, y: 0 };
     }

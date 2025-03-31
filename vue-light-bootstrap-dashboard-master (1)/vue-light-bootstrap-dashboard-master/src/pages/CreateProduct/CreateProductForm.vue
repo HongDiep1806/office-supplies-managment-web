@@ -63,13 +63,14 @@ export default {
                 UnitCurrency: '',
                 UnitPrice: 0,
                 CreatedDate: '',
-                UserIDCreate: ''
+                UserIDCreate: '',
+                UserIDAdjust: '',
             },
             type: ['success', 'danger', 'warning'],
             notifications: {
                 topCenter: false
             },
-            unitCurrencies: ['Cái', 'Quyển', 'Cây'],
+            unitCurrencies: ['Cái', 'Quyển', 'Cây','Bộ', 'Hộp', 'Thùng', 'Bịch', 'Gói', 'Chiếc'],
             token: localStorage.getItem('authToken'),
             userID: localStorage.getItem('userId') // Assuming userID is stored in localStorage
         }
@@ -87,6 +88,7 @@ export default {
       const now = new Date().toISOString();
       this.product.CreatedDate = now;
       this.product.UserIDCreate = this.userID;
+      this.product.UserIDAdjust = this.userID; // Assuming the user who creates the product is also the one who adjusts it
 
       const response = await axios.post("https://localhost:7162/Product", this.product, {
         headers: {

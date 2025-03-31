@@ -17,11 +17,20 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
-              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
-              :canView="true" :apiURL="'https://localhost:7162/Request'"
-              :enableSorting="false">
-              
+            <l-table 
+              class="table-hover table-striped" 
+              :columns="table1.columns" 
+              :data="table1.data"
+              :displayStatus="true" 
+              :domain="'request'" 
+              :displayActions="false" 
+              :canEdit="false" 
+              :canDelete="false"
+              :canView="false" 
+              :apiURL="'https://localhost:7162/Request'"
+              :enableSorting="false"
+              @row-click="navigateToViewRequest"
+            >
             </l-table>
           </card>
         </div>
@@ -139,6 +148,10 @@ export default {
         console.log("error getting username", error);
         return "Không tìm thấy người dùng";
       }
+    },
+    navigateToViewRequest(item) {
+      // Navigate to the view request page using the requestID from the clicked row
+      this.$router.push(`/admin/viewrequest/${item.requestID}`);
     }
   },
   mounted() {

@@ -15,9 +15,19 @@
                 </div>
               </div>
             </template>
-            <l-table class="table-hover table-striped" :columns="table1.columns" :data="table1.data"
-              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
-              :canView="true" :apiURL="'https://localhost:7162/Request'">
+            <l-table 
+              class="table-hover table-striped" 
+              :columns="table1.columns" 
+              :data="table1.data"
+              :displayStatus="true" 
+              :domain="'request'" 
+              :displayActions="true" 
+              :canEdit="false" 
+              :canDelete="false"
+              :canView="false" 
+              :apiURL="'https://localhost:7162/Request'"
+              @row-click="navigateToViewRequest"
+            >
             </l-table>
           </card>
         </div>
@@ -109,6 +119,9 @@ export default {
     },
     navigateToCreateRequest() {
       this.$router.push('/admin/createrequest');
+    },
+    navigateToViewRequest(row) {
+      this.$router.push(`/admin/viewrequest/${row.requestID}`);
     }
   },
   mounted() {

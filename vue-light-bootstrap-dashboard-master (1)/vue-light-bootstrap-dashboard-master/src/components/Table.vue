@@ -34,8 +34,13 @@
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(item, rowIndex, column) in paginatedData" :key="rowIndex">
-
+        <tr 
+          v-for="(item, rowIndex, column) in paginatedData" 
+          :key="rowIndex"
+          @click="$emit('row-click', item)"
+          :style="{ cursor: 'pointer' }"
+          class="clickable-row"
+        >
           <td>{{ (currentPage - 1) * pageSize + rowIndex + 1 }}</td>
           <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
             {{ itemValueByIndex(item, colIndex + 1) }}
@@ -755,5 +760,10 @@ tbody tr:hover {
 .sort-arrow.active {
   color: #ffc107; /* Yellow for active sort */
   font-weight: bold;
+}
+
+.clickable-row:hover {
+  background-color: rgba(220, 68, 5, 0.1) !important;
+  transition: background-color 0.2s;
 }
 </style>

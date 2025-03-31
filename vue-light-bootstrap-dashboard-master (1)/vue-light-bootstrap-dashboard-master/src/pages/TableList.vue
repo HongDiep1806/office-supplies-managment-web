@@ -57,9 +57,9 @@
   :sortableColumns="sortableColumns"
             >
               <template #header="{ column }">
-                <div class="d-flex align-items-center justify-content-between">
+                <div class="d-flex align-items-center justify-content-center">
                   <span>{{ column }}</span>
-                  <span v-if="sortableColumns.includes(column)" class="sort-icons">
+                  <div v-if="sortableColumns.includes(column)" class="sort-icons">
                     <span
                       class="sort-arrow"
                       :class="{ active: sortColumn === column && sortDirection === 'asc' }"
@@ -74,8 +74,7 @@
                     >
                       ▼
                     </span>
-                    <div>▲ ▼</div>
-                  </span>
+                  </div>
                 </div>
               </template>
             </l-table>
@@ -92,7 +91,7 @@ import Card from 'src/components/Cards/Card.vue'
 import axios from 'axios'
 import jwtDecode from 'jwt-decode'
 
-const tableColumns = ['STT', 'Tên sản phẩm', 'Mã sản phẩm', 'Đơn vị', 'Giá', 'Sửa đổi lần cuối']
+const tableColumns = ['STT', 'Tên sản phẩm', 'Mã sản phẩm', 'Đơn vị', 'Giá', 'Sửa đổi lần cuối', ''];
 
 export default {
   components: {
@@ -251,18 +250,31 @@ export default {
 }
 
 .sort-icons {
+  display: inline-flex; /* Align icons horizontally */
+  margin-left: 5px; /* Add spacing between text and icons */
+  gap: 2px; /* Add spacing between the two arrows */
+  align-items: center; /* Vertically align the icons */
+}
+
+.sort-arrow {
+  font-size: 0.8rem; /* Adjust size of the arrows */
+  line-height: 1; /* Ensure consistent line height */
   cursor: pointer;
-  margin-left: 5px;
 }
 
-.sort-icons .sort-arrow {
-  font-size: 0.9rem;
-  color: #6c757d;
-  margin: 0 2px;
-}
-
-.sort-icons .sort-arrow.active {
+.sort-arrow.active {
   color: #007bff; /* Highlight active sort direction */
+}
+
+th {
+  text-align: center;
+  vertical-align: middle;
+  padding: 8px; /* Adjust padding as needed */
+}
+
+th, td {
+  height: 50px; /* Set a consistent height for all cells */
+  vertical-align: middle; /* Ensure vertical alignment */
 }
 </style>
 

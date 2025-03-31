@@ -55,7 +55,7 @@
               <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
             </template>
             <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
-              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :displayStatus="true" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
               :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
@@ -69,7 +69,7 @@
               <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây</p>
             </template>
             <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
-              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :displayStatus="true" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
               :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
@@ -83,7 +83,7 @@
               <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của phòng {{ department }}</p>
             </template>
             <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
-              :displayStatus="true" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :displayStatus="true" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
               :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
@@ -108,8 +108,7 @@
                 <div class="col-md-4">
                   <label for="department">Phòng ban:</label>
                   <select id="department" v-model="selectedDepartment" class="form-control">
-                    <!-- <option value="x">Chọn phòng ban</option> -->
-                    <option value="">Tất cả phòng ban</option> <!-- New option for all departments -->
+                    <option value="">Tất cả phòng ban</option> <!-- Option for all departments -->
                     <option v-for="department in departments" :key="department" :value="department">
                       {{ department }}
                     </option>
@@ -123,7 +122,7 @@
               </div>
             </template>
             <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
-              :displayStatus="false" :domain="'request'" :displayActions="true" :canEdit="false" :canDelete="false"
+              :displayStatus="false" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
               :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
           </card>
         </div>
@@ -510,6 +509,9 @@ async fetchReportData() {
           params.department = this.selectedDepartment;
         }
 
+        // Debug the params being sent
+        console.log('API Params:', params);
+
         // Fetch data from the API
         const response = await axios.get(
           `https://localhost:7162/Request/approved-requests-by-date-range-and-department`,
@@ -612,6 +614,11 @@ async fetchReportData() {
       }
 
       return dateRanges;
+    },
+  },
+  watch: {
+    selectedDepartment(newVal) {
+      console.log('Selected Department:', newVal);
     },
   },
 };

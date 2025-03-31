@@ -12,9 +12,17 @@
                                 </div>
                             </div>
                         </template>
-                        <l-table class="table-hover table-striped" :columns="table.columns" :data="table.data"
-                            :displayStatus="true" :domain="'summary'" :displayActions="true" :canEdit="false"
-                            :canDelete="false" :canView="true" :apiURL="'https://localhost:7162/Summary'">
+                        <l-table class="table-hover table-striped" 
+                            :columns="table.columns" 
+                            :data="table.data"
+                            :displayStatus="true" 
+                            :domain="'summary'" 
+                            :displayActions="false" 
+                            :canEdit="false"
+                            :canDelete="false" 
+                            :canView="false" 
+                            :apiURL="'https://localhost:7162/Summary'"
+                            @row-click="navigateToViewSummary">
                         </l-table>
                     </card>
                 </div>
@@ -80,6 +88,11 @@ export default {
                 console.error('Lỗi khi lấy danh sách Summary:', error);
             }
         },
+        
+        navigateToViewSummary(item) {
+            console.log("Navigating to summary:", item.summaryID);
+            this.$router.push(`/admin/viewsummary/${item.summaryID}`);
+        }
     },
     mounted() {
         this.fetchSummaryData();
@@ -87,4 +100,12 @@ export default {
 };
 </script>
 
-<style></style>
+<style>
+.clickable-row {
+    cursor: pointer;
+}
+
+.clickable-row:hover {
+    background-color: rgba(220, 68, 5, 0.1) !important;
+}
+</style>
