@@ -27,6 +27,15 @@
             <label for="requestStatus">Trạng thái</label>
             <base-input type="text" :value="requestStatus" readonly></base-input>
           </div>
+          <div class="col-md-2" v-if="userRole === 'Finance Management Employee'">
+  <label for="abnormalityTag">Bất thường</label>
+  <base-input
+    type="text"
+    :value="abnormalityTag"
+    readonly
+    :class="{ 'abnormal': isAbnormal, 'normal': !isAbnormal }"
+  ></base-input>
+</div>
         </div>
 
         <div class="table-responsive">
@@ -167,6 +176,8 @@ export default {
       modalMessage: '',
       modalNote: '',
       modalAction: '',
+      abnormalityTag: '', // Holds the abnormality tag text
+      isAbnormal: false, // Indicates if the request is abnormal
     };
   },
   async mounted() {
@@ -243,6 +254,27 @@ export default {
       this.userName = user.data.fullName;
     } catch (error) {
       console.error('Lỗi khi lấy thông tin người dùng:', error);
+    }
+
+    try {
+      // Fetch abnormality status
+      const abnormalityResponse = await axios.get(`http://localhost:5000/check_request_abnormality?request_id=${requestId}`);
+      if (abnormalityResponse.data.IsAbnormal) {
+        const abnormalTypes = abnormalityResponse.data.AbnormalTypes.map((type) => {
+          if (type === 'TotalPrice') return 'Giá';
+          if (type === 'Quantity') return 'Số lượng';
+          return type; // Fallback for unknown types
+        });
+        this.abnormalityTag = `${abnormalTypes.join(', ')}`;
+        this.isAbnormal = true;
+      } else {
+        this.abnormalityTag = 'Không bất thường';
+        this.isAbnormal = false;
+      }
+    } catch (error) {
+      console.error('Error fetching abnormality status:', error);
+      this.abnormalityTag = 'Không xác định';
+      this.isAbnormal = false;
     }
   },
   computed: {
@@ -522,5 +554,30 @@ export default {
   display: flex;
   justify-content: space-between;
   margin-top: 20px;
+}
+
+.status-box {
+  display: flex;
+  align-items: center; /* Vertically center the text */
+  justify-content: center; /* Horizontally center the text */
+  height: 38px; /* Match the height of the input boxes */
+  border: 1px solid #ccc; /* Match the border style of the input boxes */
+  border-radius: 4px; /* Match the border radius of the input boxes */
+  font-size: 14px; /* Match the font size of the input boxes */
+  background-color: #f8d7da; /* Default background for abnormal */
+  color: #721c24; /* Default text color for abnormal */
+  padding: 0 12px; /* Add padding for consistent spacing */
+  box-sizing: border-box; /* Ensure padding doesn't affect size */
+  width: 100%; /* Ensure it takes the full width of the column */
+}
+
+.status-box.abnormal {
+  background-color: #f8d7da; /* Red background for abnormal */
+  color: #721c24; /* Red text for abnormal */
+}
+
+.status-box.normal {
+  background-color: #d4edda; /* Green background for normal */
+  color: #155724; /* Green text for normal */
 }
 </style>
