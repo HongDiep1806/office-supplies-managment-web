@@ -33,7 +33,10 @@
                     :key="notification.notificationID"
                     @click="viewNotification(notification)"
                   >
-                    {{ notification.message }}
+                    <div>{{ notification.message }}</div>
+                    <div class="notification-time">
+                      {{ formatNotificationDate(notification.createdDate) }}
+                    </div>
                   </li>
                   <li v-if="recentUnreadNotifications.length === 0">Không có thông báo mới</li>
                 </ul>
@@ -210,6 +213,15 @@ export default {
       localStorage.clear();
       this.$router.push("/");
     },
+    formatNotificationDate(dateString) {
+      const date = new Date(dateString);
+      const hours = date.getHours().toString().padStart(2, '0');
+      const minutes = date.getMinutes().toString().padStart(2, '0');
+      const day = date.getDate().toString().padStart(2, '0');
+      const month = (date.getMonth() + 1).toString().padStart(2, '0');
+      const year = date.getFullYear(); // Add the year
+      return `${hours}:${minutes} ${day}/${month}/${year}`; // Include the year in the format
+    },
   },
   computed: {
     notificationCountDisplay() {
@@ -285,6 +297,12 @@ export default {
 
 .notification-menu ul li:last-child {
   border-bottom: none;
+}
+
+.notification-time {
+  font-size: 12px;
+  color: #6c757d;
+  margin-top: 5px;
 }
 
 /* Welcome Text Styling */
