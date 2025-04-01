@@ -25,6 +25,10 @@
           <label>Tổng tiền:</label>
           <span>{{ formatCurrency(summary.totalPrice) }}</span>
         </div>
+        <div class="info-item">
+          <label>Trạng thái:</label>
+          <span>{{ summaryStatus }}</span>
+        </div>
       </div>
 
       <div class="request-list" v-if="requests.length > 0">
@@ -92,6 +96,18 @@ export default {
     await this.fetchSummary(summaryId);
     await this.fetchRequests();
     await this.fetchProducts();
+  },
+  computed: {
+    summaryStatus() {
+      if (!this.summary.isProcessedBySupLead && !this.summary.isApprovedBySupLead) {
+        return 'Chờ duyệt'; // Waiting for approval
+      } else if (this.summary.isProcessedBySupLead && !this.summary.isApprovedBySupLead) {
+        return 'Không duyệt'; // Not approved
+      } else if (this.summary.isProcessedBySupLead && this.summary.isApprovedBySupLead) {
+        return 'Đã duyệt'; // Approved
+      }
+      return 'Không xác định'; // Undefined status
+    },
   },
   methods: {
     async fetchSummary(summaryId) {

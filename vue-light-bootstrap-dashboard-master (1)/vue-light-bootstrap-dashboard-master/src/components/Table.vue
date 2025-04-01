@@ -34,13 +34,14 @@
         </tr>
       </thead>
       <tbody>
-        <tr 
-          v-for="(item, rowIndex, column) in paginatedData" 
-          :key="rowIndex"
-          @click="$emit('row-click', item)"
-          :style="{ cursor: 'pointer' }"
-          class="clickable-row"
-        >
+                  <tr
+            v-for="(item, rowIndex) in paginatedData"
+            :key="rowIndex"
+            @click="$emit('row-click', item)"
+            :style="{ cursor: 'pointer' }"
+            class="clickable-row"
+          >
+          
           <td>{{ (currentPage - 1) * pageSize + rowIndex + 1 }}</td>
           <td v-for="(column, colIndex) in columns.slice(1)" :key="colIndex">
             {{ itemValueByIndex(item, colIndex + 1) }}
@@ -65,12 +66,22 @@
                 v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || (domain === 'product' && userRole === 'Finance Management Employee')">
                 <i class="fa fa-trash"></i>
               </button>
-              <div v-if="showCheckboxColumn" class="icon btn-sm">
+              <td @click.stop>
+            <input
+              type="checkbox"
+              v-model="selectedRequests"
+              :value="item.requestID"
+              v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false"
+              class="icon"
+            />
+          </td>
+              <!-- <div v-if="showCheckboxColumn" class="icon btn-sm">
                 <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
                   v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false" class="icon"/>
-              </div>
+              </div> -->
             </div>
           </td>
+          
         
         </tr>
       </tbody>
@@ -141,6 +152,7 @@ export default {
       selectedRequests: [],
       token: localStorage.getItem('authToken'),
       userID: localStorage.getItem('userId'),
+      department: localStorage.getItem('department'),
       productname: '',
     };
   },
@@ -542,28 +554,28 @@ export default {
 
 <style scoped>
 input[type="checkbox"] {
-  width: 100%; /* Kích thước bằng icon view */
-  height: 100%; /* Kích thước bằng icon view */
-  border: 2px solid #ccc; /* Viền */
-  border-radius: 4px;
-  cursor: pointer;
-  appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
-  outline: none;
+  width: 16px; /* Set a fixed width for the checkbox */
+  height: 16px; /* Set a fixed height for the checkbox */
+  border: 2px solid #ccc; /* Add a border */
+  border-radius: 4px; /* Optional: Add rounded corners */
+  cursor: pointer; /* Show a pointer cursor */
+  appearance: auto; /* Use the default browser appearance */
+  -webkit-appearance: checkbox; /* Ensure it looks like a checkbox in WebKit browsers */
+  -moz-appearance: checkbox; /* Ensure it looks like a checkbox in Firefox */
+  outline: none; /* Remove the outline */
   position: relative;
 }
 
 input[type="checkbox"]:checked {
-  background-color: rgb(220, 68, 5);
-  border-color: rgb(220, 68, 5);
+  background-color: rgb(220, 68, 5); /* Set the background color when checked */
+  border-color: rgb(220, 68, 5); /* Set the border color when checked */
 }
 
 input[type="checkbox"]:checked::before {
-  content: '\f00c';
+  content: '\f00c'; /* Font Awesome checkmark */
   font-family: 'Font Awesome 5 Free';
   font-weight: 900;
-  font-size: 14px; /* Điều chỉnh kích thước icon check nếu cần */
+  font-size: 14px; /* Adjust the size of the checkmark */
   color: white;
   position: absolute;
   top: 50%;

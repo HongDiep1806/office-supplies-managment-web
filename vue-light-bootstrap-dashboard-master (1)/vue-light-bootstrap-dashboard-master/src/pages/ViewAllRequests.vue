@@ -23,7 +23,7 @@
               :data="table1.data"
               :displayStatus="true" 
               :domain="'request'" 
-              :displayActions="false" 
+              :displayActions="true" 
               :canEdit="false" 
               :canDelete="false"
               :canView="false" 

@@ -55,6 +55,7 @@
   :canDelete="true"
   :enableSorting="true"
   :sortableColumns="sortableColumns"
+  @edit="navigateToEditProduct"
             >
               <template #header="{ column }">
                 <div class="d-flex align-items-center justify-content-center">
@@ -202,7 +203,26 @@ export default {
     toggleSort(column, direction) {
       this.sortColumn = column;
       this.sortDirection = direction;
-    }
+    },
+    navigateToEditProduct(productId) {
+      const department = localStorage.getItem('department') || 'Chưa xác định'; // Get department from localStorage
+      this.$router.push({
+        path: `/admin/editproduct/${productId}`,
+        query: { department }, // Pass department as a query parameter
+      });
+    },
+    navigateToEditForm(item) {
+        if (this.domain === 'product') {
+            const department = localStorage.getItem('department') || 'Chưa xác định'; // Retrieve department from localStorage
+            this.$router.push({
+                name: 'Edit Product',
+                params: { id: item.productID },
+                query: { department }, // Pass department as a query parameter
+            });
+        } else if (this.domain === 'request') {
+            this.$router.push({ name: 'Edit Request', params: { id: item.requestID } });
+        }
+    },
   },
   mounted() {
     this.fetchProductData()

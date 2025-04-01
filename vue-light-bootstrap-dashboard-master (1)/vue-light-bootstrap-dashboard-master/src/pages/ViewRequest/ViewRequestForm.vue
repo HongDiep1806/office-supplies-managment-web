@@ -3,25 +3,29 @@
     <card>
       <div class="header-container">
         <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
-        <div class="status-box">{{ requestStatus }}</div>
+        <!-- <div class="status-box">{{ requestStatus }}</div> -->
       </div>
       <form>
         <div class="row">
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="createdBy">Người thực hiện</label>
             <base-input type="text" :value="userName" readonly></base-input>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="department">Phòng ban</label>
             <base-input type="text" :value="userDepartment" readonly></base-input>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="ticketNumber">Số phiếu</label>
             <base-input type="text" :value="ticketNumber" readonly></base-input>
           </div>
-          <div class="col-md-3">
+          <div class="col-md-2">
             <label for="createdDate">Ngày thực hiện</label>
             <base-input type="text" :value="requestDate" readonly></base-input>
+          </div>
+          <div class="col-md-2">
+            <label for="requestStatus">Trạng thái</label>
+            <base-input type="text" :value="requestStatus" readonly></base-input>
           </div>
         </div>
 

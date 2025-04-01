@@ -24,35 +24,94 @@
             <div class="table-responsive">
                 <table class="table">
                     <thead>
-                        <tr></tr>
+                        <tr>
+                            <th>STT</th>
+                            <th>Tên sản phẩm</th>
+                            <th>Đơn vị tính</th>
+                            <th>Số lượng</th>
+                            <th>Đơn giá</th>
+                            <th>Thành tiền</th>
+                            <th>
+                                
+                            </th>
+                        </tr>
                     </thead>
                     <tbody>
-                        <tr v-for="(productRow, index) in productRows" :key="index"
-                            :class="{ 'disabled-row': productRow.isDeleted }">
+                        <tr
+                            v-for="(productRow, index) in productRows"
+                            :key="index"
+                            :class="{ 'disabled-row': productRow.isDeleted }"
+                        >
                             <td>{{ index + 1 }}</td>
                             <td>
-                                <select v-model="productRow.selectedProduct" class="form-control"
-                                    :disabled="productRow.isDeleted" @change="updateProductDetails(index)">
+                                <select
+                                    v-model="productRow.selectedProduct"
+                                    class="form-control"
+                                    :disabled="productRow.isDeleted"
+                                    @change="updateProductDetails(index)"
+                                >
                                     <option v-if="productRow.selectedProduct" :value="productRow.selectedProduct">
                                         {{ productRow.selectedProduct.name }}
                                     </option>
                                     <option v-else disabled>Chọn sản phẩm</option>
-                                    <option v-for="product in availableProducts(index)" :key="product.productID"
-                                        :value="product" v-if="!productRow.isDeleted">
+                                    <option
+                                        v-for="product in availableProducts(index)"
+                                        :key="product.productID"
+                                        :value="product"
+                                        v-if="!productRow.isDeleted"
+                                    >
                                         {{ product.name }}
                                     </option>
                                 </select>
                             </td>
                             <td>{{ productRow.unitCurrency || 'Chưa có' }}</td>
                             <td>
-                                <input type="number" v-model="productRow.quantity" :disabled="productRow.isDeleted"
-                                    min="1" class="form-control" @input="calculateTotal(index)" />
+                                <input
+                                    type="number"
+                                    v-model="productRow.quantity"
+                                    :disabled="productRow.isDeleted"
+                                    min="1"
+                                    class="form-control"
+                                    @input="calculateTotal(index)"
+                                />
                             </td>
                             <td>{{ productRow.unitPrice || 0 }}</td>
                             <td>{{ productRow.totalPrice || 0 }}</td>
                             <td>
-                                <button type="button" @click="removeProductRow(index)" class="btn btn-danger btn-sm">
+                                <button
+                                    type="button"
+                                    @click="removeProductRow(index)"
+                                    class="btn btn-danger btn-sm"
+                                    title="Xóa sản phẩm"
+                                >
                                     <i class="fa fa-trash"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="recommendations-panel">
+                <h5>Gợi ý sản phẩm</h5>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Sản phẩm</th>
+                            <th>Số lượng</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr v-for="(recommendation, index) in recommendations" :key="index">
+                            <td>{{ recommendation.Product }}</td>
+                            <td>{{ recommendation.Quantity }}</td>
+                            <td>
+                                <button
+                                    class="btn btn-sm btn-primary"
+                                    @click.prevent="addRecommendedProduct(recommendation)"
+                                >
+                                    Thêm
                                 </button>
                             </td>
                         </tr>
@@ -103,13 +162,19 @@ export default {
             requestNumber: 0,
             totalAmountFromApi: 0,
             request: {},
-            token: localStorage.getItem('authToken')
+            token: localStorage.getItem('authToken'),
+            recommendedProducts: [],
+            recommendations: [], // Add recommendations data property
+            
         };
     },
     async mounted() {
+        //get local storage department from authtoken
         const requestId = this.$route.params.id;
-        const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {headers: { Authorization: `Bearer ${this.token}` }});
-        this.request= request.data;
+        const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+        });
+        this.request = request.data;
         this.requestDate = new Date().toISOString().substr(0, 10);
         this.ticketNumber = request.data.requestCode;
         this.userID = request.data.userID;
@@ -141,12 +206,17 @@ export default {
         });
 
         try {
-            const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`, {headers: { Authorization: `Bearer ${this.token}` }});
-            this.userDepartment = user.data.department;
+            const user = await axios.get(`https://localhost:7162/User/getbyid/${this.userID}`, {
+                headers: { Authorization: `Bearer ${this.token}` },
+            });
+            this.userDepartment = user.data.department || 'Không xác định';
             this.requester = user.data.fullName;
         } catch (error) {
             console.error('Lỗi khi lấy thông tin người dùng:', error);
         }
+
+        // Fetch recommendations from the recommendation API
+        await this.fetchRecommendations();
     },
     methods: {
         async notifySuccess(verticalAlign, horizontalAlign) {
@@ -210,17 +280,25 @@ export default {
                 requestID: parseInt(this.$route.params.id),
                 totalPrice: this.totalAmount,
                 requestCode: this.ticketNumber,
+                createdDate: this.request.createdDate || new Date().toISOString(), // Ensure createdDate is included
                 userID: this.userID,
                 products: this.productRows
                     .filter((row) => row.selectedProduct)
                     .map((row) => ({
-                        product_RequestID: row.product_RequestID,
+                        product_RequestID: row.product_RequestID || 0, // Default to 0 if not provided
                         productID: row.selectedProduct.productID,
                         quantity: row.quantity,
                     })),
-                isProcessedByDepLead: this.request.isProcessedByDepLead,
-                isProcessedBySupLead: this.request.isProcessedBySupLead,
-                isApprovedByDepLead: this.request.isApprovedByDepLead,
+                isProcessedByDepLead: this.request.isProcessedByDepLead || false,
+                isApprovedByDepLead: this.request.isApprovedByDepLead || false,
+                isApprovedBySupLead: this.request.isApprovedBySupLead || false,
+                isSummaryBeProcessed: this.request.isSummaryBeProcessed || false,
+                isSummaryBeApproved: this.request.isSummaryBeApproved || false,
+                isCollectedInSummary: this.request.isCollectedInSummary || false,
+                dateDepLeadApprove: this.request.dateDepLeadApprove || null,
+                noteDepLead: this.request.noteDepLead || '',
+                dateSupLeadApprove: this.request.dateSupLeadApprove || null,
+                noteSupLead: this.request.noteSupLead || '',
             };
 
             try {
@@ -232,9 +310,41 @@ export default {
                 this.notifySuccess('bottom', 'right');
                 this.$router.push('/admin/request-table');
             } catch (error) {
-                console.log(updatedRequest);
-                console.log(error);
+                console.log(updatedRequest); // Log the request payload for debugging
+                console.error('Error updating request:', error.response ? error.response.data : error);
                 this.notifyError('bottom', 'right');
+            }
+        },
+        async fetchRecommendations() {
+            try {
+                const department = localStorage.getItem('department'); // Get department from localStorage
+                const response = await axios.get(`http://127.0.0.1:5000/recommend_ml?department=${department}`);
+                this.recommendations = response.data; // Store the recommendations in a data property
+            } catch (error) {
+                console.error('Error fetching recommendations:', error);
+            }
+        },
+        addRecommendedProduct(recommendation) {
+            const product = this.products.find((p) => p.name === recommendation.Product);
+            if (product) {
+                if (this.productRows.length === 1 && !this.productRows[0].selectedProduct) {
+                    // Update the first product row directly
+                    this.productRows[0].selectedProduct = product;
+                    this.productRows[0].unitCurrency = product.unitCurrency;
+                    this.productRows[0].unitPrice = product.unitPrice;
+                    this.productRows[0].quantity = recommendation.Quantity;
+                    this.productRows[0].totalPrice = product.unitPrice * recommendation.Quantity;
+                } else {
+                    // Add a new product row
+                    this.productRows.push({
+                        selectedProduct: product,
+                        unitCurrency: product.unitCurrency,
+                        unitPrice: product.unitPrice,
+                        quantity: recommendation.Quantity,
+                        totalPrice: product.unitPrice * recommendation.Quantity,
+                        isDeleted: false,
+                    });
+                }
             }
         },
     },
