@@ -92,7 +92,7 @@
             type="button"
             class="btn btn-info btn-fill float-right"
             @click="showModal('accept')"
-            v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
+            v-if="userRole == 'Dep Leader' && requestStatus === 'Trưởng phòng chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
           >
             Duyệt phiếu yêu cầu
           </button>
@@ -101,7 +101,7 @@
             class="btn btn-cancel btn-fill float-right"
             @click="showModal('reject')"
             style="margin-right: 10px;"
-            v-if="userRole == 'Dep Leader' && requestStatus === 'Dep chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
+            v-if="userRole == 'Dep Leader' && requestStatus === 'Trưởng phòng chưa duyệt' || requestStatus == 'QLTC chưa duyệt' && userRole == 'Finance Management Employee'"
           >
             Không duyệt phiếu
           </button>
@@ -189,7 +189,7 @@ export default {
     const { isProcessedByDepLead, isApprovedByDepLead, isApprovedBySupLead } = request.data;
     const { isCollectedInSummary, isSummaryBeProcessed, isSummaryBeApproved} = request.data;
     if (!isProcessedByDepLead  && !isApprovedByDepLead && !isApprovedBySupLead ) {
-      this.requestStatus = 'Dep chưa duyệt';
+      this.requestStatus = 'Trưởng phòng chưa duyệt';
     } else if (isProcessedByDepLead && !isApprovedByDepLead  && !isApprovedBySupLead) {
       this.requestStatus = 'Dep từ chối';
     } else if (isProcessedByDepLead && isApprovedByDepLead  && !isApprovedBySupLead) {

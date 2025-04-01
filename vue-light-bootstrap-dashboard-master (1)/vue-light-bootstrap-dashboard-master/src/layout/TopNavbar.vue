@@ -136,7 +136,9 @@ export default {
           headers: { Authorization: `Bearer ${this.token}` },
           params: { userId: this.userID },
         });
-        this.recentUnreadNotifications = response.data; // Limit to 5 notifications
+
+        // Sort notifications by creation date (latest first)
+        this.recentUnreadNotifications = response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
       } catch (error) {
         console.error("Error fetching recent unread notifications:", error);
       }
