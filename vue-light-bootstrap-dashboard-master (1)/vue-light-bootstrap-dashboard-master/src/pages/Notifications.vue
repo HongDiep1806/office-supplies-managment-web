@@ -176,6 +176,9 @@ export default {
           );
           notification.isRead = true; // Update the local state
         }
+
+        // Reload the page to ensure the top navigation bar updates
+        window.location.reload();
       } catch (error) {
         console.error('Error marking all notifications as read:', error);
       }

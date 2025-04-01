@@ -107,6 +107,7 @@ export default {
         console.error("User ID or token is missing from localStorage.");
       }
     }, 246);
+    //this.$root.$on('updateUnreadCount', this.fetchUnreadCount);
   },
   watch: {
     $route(to, from) {
