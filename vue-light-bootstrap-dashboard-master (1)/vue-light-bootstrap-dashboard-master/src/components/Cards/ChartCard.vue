@@ -55,15 +55,41 @@
       initChart() {
         const chartIdQuery = `#${this.chartId}`;
         this.chartOptions.stackBars = this.chartType === 'StackedBar';
-        this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](chartIdQuery, this.chartData, this.chartOptions, this.responsiveOptions);
+        this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
+          chartIdQuery,
+          this.chartData,
+          this.chartOptions,
+          this.responsiveOptions
+        );
         this.$emit('initialized', this.chart);
-        this.chartOptions.stackBars = this.chartType === 'StackedBar';
-this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
-  chartIdQuery,
-  this.chartData,         // ✅ Make sure this has series as [{ data: [...], className: ... }]
-  this.chartOptions,
-  this.responsiveOptions
-);
+
+        // Add tooltip logic
+        const chartElement = document.querySelector(chartIdQuery);
+        if (chartElement) {
+          const tooltip = document.createElement('div');
+          tooltip.className = 'ct-tooltip';
+          document.body.appendChild(tooltip);
+
+          chartElement.addEventListener('mouseover', (event) => {
+            const target = event.target;
+            if (target.classList.contains('ct-bar') || target.classList.contains('ct-point')) {
+              const value = target.getAttribute('ct:value');
+              if (value) {
+                tooltip.innerText = value;
+                tooltip.style.display = 'block';
+              }
+            }
+          });
+
+          chartElement.addEventListener('mousemove', (event) => {
+            tooltip.style.left = `${event.pageX + 10}px`;
+            tooltip.style.top = `${event.pageY - 20}px`;
+          });
+
+          chartElement.addEventListener('mouseout', () => {
+            tooltip.style.display = 'none';
+          });
+        }
 
         if (this.chartType === 'Line') {
           this.animateLineChart();
@@ -161,35 +187,33 @@ this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
       }
     },
     async mounted() {
-  this.updateChartId();
-  
-  try {
-    const Chartist = await import('chartist');
-    this.$Chartist = Chartist.default || Chartist;
+      this.updateChartId();
+      
+      try {
+        const Chartist = await import('chartist');
+        this.$Chartist = Chartist.default || Chartist;
 
-    this.$nextTick(() => {
-      const chartElement = document.getElementById(this.chartId);
-      if (!chartElement) {
-        console.error(`Element with id ${this.chartId} not found.`);
-        return;
+        this.$nextTick(() => {
+          const chartElement = document.getElementById(this.chartId);
+          if (!chartElement) {
+            console.error(`Element with id ${this.chartId} not found.`);
+            return;
+          }
+
+          this.initChart(); // Khởi tạo biểu đồ lần đầu
+          this.chart.update(this.chartData, this.chartOptions); // Cập nhật dữ liệu ngay sau khi khởi tạo
+
+          const resizeObserver = new ResizeObserver(() => {
+            if (this.$Chartist && this.chart) { 
+              this.chart.update(this.chartData, this.chartOptions); // Cập nhật khi thay đổi kích thước
+            }
+          });
+          resizeObserver.observe(chartElement);
+        });
+      } catch (error) {
+        console.error("Failed to load Chartist:", error);
       }
-
-      this.initChart(); // Khởi tạo biểu đồ lần đầu
-      this.chart.update(this.chartData, this.chartOptions); // Cập nhật dữ liệu ngay sau khi khởi tạo
-
-      const resizeObserver = new ResizeObserver(() => {
-        if (this.$Chartist && this.chart) { 
-          this.chart.update(this.chartData, this.chartOptions); // Cập nhật khi thay đổi kích thước
-        }
-      });
-      resizeObserver.observe(chartElement);
-    });
-  } catch (error) {
-    console.error("Failed to load Chartist:", error);
-  }
-}
-
-
+    }
   }
 </script>
 
@@ -207,7 +231,16 @@ this.chart = this.$Chartist[this.chartType.replace('StackedBar', 'Bar')](
 .ct-series-i .ct-bar { stroke: #6c757d; } /* IT */
 .ct-series-j .ct-bar { stroke: #17a2b8; } /* CDS */
 
-
-
-
+/* Tooltip styles */
+.ct-tooltip {
+  position: absolute;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  padding: 5px 10px;
+  border-radius: 3px;
+  font-size: 12px;
+  pointer-events: none;
+  z-index: 10;
+  display: none;
+}
 </style>

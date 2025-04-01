@@ -71,7 +71,7 @@
               type="checkbox"
               v-model="selectedRequests"
               :value="item.requestID"
-              v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false"
+              v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false && userRole === 'Finance Management Employee'"
               class="icon"
             />
           </td>
