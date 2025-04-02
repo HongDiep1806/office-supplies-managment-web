@@ -147,19 +147,21 @@ export default {
     if (this.product.Name && this.product.Code && this.product.UnitCurrency && this.product.UnitPrice) {
       try {
         const now = new Date().toISOString();
-        if (!this.product.ProductID) {
-          // Creating a new product
-          this.product.CreatedDate = now;
-          this.product.UserIDCreate = this.userID;
-        } else {
           // Updating an existing product
-          this.product.AdjustDate = now;
-          this.product.UserIDAdjust = this.userID;
-        }
+          const payload = {
+        productID: this.product.ProductID, // Correct casing
+        name: this.product.Name,
+        code: this.product.Code,
+        unitCurrency: this.product.UnitCurrency,
+        unitPrice: this.product.UnitPrice,
+        userIDAdjust: this.userID, // Correct casing
+      };
+        
+    const response = await axios.put(`https://localhost:7162/Product`, payload, {
+      headers: { Authorization: `Bearer ${this.token}` },
+    });
 
-        const response = await axios.put(`https://localhost:7162/Product`, this.product, {
-          headers: { Authorization: `Bearer ${this.token}` }
-        });
+    console.log('Product updated successfully:', response.data);
         const requestsResponse = await axios.get(`https://localhost:7162/Request/requests-by-product/${this.product.ProductID}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
@@ -181,9 +183,9 @@ export default {
   }
 }
         //console.log("Response:", response.data);
-
+        const u_id = localStorage.getItem('userId')
         // Fetch the username by userID
-        const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
+        const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${u_id}`, {
           headers: { Authorization: `Bearer ${this.token}` }
         });
         const username = usernameResponse.data;
