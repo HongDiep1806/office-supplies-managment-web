@@ -17,10 +17,11 @@
                             :data="table.data"
                             :displayStatus="true" 
                             :domain="'summary'" 
-                            :displayActions="false" 
+                            :displayActions="true" 
                             :canEdit="false"
                             :canDelete="false" 
                             :canView="false" 
+                            :canOpenNewTab="true" 
                             :apiURL="'https://localhost:7162/Summary'"
                             @row-click="navigateToViewSummary">
                         </l-table>

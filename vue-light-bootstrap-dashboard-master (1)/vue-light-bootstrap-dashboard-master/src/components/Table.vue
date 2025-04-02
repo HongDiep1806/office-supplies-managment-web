@@ -74,6 +74,14 @@
               v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false && userRole === 'Finance Management Employee'"
               class="icon"
             />
+            <button
+      type="button"
+      class="icon btn btn-secondary btn-sm"
+      v-if="canOpenNewTab"
+      @click="openInNewTab(item)"
+    >
+      <i class="fa fa-external-link-alt"></i>
+    </button>
           </td>
               <!-- <div v-if="showCheckboxColumn" class="icon btn-sm">
                 <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
@@ -131,6 +139,7 @@ export default {
     canEdit: Boolean,
     canView: Boolean,
     canDelete: Boolean,
+    canOpenNewTab: Boolean,
     enableSorting: {  // New prop to enable/disable sorting
       type: Boolean,
       default: false
@@ -547,6 +556,24 @@ export default {
       
       return columnMapping[column] || column;
     },
+    openInNewTab(item) {
+      let url = '';
+      if (this.domain === 'request') {
+        url = `${window.location.origin}/admin/viewrequest/${item.requestID}`;
+      } else if (this.domain === 'summary') {
+        url = `${window.location.origin}/admin/viewsummary/${item.summaryID}`;
+      }
+      const newTab = window.open(url, '_blank');
+
+    // Copy localStorage data to the new tab
+    if (newTab) {
+      newTab.onload = () => {
+        Object.keys(localStorage).forEach((key) => {
+          newTab.localStorage.setItem(key, localStorage.getItem(key));
+        });
+      };
+    }
+    },
   },
 
 };
@@ -777,5 +804,16 @@ tbody tr:hover {
 .clickable-row:hover {
   background-color: rgba(220, 68, 5, 0.1) !important;
   transition: background-color 0.2s;
+}
+
+.btn-secondary {
+  background-color: #6c757d;
+  color: white;
+  border: 1px solid #6c757d;
+}
+
+.btn-secondary:hover {
+  background-color: #5a6268;
+  border-color: #545b62;
 }
 </style>

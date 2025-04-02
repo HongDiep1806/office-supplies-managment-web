@@ -25,6 +25,7 @@
               :canEdit="false" 
               :canDelete="false"
               :canView="false" 
+              :canOpenNewTab="true" 
               :apiURL="'https://localhost:7162/Request'"
               @row-click="navigateToViewRequest"
             >

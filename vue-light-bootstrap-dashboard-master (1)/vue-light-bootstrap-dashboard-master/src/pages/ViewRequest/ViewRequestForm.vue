@@ -258,6 +258,7 @@ export default {
 
     try {
       // Fetch abnormality status
+      
       const abnormalityResponse = await axios.get(`http://localhost:5000/check_request_abnormality?request_id=${requestId}`);
       if (abnormalityResponse.data.IsAbnormal) {
         const abnormalTypes = abnormalityResponse.data.AbnormalTypes.map((type) => {
@@ -267,10 +268,15 @@ export default {
         });
         this.abnormalityTag = `${abnormalTypes.join(', ')}`;
         this.isAbnormal = true;
-      } else {
+      } else{
         this.abnormalityTag = 'Không bất thường';
         this.isAbnormal = false;
       }
+      if (this.requestStatus == 'QLTC từ chối'){
+        this.abnormalityTag = 'Đã từ chối';
+        this.isAbnormal = false;
+      }
+      
     } catch (error) {
       console.error('Error fetching abnormality status:', error);
       this.abnormalityTag = 'Không xác định';
@@ -286,6 +292,14 @@ export default {
     },
   },
   methods: {
+    async retrainModels() {
+      try {
+        const response = await axios.post('http://localhost:5000/retrain_anomaly_models');
+        console.log('Retrain success:', response.data.message);
+      } catch (error) {
+        console.error('Retrain failed:', error);
+      }
+    },
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: `<span>Cập nhật phiếu yêu cầu thành công</span>`,
@@ -339,6 +353,8 @@ export default {
           await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`, payload, {
             headers: { Authorization: `Bearer ${this.token}` },
           });
+          //call retrain model
+          await this.retrainModels();
         } else if (this.userRole === 'Finance Management Employee') {
           await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`, payload, {
             headers: { Authorization: `Bearer ${this.token}` },
