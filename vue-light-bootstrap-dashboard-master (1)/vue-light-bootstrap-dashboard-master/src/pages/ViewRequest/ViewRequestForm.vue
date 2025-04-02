@@ -168,7 +168,7 @@ export default {
       isNoteDepLeadEditable: false,
       isNoteFinanceEditable: false,
       type: ['success', 'danger', 'warning'],
-      userRole: '',
+      userRole: localStorage.getItem('userRole'),
       requestStatus: '',
       token: localStorage.getItem('authToken'),
       isModalVisible: false,
@@ -184,6 +184,16 @@ export default {
     this.token = localStorage.getItem('authToken');
     const requestId = this.$route.params.id;
     const request = await axios.get(`https://localhost:7162/Request/getbyid/${requestId}`, {headers: { Authorization: `Bearer ${this.token}` }});
+    this.isDeleted = request.data.isDeleted; // Store the isDeleted value
+  if (this.isDeleted) {
+    //go to not found page in new tab 
+    window.open('/admin/not-found', '_blank');
+    //push back to request table if userrole dep leader, else request history
+    if (this.userRole == 'Dep Leader') {
+      this.$router.push('/admin/view-all-request');
+    }
+    
+  }
     this.userID = request.data.userID;
     this.requestNumber = request.data.requestCode;
     this.ticketNumber = request.data.requestCode;

@@ -55,25 +55,21 @@
 
           <td v-if="displayActions" style="text-align: center; vertical-align: middle;">
             <div style="display: inline-flex; justify-content: center; align-items: center; gap: 10px;">
-              <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
+              <!-- <button type="button" class="icon btn btn-info btn-sm" v-if="canView" @click="navigateToViewForm(item)">
                 <i class="fa fa-eye"></i>
-              </button>
+              </button> -->
+              <td @click.stop>
               <button type="button" @click="navigateToEditForm(item)" class="icon btn btn-warning btn-sm"
                 v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || domain === 'product' && userRole === 'Finance Management Employee'">
                 <i class="fa fa-edit"></i>
               </button>
+              
               <button type="button" @click="openDeleteDialog(item)" class="icon btn btn-danger btn-sm"
                 v-if="(item.Status === 'Chưa duyệt' && domain === 'request' && userRole === 'Employee') || (domain === 'product' && userRole === 'Finance Management Employee')">
                 <i class="fa fa-trash"></i>
               </button>
-              <td @click.stop>
-            <input
-              type="checkbox"
-              v-model="selectedRequests"
-              :value="item.requestID"
-              v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false && userRole === 'Finance Management Employee'"
-              class="icon"
-            />
+              
+            
             <button
       type="button"
       class="icon btn btn-secondary btn-sm"
@@ -82,6 +78,13 @@
     >
       <i class="fa fa-external-link-alt"></i>
     </button>
+    <input
+              type="checkbox"
+              v-model="selectedRequests"
+              :value="item.requestID"
+              v-show="item.Status === 'Đã duyệt' && item.IsCollectedInSummary === false && userRole === 'Finance Management Employee'"
+              class="icon"
+            />
           </td>
               <!-- <div v-if="showCheckboxColumn" class="icon btn-sm">
                 <input type="checkbox" v-model="selectedRequests" :value="item.requestID"
@@ -220,134 +223,131 @@ export default {
       this.dialog = true;
     },
     async confirmDelete() {
-  if (this.domain === 'product') {
-    if (!this.itemToDelete) return;
-    try {
-      const productId = this.itemToDelete.productID;
+      if (this.domain === 'product') {
+        if (!this.itemToDelete) return;
+        try {
+          const productId = this.itemToDelete.productID;
 
-      // Fetch the product details by its ID to get the product name
-      const productResponse = await axios.get(`${this.apiURL}/${productId}`, {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
-      const productName = productResponse.data.name;
-      //console.log('Fetched product name:', productName);
-      await axios.delete(`${this.apiURL}/${productId}`, {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
+          // Fetch the product details by its ID to get the product name
+          const productResponse = await axios.get(`${this.apiURL}/${productId}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+          const productName = productResponse.data.name;
 
-      const index = this.data.findIndex(product => product.productID === productId);
-      if (index !== -1) {
-        this.data.splice(index, 1);
-      }
+          await axios.delete(`${this.apiURL}/${productId}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
 
-      // Fetch the username by userID
-      const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
-      const username = usernameResponse.data;
-      //console.log('Fetched username:', username);
+          const index = this.data.findIndex((product) => product.productID === productId);
+          if (index !== -1) {
+            this.data.splice(index, 1);
+          }
 
-      // Fetch users with userTypeID == 2
-      const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
-        headers: { Authorization: `Bearer ${this.token}` },
-      });
-      const usersWithUserType2 = usersType2Response.data;
+          // Fetch the username by userID
+          const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+          const username = usernameResponse.data;
 
-      // Fetch users with userTypeID == 4
-      const usersType4Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=4', {
-        headers: { Authorization: `Bearer ${this.token}` },
-      });
-      const usersWithUserType4 = usersType4Response.data;
+          // Fetch users with userTypeID == 2
+          const usersType2Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=2', {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+          const usersWithUserType2 = usersType2Response.data;
 
-      // Combine users with userTypeID == 2 and userTypeID == 4
-      const usersToNotify = [...usersWithUserType2, ...usersWithUserType4];
+          // Fetch users with userTypeID == 4
+          const usersType4Response = await axios.get('https://localhost:7162/User/users-by-type-id?userTypeID=4', {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+          const usersWithUserType4 = usersType4Response.data;
 
-      // Send notifications to users with userTypeID == 2 and userTypeID == 4
-      const notifications = usersToNotify.map(user => ({
-        userID: user.userID,
-        message: `The product ${productName} has been deleted by ${username}.`,
-        requestID: productId,
-        sender: this.userID,
-      }));
+          // Combine users with userTypeID == 2 and userTypeID == 4
+          const usersToNotify = [...usersWithUserType2, ...usersWithUserType4];
 
-      for (const notification of notifications) {
-        //console.log(`Sending notification: ${JSON.stringify(notification)}`);
-        await axios.post('https://localhost:7162/Notification', notification, {
-          headers: { Authorization: `Bearer ${this.token}` },
-        });
-      }
+          // Send notifications to users with userTypeID == 2 and userTypeID == 4
+          const notifications = usersToNotify.map((user) => ({
+            userID: user.userID,
+            message: `Sản phẩm ${productName} đã bị xóa bởi ${username}.`,
+            requestID: productId,
+            sender: this.userID,
+          }));
 
-      this.dialog = false;
-      this.notifySuccess('top', 'right');
+          for (const notification of notifications) {
+            await axios.post('https://localhost:7162/Notification', notification, {
+              headers: { Authorization: `Bearer ${this.token}` },
+            });
+          }
 
-    } catch (error) {
-      console.error("Delete error:", error);
-      this.dialog = false;
-      this.notifyError('top', 'right');
-    }
-  } else if (this.domain === 'request') {
-    if (!this.itemToDelete) return;
-    try {
-      const requestId = this.itemToDelete.requestID;
-      await axios.delete(`${this.apiURL}/${requestId}`, {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
-
-      const index = this.data.findIndex(r => r.requestID === requestId);
-      if (index !== -1) {
-        this.data.splice(index, 1);
-      }
-
-      // Fetch the username by userID
-      const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
-        headers: { Authorization: `Bearer ${this.token}` }
-      });
-      const username = usernameResponse.data;
-      //console.log('Fetched username:', username);
-
-      // Fetch the department leader
-      const department = this.getUserDepartment(this.itemToDelete.userID);
-      const departmentLeaderResponse = await axios.get(`https://localhost:7162/User/department-leader?department=${department}`, {
-        headers: { Authorization: `Bearer ${this.token}` },
-      });
-      const departmentLeader = departmentLeaderResponse.data;
-
-      // Send notifications to userID and department leader
-      const notifications = [
-        {
-          userID: this.itemToDelete.userID,
-          message: `Your request ${requestId} has been deleted by ${username}.`,
-          requestID: requestId,
-          sender: this.userID,
-        },
-        {
-          userID: departmentLeader.userID,
-          message: `Request ${requestId} from your department has been deleted by ${username}.`,
-          requestID: requestId,
-          sender: this.userID,
+          this.dialog = false;
+          this.notifySuccess('bottom', 'right');
+        } catch (error) {
+          console.error('Lỗi khi xóa:', error);
+          this.dialog = false;
+          this.notifyError('bottom', 'right');
         }
-      ];
+      } else if (this.domain === 'request') {
+        if (!this.itemToDelete) return;
+        try {
+          const requestId = this.itemToDelete.requestID;
+          await axios.delete(`${this.apiURL}/${requestId}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
 
-      for (const notification of notifications) {
-        //console.log(`Sending notification: ${JSON.stringify(notification)}`);
-        await axios.post('https://localhost:7162/Notification', notification, {
-          headers: { Authorization: `Bearer ${this.token}` },
-        });
+          const index = this.data.findIndex((r) => r.requestID === requestId);
+          if (index !== -1) {
+            this.data.splice(index, 1);
+          }
+
+          // Fetch the username by userID
+          const usernameResponse = await axios.get(`https://localhost:7162/User/getNameById${this.userID}`, {
+            headers: { Authorization: `Bearer ${this.token}` },
+          });
+          const username = usernameResponse.data;
+
+          // Fetch the department leader
+          const department = await this.getUserDepartment(this.userID);
+          const departmentLeaderResponse = await axios.get(
+            `https://localhost:7162/User/department-leader?department=${department}`,
+            {
+              headers: { Authorization: `Bearer ${this.token}` },
+            }
+          );
+          const departmentLeader = departmentLeaderResponse.data;
+
+          // Send notifications to userID and department leader
+          const notifications = [
+            {
+              userID: this.itemToDelete.userID,
+              message: `Yêu cầu ${requestId} của bạn đã bị xóa bởi ${username}.`,
+              requestID: requestId,
+              sender: this.userID,
+            },
+            {
+              userID: departmentLeader.userID,
+              message: `Yêu cầu ${requestId} từ phòng ban của bạn đã bị xóa bởi ${username}.`,
+              requestID: requestId,
+              sender: this.userID,
+            },
+          ];
+
+          for (const notification of notifications) {
+            await axios.post('https://localhost:7162/Notification', notification, {
+              headers: { Authorization: `Bearer ${this.token}` },
+            });
+          }
+
+          this.dialog = false;
+          this.notifySuccess('bottom', 'right');
+        } catch (error) {
+          console.error('Lỗi khi xóa:', error);
+          this.dialog = false;
+          this.notifyError('bottom', 'right');
+        }
       }
-
-      this.dialog = false;
-      this.notifySuccess('top', 'right');
-
-    } catch (error) {
-      console.error("Delete error:", error);
-      this.dialog = false;
-      this.notifyError('top', 'right');
-    }
-  }
-},
+    },
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Xóa sản phẩm thành công</span>`,
+        message: `<span>Xóa thành công</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -356,7 +356,7 @@ export default {
     },
     async notifyError(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
-        message: `<span>Xóa sản phẩm thất bại</span>`,
+        message: `<span>Xóa thất bại</span>`,
         icon: 'nc-icon nc-app',
         horizontalAlign: horizontalAlign,
         verticalAlign: verticalAlign,
@@ -574,15 +574,30 @@ export default {
       };
     }
     },
+    async getUserDepartment(userID) {
+      try {
+        // Make an API call to fetch user details by userID
+        const response = await axios.get(`https://localhost:7162/User/getbyid/${userID}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+
+        // Extract and return the department from the response
+        return response.data.department || null;
+      } catch (error) {
+        console.error(`Error fetching department for userID ${userID}:`, error);
+        return null; // Return null if there's an error
+      }
+    },
   },
 
 };
 </script>
 
 <style scoped>
+/* Style for the checkbox */
 input[type="checkbox"] {
-  width: 16px; /* Set a fixed width for the checkbox */
-  height: 16px; /* Set a fixed height for the checkbox */
+  width: 20px; /* Match the size of the button */
+  height: 20px; /* Match the size of the button */
   border: 2px solid #ccc; /* Add a border */
   border-radius: 4px; /* Optional: Add rounded corners */
   cursor: pointer; /* Show a pointer cursor */
@@ -590,9 +605,17 @@ input[type="checkbox"] {
   -webkit-appearance: checkbox; /* Ensure it looks like a checkbox in WebKit browsers */
   -moz-appearance: checkbox; /* Ensure it looks like a checkbox in Firefox */
   outline: none; /* Remove the outline */
-  position: relative;
+  display: inline-block; /* Ensure proper alignment */
+  vertical-align: middle; /* Align with the button */
+  margin: 0; /* Remove default margin */
 }
 
+/* Add spacing between the checkbox and the button */
+td > div > input[type="checkbox"] {
+  margin-left: 10px; /* Adjust spacing as needed */
+}
+
+/* When the checkbox is checked */
 input[type="checkbox"]:checked {
   background-color: rgb(220, 68, 5); /* Set the background color when checked */
   border-color: rgb(220, 68, 5); /* Set the border color when checked */
@@ -609,6 +632,7 @@ input[type="checkbox"]:checked::before {
   left: 50%;
   transform: translate(-50%, -50%);
 }
+
 .status-badge {
   display: inline-flex;
   align-items: center;
