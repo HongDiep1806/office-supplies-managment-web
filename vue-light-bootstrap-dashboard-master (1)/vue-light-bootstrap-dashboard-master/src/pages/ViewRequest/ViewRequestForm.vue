@@ -704,13 +704,7 @@ export default {
                 ? 'QLTC đã duyệt phiếu tổng hợp'
                 : 'QLTC từ chối phiếu tổng hợp',
               actor: 'QLTC',
-              time: new Date(summary.updateDate).toLocaleString('vi-VN', {
-                year: 'numeric',
-                month: '2-digit',
-                day: '2-digit',
-                hour: '2-digit',
-                minute: '2-digit',
-              }),
+              time: this.formatDateToUTC7(summary.updateDate),
               note: summary.note || 'Không có ghi chú', // Include the note in the journey data
             });
           }
