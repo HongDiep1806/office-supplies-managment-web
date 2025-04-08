@@ -3,7 +3,14 @@
     <card>
       <div class="header-container">
         <h4 slot="header" class="card-title">Chi tiết phiếu yêu cầu</h4>
-        <!-- <div class="status-box">{{ requestStatus }}</div> -->
+        <!-- Button moved to the top-right -->
+        <button
+          type="button"
+          class="btn btn-primary btn-journey"
+          @click="toggleJourneyModal"
+        >
+          Hành trình phiếu
+        </button>
       </div>
       <form>
         <div class="row">
@@ -28,14 +35,14 @@
             <base-input type="text" :value="requestStatus" readonly></base-input>
           </div>
           <div class="col-md-2" v-if="userRole === 'Finance Management Employee'">
-  <label for="abnormalityTag">Bất thường</label>
-  <base-input
-    type="text"
-    :value="abnormalityTag"
-    readonly
-    :class="{ 'abnormal': isAbnormal, 'normal': !isAbnormal }"
-  ></base-input>
-</div>
+            <label for="abnormalityTag">Bất thường</label>
+            <base-input
+              type="text"
+              :value="abnormalityTag"
+              readonly
+              :class="{ 'abnormal': isAbnormal, 'normal': !isAbnormal }"
+            ></base-input>
+          </div>
         </div>
 
         <div class="table-responsive">
@@ -119,6 +126,14 @@
             Gửi ghi chú
           </button>
         </div>
+
+        <!-- Green Block for Approved Status -->
+        <!-- <div
+          v-if="isApproved"
+          class="alert alert-success text-center mt-4"
+        >
+          Phiếu yêu cầu đã được thông qua
+        </div> -->
       </form>
     </card>
 
@@ -136,6 +151,34 @@
         <div class="modal-actions">
           <button class="btn btn-secondary cancel-btn" @click="closeModal">Hủy</button>
           <button class="btn btn-primary confirm-btn" @click="submitModalAction">Xác nhận</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Modal for Hành trình phiếu -->
+    <div v-if="showJourneyModal" class="modal-overlay">
+      <div class="modal-content">
+        <h4 class="modal-title">Hành trình phiếu</h4>
+        <button class="close-btn" @click="toggleJourneyModal">×</button>
+        <div class="table-responsive mt-4">
+          <table class="table table-bordered">
+            <thead>
+              <tr>
+                <th>Hành động</th>
+                <th>Người hành động</th>
+                <th>Thời gian</th>
+                <th>Ghi chú</th> <!-- New column for notes -->
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(action, index) in journeyData" :key="index">
+                <td>{{ action.action }}</td>
+                <td>{{ action.actor }}</td>
+                <td>{{ action.time }}</td>
+                <td>{{ action.note }}</td> <!-- Display the note -->
+              </tr>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -178,6 +221,9 @@ export default {
       modalAction: '',
       abnormalityTag: '', // Holds the abnormality tag text
       isAbnormal: false, // Indicates if the request is abnormal
+      showJourneyModal: false, // Controls visibility of the journey modal
+      journeyData: [], // Data for the journey table
+      isApproved: false, // Indicates if the request is approved
     };
   },
   async mounted() {
@@ -221,6 +267,7 @@ export default {
     else {
       if (isCollectedInSummary && isSummaryBeProcessed && isSummaryBeApproved){
         this.requestStatus = 'Đã duyệt';
+        this.isApproved = true; // Set approved status
       }
       else if (isCollectedInSummary && isSummaryBeProcessed && !isSummaryBeApproved){
         this.requestStatus = 'QLTC từ chối';
@@ -292,6 +339,26 @@ export default {
       this.abnormalityTag = 'Không xác định';
       this.isAbnormal = false;
     }
+
+    // try {
+    //   // Fetch journey data
+    //   const journeyResponse = await axios.get(`https://localhost:7162/Request/journey/${requestId}`, {
+    //     headers: { Authorization: `Bearer ${this.token}` },
+    //   });
+    //   this.journeyData = journeyResponse.data.map((item) => ({
+    //     action: item.action,
+    //     actor: item.actor,
+    //     time: new Date(item.time).toLocaleString('vi-VN', {
+    //       year: 'numeric',
+    //       month: '2-digit',
+    //       day: '2-digit',
+    //       hour: '2-digit',
+    //       minute: '2-digit',
+    //     }).replace(',', ''),
+    //   }));
+    // } catch (error) {
+    //   console.error('Error fetching journey data:', error);
+    // }
   },
   computed: {
     formattedTotalAmount() {
@@ -340,38 +407,43 @@ export default {
     async approveTicket() {
       try {
         const requestId = this.$route.params.id;
-        const currentDateTime = new Date().toLocaleString('vi-VN', {
+        const currentDateTime = new Date().toISOString(); // Use ISO format for consistency
+
+        // Set the note to "Chấp thuận" with the current date and time
+        const actionNote = `Chấp thuận - ${new Date().toLocaleString('vi-VN', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
-        }).replace(',', '');
-
-        // Set the note to "Chấp thuận" with the current date and time
-        const actionNote = `Chấp thuận - ${currentDateTime}`;
+        }).replace(',', '')}`;
         const fullNote = `${this.modalNote.trim()} (${actionNote})`;
+
+        const payload = {
+          noteDepLead: this.noteDepLead,
+          noteSupLead: this.noteSupLead,
+          dateDepLeadApprove: this.userRole === 'Dep Leader' ? currentDateTime : null,
+          dateSupLeadApprove: this.userRole === 'Finance Management Employee' ? currentDateTime : null,
+        };
 
         if (this.userRole === 'Dep Leader') {
           this.noteDepLead = fullNote; // Update the note for Dep Leader
-        } else if (this.userRole === 'Finance Management Employee') {
-          this.noteSupLead = fullNote; // Update the note for Finance Management Employee
-        }
-        const returnnote =''
-        const payload = { noteDepLead: this.noteDepLead, noteSupLead: this.noteSupLead };
-        if (this.userRole === 'Dep Leader') {
-          await axios.put(`https://localhost:7162/Request/approveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`, payload, {
-            headers: { Authorization: `Bearer ${this.token}` },
-          });
-          //call retrain model
+          await axios.put(
+            `https://localhost:7162/Request/approveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`,
+            payload,
+            { headers: { Authorization: `Bearer ${this.token}` } }
+          );
+          // Call retrain model
           await this.retrainModels();
         } else if (this.userRole === 'Finance Management Employee') {
-          await axios.put(`https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`, payload, {
-            headers: { Authorization: `Bearer ${this.token}` },
-          });
+          this.noteSupLead = fullNote; // Update the note for Finance Management Employee
+          await axios.put(
+            `https://localhost:7162/Request/approveRequestByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`,
+            payload,
+            { headers: { Authorization: `Bearer ${this.token}` } }
+          );
         }
-        
-        
+
         this.notifySuccess('bottom', 'right');
         this.sendNotifications('approve');
         this.$router.push('/admin/view-all-request');
@@ -380,34 +452,40 @@ export default {
         this.notifyError('bottom', 'right');
       }
     },
-
     async updateTicket() {
       try {
         const requestId = this.$route.params.id;
-        const currentDateTime = new Date().toLocaleString('vi-VN', {
+        const currentDateTime = new Date().toISOString(); // Use ISO format for consistency
+
+        // Set the note to "Từ chối" with the current date and time
+        const actionNote = `Từ chối - ${new Date().toLocaleString('vi-VN', {
           year: 'numeric',
           month: '2-digit',
           day: '2-digit',
           hour: '2-digit',
           minute: '2-digit',
-        }).replace(',', '');
-
-        // Set the note to "Từ chối" with the current date and time
-        const actionNote = `Từ chối - ${currentDateTime}`;
+        }).replace(',', '')}`;
         const fullNote = `${this.modalNote.trim()} (${actionNote})`;
+
+        const payload = {
+          noteDepLead: this.noteDepLead,
+          noteSupLead: this.noteSupLead,
+          dateDepLeadApprove: this.userRole === 'Dep Leader' ? currentDateTime : null,
+          dateSupLeadApprove: this.userRole === 'Finance Management Employee' ? currentDateTime : null,
+        };
 
         if (this.userRole === 'Dep Leader') {
           this.noteDepLead = fullNote; // Update the note for Dep Leader
           await axios.put(
             `https://localhost:7162/Request/notapproveByDepLeader/${requestId}?note=${encodeURIComponent(this.noteDepLead)}`,
-            null,
+            payload,
             { headers: { Authorization: `Bearer ${this.token}` } }
           );
         } else if (this.userRole === 'Finance Management Employee') {
           this.noteSupLead = fullNote; // Update the note for Finance Management Employee
           await axios.put(
             `https://localhost:7162/Request/notapproveByFinEmployee/${requestId}?note=${encodeURIComponent(this.noteSupLead)}`,
-            null,
+            payload,
             { headers: { Authorization: `Bearer ${this.token}` } }
           );
         }
@@ -520,11 +598,207 @@ export default {
       }
       this.closeModal();
     },
+    toggleJourneyModal() {
+      this.showJourneyModal = !this.showJourneyModal;
+      if (this.showJourneyModal) {
+        this.fetchJourneyData();
+      }
+    },
+    async fetchJourneyData() {
+      try {
+        const requestId = this.$route.params.id;
+        const requestResponse = await axios.get(
+          `https://localhost:7162/Request/getbyid/${requestId}`,
+          { headers: { Authorization: `Bearer ${this.token}` } }
+        );
+
+        const request = requestResponse.data;
+        const journey = [];
+
+        // Add "Created by" action
+        const userResponse = await axios.get(
+          `https://localhost:7162/User/getbyid/${request.userID}`,
+          { headers: { Authorization: `Bearer ${this.token}` } }
+        );
+        const creatorName = userResponse.data.fullName;
+        journey.push({
+          action: 'Đã tạo bởi',
+          actor: creatorName,
+          time: new Date(request.createdDate).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
+        });
+
+        // Fetch department leader's name
+        const departmentLeaderResponse = await axios.get(
+          `https://localhost:7162/User/department-leader?department=${userResponse.data.department}`,
+          { headers: { Authorization: `Bearer ${this.token}` } }
+        );
+        const departmentLeaderName = departmentLeaderResponse.data.fullName;
+
+        // Add Dep Leader action
+        if (request.isProcessedByDepLead) {
+          journey.push({
+            action: request.isApprovedByDepLead
+              ? `Trường phòng đã duyệt`
+              : `Trường phòng từ chối`,
+            actor: departmentLeaderName,
+            time: this.formatDateToUTC7(request.dateDepLeadApprove),
+            note: request.noteDepLead || 'Không có ghi chú', // Include Dep Leader's note
+          });
+        }
+
+        // Add Sup Leader action (including rejection case)
+        if (request.isProcessedByDepLead && request.isApprovedByDepLead && request.isApprovedBySupLead) {
+          journey.push({
+            action: 'QLTC đã duyệt',
+            actor: 'QLTC',
+            time: this.formatDateToUTC7(request.dateSupLeadApprove),
+            note: request.noteSupLead || 'Không có ghi chú', 
+          });
+        }
+        if (!request.isProcessedByDepLead && request.isApprovedByDepLead && !request.isApprovedBySupLead) {
+          journey.push({
+            action: request.isApprovedByDepLead
+              ? `Trường phòng đã duyệt`
+              : `Trường phòng từ chối`,
+            actor: departmentLeaderName,
+            time: this.formatDateToUTC7(request.dateDepLeadApprove),
+            note: request.noteDepLead || 'Không có ghi chú', // Include Dep Leader's note
+          });
+          journey.push({
+            action: 'QLTC từ chối',
+            actor: 'QLTC',
+            time: this.formatDateToUTC7(request.dateSupLeadApprove),
+            note: request.noteSupLead || 'Không có ghi chú', 
+          });
+        }
+
+        // Add Summary action if applicable
+        if (request.isCollectedInSummary && request.summaryID) {
+          const summaryResponse = await axios.get(
+            `https://localhost:7162/Summary/${request.summaryID}`,
+            { headers: { Authorization: `Bearer ${this.token}` } }
+          );
+          const summary = summaryResponse.data;
+          journey.push({
+              action: 'Đã tổng hợp trong phiếu mã số ' + summary.summaryCode,
+              actor: 'QLTC',
+              time: new Date(summary.createdDate).toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              note: summary.note || 'Không có ghi chú', // Include the note in the journey data
+            });
+          if (summary.isProcessedBySupLead) {
+            console.log('Summary approved by Sup Lead:', summary.isApprovedBySupLead);
+            journey.push({
+              action: summary.isApprovedBySupLead
+                ? 'QLTC đã duyệt phiếu tổng hợp'
+                : 'QLTC từ chối phiếu tổng hợp',
+              actor: 'QLTC',
+              time: new Date(summary.updateDate).toLocaleString('vi-VN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+              }),
+              note: summary.note || 'Không có ghi chú', // Include the note in the journey data
+            });
+          }
+        }
+
+        this.journeyData = journey;
+      } catch (error) {
+        console.error('Error fetching journey data:', error);
+      }
+    },
+    formatDateToUTC7(dateString) {
+      // Parse the date string into a Date object
+      const date = new Date(dateString);
+
+      // Adjust the date to UTC+7 manually
+      const utcOffset = 7 * 60 * 60 * 1000; // UTC+7 in milliseconds
+      const adjustedDate = new Date(date.getTime() + utcOffset);
+
+      // Format the adjusted date
+      return adjustedDate.toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      });
+    },
   },
 };
 </script>
 
 <style scoped>
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.btn-journey {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  padding: 6px 13px; /* Reduced padding by 20% */
+  font-size: 0.8rem; /* Reduced font size by 20% */
+}
+
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: #fff;
+  padding: 20px;
+  border-radius: 8px;
+  width: 600px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  position: relative;
+}
+
+.modal-title {
+  font-size: 1.5rem;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+.close-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+.table-responsive {
+  margin-top: 20px;
+}
+
 .total-amount-input {
   .header-container {
     display: flex;
@@ -555,33 +829,6 @@ export default {
   box-shadow: 0 0 5px rgba(255, 255, 255, 0.5);
 }
 
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  background-color: #fff;
-  padding: 20px;
-  border-radius: 8px;
-  width: 400px;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-}
-
-.modal-actions {
-  display: flex;
-  justify-content: space-between;
-  margin-top: 20px;
-}
-
 .status-box {
   display: flex;
   align-items: center; /* Vertically center the text */
@@ -605,5 +852,15 @@ export default {
 .status-box.normal {
   background-color: #d4edda; /* Green background for normal */
   color: #155724; /* Green text for normal */
+}
+
+.alert-success {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  font-size: 1rem;
 }
 </style>
