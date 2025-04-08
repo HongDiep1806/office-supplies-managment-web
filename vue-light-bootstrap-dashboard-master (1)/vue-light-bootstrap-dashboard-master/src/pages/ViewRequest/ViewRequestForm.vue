@@ -104,7 +104,7 @@
             <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
           </div>
         </div>
-        <div v-if="isAbnormal" class="abnormality-description">
+        <div v-if="isAbnormal && userRole == 'Finance Management Employee'" class="abnormality-description">
           <label for="abnormalityDescription" class="font-weight-bold">Chi tiết</label>
           <textarea
             id="abnormalityDescription"
@@ -346,11 +346,11 @@ export default {
         this.isAbnormal = false;
         this.abnormalityTag = 'Bình thường'; // Set to "Bình thường" if no abnormalities
       }
-      if (this.requestStatus == 'QLTC từ chối'){
-        this.abnormalityTag = 'Đã từ chối';
-        this.isAbnormal = false;
-        this.abnormalityDescription = ''; // Clear abnormality description
-      }
+      // if (this.requestStatus == 'QLTC từ chối'){
+      //   this.abnormalityTag = 'Đã từ chối';
+      //   this.isAbnormal = false;
+      //   this.abnormalityDescription = ''; // Clear abnormality description
+      // }
       
     } catch (error) {
       console.error('Error fetching abnormality status:', error);
