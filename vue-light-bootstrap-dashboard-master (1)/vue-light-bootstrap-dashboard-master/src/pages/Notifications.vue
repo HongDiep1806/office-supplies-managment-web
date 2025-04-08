@@ -3,16 +3,28 @@
     <div class="container-fluid">
       <!-- Search Filters -->
       <div class="search-filters d-flex flex-wrap align-items-center gap-3 p-3 bg-light rounded shadow-sm">
-        <div class="form-group mb-0">
+        <!-- Search Input -->
+        <div class="form-group mb-0 flex-grow-7">
           <label class="form-label">Tìm kiếm thông báo</label>
           <input v-model="searchQuery" class="form-control" placeholder="Nhập từ khóa..." />
         </div>
-        <button class="btn btn-primary mt-3 btn-search" @click="searchNotifications">
-          <i class="fa fa-search"></i> Tìm kiếm
-        </button>
-        <button class="btn btn-success mt-3 btn-mark-all" @click="markAllAsRead">
-          <i class="fa fa-check"></i> Đánh dấu tất cả đã đọc
-        </button>
+
+        <!-- Dropdown Menu -->
+        <div class="form-group mb-0 flex-grow-1">
+          <label class="form-label">Lọc thông báo</label>
+          <select v-model="filterType" class="form-control" @change="filterNotifications">
+            <option value="all">Tất cả</option>
+            <option value="unread">Chưa đọc</option>
+          </select>
+        </div>
+
+        <!-- Mark All as Read Button -->
+        <div class="form-group mb-0 flex-grow-2">
+          <label class="form-label">&nbsp;</label> <!-- Blank label for alignment -->
+          <button class="btn btn-success btn-mark-all" @click="markAllAsRead">
+            <i class="fa fa-check"></i> Đánh dấu tất cả đã đọc
+          </button>
+        </div>
       </div>
 
       <!-- Notifications Table -->
@@ -21,9 +33,9 @@
           <thead>
             <tr>
               <th style="width: 5%;">STT</th>
-              <th style="width: 60%;">Thông báo</th>
-              <th style="width: 25%;">Thời gian</th>
-              <th style="width: 10%;">Đã đọc</th>
+              <th style="width: 65%;">Thông báo</th>
+              <th style="width: 30%;">Thời gian</th>
+              <!-- <th style="width: 10%;">Đã đọc</th> -->
             </tr>
           </thead>
           <tbody>
@@ -34,22 +46,16 @@
               class="clickable-row"
             >
               <td>{{ (currentPage - 1) * itemsPerPage + index + 1 }}</td>
-              <td>{{ notification.message }}</td>
+              <td :class="{ 'font-weight-bold': !notification.isRead }">
+                {{ notification.message }}
+              </td>
               <td>{{ formatDate(notification.createdDate) }}</td>
-              <td>
+              <!-- <td>
                 <span
                   :class="['badge', notification.isRead ? 'badge-success' : 'badge-danger']"
                 >
                   {{ notification.isRead ? 'Đã xem' : 'Chưa xem' }}
                 </span>
-              </td>
-              <!-- <td>
-                <button
-                  class="btn btn-primary btn-sm"
-                  @click.stop="viewNotification(notification)"
-                >
-                  <i class="fa fa-eye"></i> Xem
-                </button>
               </td> -->
             </tr>
           </tbody>
@@ -92,14 +98,18 @@ export default {
       apiNotifications: [],
       currentPage: 1,
       itemsPerPage: 10,
+      filterType: 'all', // Default filter type
     };
   },
   computed: {
     filteredNotifications() {
-      const filtered = this.apiNotifications.filter((notification) =>
+      let filtered = this.apiNotifications;
+      if (this.filterType === 'unread') {
+        filtered = filtered.filter((notification) => !notification.isRead);
+      }
+      return filtered.filter((notification) =>
         notification.message.toLowerCase().includes(this.searchQuery.toLowerCase())
       );
-      return filtered;
     },
     paginatedNotifications() {
       const startIndex = (this.currentPage - 1) * this.itemsPerPage;
@@ -119,6 +129,27 @@ export default {
         this.apiNotifications = response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
       } catch (error) {
         console.error('Error fetching notifications:', error);
+      }
+    },
+    filterNotifications() {
+      if (this.filterType === 'unread') {
+        this.apiNotifications = this.apiNotifications.filter((notification) => !notification.isRead);
+      } else {
+        this.fetchNotifications(); // Reload all notifications
+      }
+      this.currentPage = 1; // Reset to the first page
+    },
+    async fetchRecentUnreadNotifications() {
+      try {
+        const response = await axios.get(`https://localhost:7162/Notification/unread-by-user`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+          params: { userId: this.userID },
+        });
+
+        // Sort notifications by creation date (latest first)
+        this.apiNotifications = response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+      } catch (error) {
+        console.error("Error fetching recent unread notifications:", error);
       }
     },
     searchNotifications() {
@@ -218,8 +249,20 @@ export default {
 }
 
 .search-filters .form-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.flex-grow-7 {
+  flex: 7;
+}
+
+.flex-grow-1 {
   flex: 1;
-  min-width: 200px;
+}
+
+.flex-grow-2 {
+  flex: 2;
 }
 
 .search-filters .form-label {
@@ -235,6 +278,19 @@ export default {
   padding: 8px 12px;
 }
 
+.btn-mark-all {
+  white-space: nowrap;
+  padding: 8px 16px; /* Adjust padding to match other elements */
+  font-size: 1rem;
+  display: flex;
+  align-items: center; /* Align content vertically */
+  justify-content: center;
+  gap: 5px;
+  height: 38px; /* Match the height of the dropdown */
+  line-height: 1; /* Ensure proper vertical alignment */
+  margin-top: 0; /* Remove unnecessary top margin */
+}
+
 .btn-search {
   white-space: nowrap;
   padding: 10px 20px;
@@ -244,13 +300,22 @@ export default {
   gap: 5px;
 }
 
-.btn-mark-all {
+.btn-unread {
   white-space: nowrap;
   padding: 10px 20px;
   font-size: 1rem;
   display: flex;
   align-items: center;
   gap: 5px;
+  background-color: #ffc107; /* Warning color */
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+}
+
+.btn-unread:hover {
+  background-color: #e0a800;
 }
 
 .table th {
@@ -315,5 +380,9 @@ export default {
   border: 1px solid #dee2e6;
   padding: 5px 10px;
   border-radius: 5px;
+}
+
+.font-weight-bold {
+  font-weight: bold;
 }
 </style>

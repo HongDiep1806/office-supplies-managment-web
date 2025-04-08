@@ -29,16 +29,17 @@
               <div v-if="showNotificationMenu" class="notification-menu">
                 <ul>
                   <li
-                    v-for="notification in recentUnreadNotifications"
+                    v-for="notification in recentNotifications"
                     :key="notification.notificationID"
                     @click="viewNotification(notification)"
+                    :class="{ 'font-weight-bold': !notification.isRead }"
                   >
                     <div>{{ notification.message }}</div>
                     <div class="notification-time">
                       {{ formatNotificationDate(notification.createdDate) }}
                     </div>
                   </li>
-                  <li v-if="recentUnreadNotifications.length === 0">Không có thông báo mới</li>
+                  <li v-if="recentNotifications.length === 0">Không có thông báo mới</li>
                 </ul>
               </div>
             </div>
@@ -74,21 +75,18 @@ export default {
       token: localStorage.getItem("authToken"),
       userRole_v: '',
       department: localStorage.getItem("department"),
+      recentNotifications: [], // List of recent notifications
     };
   },
   async mounted() {
     console.log("Component mounted for route:", this.$route.fullPath);
-    // Delay execution for 246ms to allow localStorage data to populate
     setTimeout(async () => {
-      // Retrieve localStorage data again after the delay
       this.userID = localStorage.getItem("userId");
       this.token = localStorage.getItem("authToken");
       this.userName = localStorage.getItem("userName") || "Người dùng";
       this.userRole = localStorage.getItem("userRole") || "Khách";
-      // if user role has 'Leader' => toggle = 1
       this.department = localStorage.getItem("department") || "Phòng ban";
-      //if has employee => nhân viên + department
-      //if has leader => trưởng phòng + department
+
       if (this.userRole === 'Finance Management Employee') {
         this.userRole_v = 'Nhân viên ' + this.department;
       } else if (this.userRole === 'Dep Leader') {
@@ -99,15 +97,13 @@ export default {
         this.userRole_v = 'Nhân viên ' + this.department;
       }
 
-      // Fetch unread notifications count and recent unread notifications
       if (this.userID && this.token) {
         await this.fetchUnreadCount();
-        await this.fetchRecentUnreadNotifications();
+        await this.fetchRecentNotifications(); // Updated method
       } else {
         console.error("User ID or token is missing from localStorage.");
       }
     }, 246);
-    //this.$root.$on('updateUnreadCount', this.fetchUnreadCount);
   },
   watch: {
     $route(to, from) {
@@ -145,6 +141,20 @@ export default {
         this.recentUnreadNotifications = response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
       } catch (error) {
         console.error("Error fetching recent unread notifications:", error);
+      }
+    },
+    async fetchRecentNotifications() {
+      try {
+        const response = await axios.get(`https://localhost:7162/Notification/user/${this.userID}`, {
+          headers: { Authorization: `Bearer ${this.token}` },
+        });
+
+        // Sort notifications by creation date (latest first) and take the first 20
+        this.recentNotifications = response.data
+          .sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate))
+          .slice(0, 20);
+      } catch (error) {
+        console.error("Error fetching recent notifications:", error);
       }
     },
     toggleNotificationMenu() {
@@ -208,6 +218,7 @@ export default {
       console.log("Loading data for route:", this.$route.fullPath);
       // Fetch the necessary data for the component
       this.fetchRecentUnreadNotifications();
+      this.fetchRecentNotifications();
       // Add any other data-fetching logic here
     },
     logout() {
@@ -316,5 +327,10 @@ export default {
 /* Logout Text Styling */
 .logout-text {
   cursor: pointer;
+}
+
+/* Font Weight Bold */
+.font-weight-bold {
+  font-weight: bold;
 }
 </style>
