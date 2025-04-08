@@ -36,12 +36,17 @@
           </div>
           <div class="col-md-2" v-if="userRole === 'Finance Management Employee'">
             <label for="abnormalityTag">Bất thường</label>
-            <base-input
-              type="text"
-              :value="abnormalityTag"
-              readonly
-              :class="{ 'abnormal': isAbnormal, 'normal': !isAbnormal }"
-            ></base-input>
+            <div
+              class="status-box"
+              :class="{ abnormal: isAbnormal, normal: !isAbnormal }"
+            >
+              <span v-if="abnormalityTag">
+                {{ translateAbnormalityTag(abnormalityTag) }}
+              </span>
+              <span v-else>
+                Bình thường
+              </span>
+            </div>
           </div>
         </div>
 
@@ -84,6 +89,9 @@
           </table>
         </div>
 
+        <!-- Abnormality Description Section -->
+        
+
         <div class="row" v-if="userRole !== 'Sup Leader'">
           <div class="col-md-12">
             <label for="noteDepLead">Ghi chú của trưởng phòng</label>
@@ -96,7 +104,17 @@
             <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
           </div>
         </div>
-
+        <div v-if="isAbnormal" class="abnormality-description">
+          <label for="abnormalityDescription" class="font-weight-bold">Chi tiết</label>
+          <textarea
+            id="abnormalityDescription"
+            class="form-control"
+            rows="3"
+            readonly
+            :value="abnormalityDescription"
+          ></textarea>
+        </div>
+        <!-- Duyệt/KHÔNG Duyệt Buttons -->
         <div class="text-center position-relative">
           <div style="display: flex; flex-direction: row; justify-content: end;">
             <div>
@@ -221,6 +239,7 @@ export default {
       modalAction: '',
       abnormalityTag: '', // Holds the abnormality tag text
       isAbnormal: false, // Indicates if the request is abnormal
+      abnormalityDescription: '', // Holds the abnormality description
       showJourneyModal: false, // Controls visibility of the journey modal
       journeyData: [], // Data for the journey table
       isApproved: false, // Indicates if the request is approved
@@ -318,26 +337,26 @@ export default {
       
       const abnormalityResponse = await axios.get(`http://localhost:5000/check_request_abnormality?request_id=${requestId}`);
       if (abnormalityResponse.data.IsAbnormal) {
-        const abnormalTypes = abnormalityResponse.data.AbnormalTypes.map((type) => {
-          if (type === 'TotalPrice') return 'Giá';
-          if (type === 'Quantity') return 'Số lượng';
-          return type; // Fallback for unknown types
-        });
-        this.abnormalityTag = `${abnormalTypes.join(', ')}`;
+        const descriptions = abnormalityResponse.data.Descriptions;
+        this.abnormalityDescription = descriptions.join('\n'); // Combine descriptions into a single string
         this.isAbnormal = true;
-      } else{
-        this.abnormalityTag = 'Không bất thường';
+        this.abnormalityTag = abnormalityResponse.data.AbnormalTypes.join(', '); // Set the abnormality tag
+      } else {
+        this.abnormalityDescription = 'Không có bất thường';
         this.isAbnormal = false;
+        this.abnormalityTag = 'Bình thường'; // Set to "Bình thường" if no abnormalities
       }
       if (this.requestStatus == 'QLTC từ chối'){
         this.abnormalityTag = 'Đã từ chối';
         this.isAbnormal = false;
+        this.abnormalityDescription = ''; // Clear abnormality description
       }
       
     } catch (error) {
       console.error('Error fetching abnormality status:', error);
-      this.abnormalityTag = 'Không xác định';
+      this.abnormalityDescription = 'Không xác định';
       this.isAbnormal = false;
+      this.abnormalityTag = 'Không xác định'; // Handle error case
     }
 
     // try {
@@ -732,6 +751,18 @@ export default {
         minute: '2-digit',
       });
     },
+    translateAbnormalityTag(tag) {
+      const translations = {
+        TotalPrice: 'Giá',
+        Quantity: 'Số lượng',
+      };
+
+      // Split tags by comma, translate each, and join them back
+      return tag
+        .split(',')
+        .map((t) => translations[t.trim()] || t.trim())
+        .join(', ');
+    },
   },
 };
 </script>
@@ -831,21 +862,18 @@ export default {
   border: 1px solid #ccc; /* Match the border style of the input boxes */
   border-radius: 4px; /* Match the border radius of the input boxes */
   font-size: 14px; /* Match the font size of the input boxes */
-  background-color: #f8d7da; /* Default background for abnormal */
-  color: #721c24; /* Default text color for abnormal */
+  color: #fff; /* White text */
   padding: 0 12px; /* Add padding for consistent spacing */
   box-sizing: border-box; /* Ensure padding doesn't affect size */
   width: 100%; /* Ensure it takes the full width of the column */
 }
 
 .status-box.abnormal {
-  background-color: #f8d7da; /* Red background for abnormal */
-  color: #721c24; /* Red text for abnormal */
+  background-color: #dc3545; /* Red background for abnormal */
 }
 
 .status-box.normal {
-  background-color: #d4edda; /* Green background for normal */
-  color: #155724; /* Green text for normal */
+  background-color: #28a745; /* Green background for normal */
 }
 
 .alert-success {
@@ -856,5 +884,27 @@ export default {
 .btn-primary {
   padding: 10px 20px;
   font-size: 1rem;
+}
+
+.abnormality-description {
+  margin-top: 20px;
+  margin-bottom: 20px; /* Add spacing between description and buttons */
+  width: 100%; /* Full width of the card */
+}
+
+.abnormality-description label {
+  margin-bottom: 8px;
+  display: block;
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.abnormality-description .form-control {
+  width: 100%; /* Ensure the text box spans the full width */
+  resize: none; /* Disable resizing */
+  background-color: #f8f9fa; /* Light background for readability */
+  border: 1px solid #ced4da; /* Match the border style */
+  font-size: 1rem; /* Match the font size */
+  color: #495057; /* Text color */
 }
 </style>
