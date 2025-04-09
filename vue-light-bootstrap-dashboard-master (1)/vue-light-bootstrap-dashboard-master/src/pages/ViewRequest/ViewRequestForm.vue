@@ -38,9 +38,16 @@
             <label for="abnormalityTag">Bất thường</label>
             <div
               class="status-box"
-              :class="{ abnormal: isAbnormal, normal: !isAbnormal }"
+              :class="{
+                abnormal: isAbnormal && requestStatus !== 'QLTC từ chối',
+                rejected: requestStatus === 'QLTC từ chối',
+                normal: !isAbnormal && requestStatus !== 'QLTC từ chối',
+              }"
             >
-              <span v-if="abnormalityTag">
+              <span v-if="requestStatus === 'QLTC từ chối'">
+                Đã từ chối
+              </span>
+              <span v-else-if="abnormalityTag">
                 {{ translateAbnormalityTag(abnormalityTag) }}
               </span>
               <span v-else>
@@ -94,14 +101,26 @@
 
         <div class="row" v-if="userRole !== 'Sup Leader'">
           <div class="col-md-12">
-            <label for="noteDepLead">Ghi chú của trưởng phòng</label>
-            <base-input type="text" v-model="noteDepLead" :readonly="!isNoteDepLeadEditable"></base-input>
+            <label for="noteDepLead">Ghi chú của Trưởng phòng</label>
+            <textarea
+              id="noteDepLead"
+              class="form-control"
+              v-model="noteDepLead"
+              :readonly="!isNoteDepLeadEditable"
+              rows="4"
+            ></textarea>
           </div>
         </div>
         <div class="row" v-if="userRole !== 'Sup Leader'">
           <div class="col-md-12">
             <label for="noteSupLead">Ghi chú của Phòng QLTC</label>
-            <base-input type="text" v-model="noteSupLead" :readonly="!isNoteFinanceEditable"></base-input>
+            <textarea
+              id="noteSupLead"
+              class="form-control"
+              v-model="noteSupLead"
+              :readonly="!isNoteFinanceEditable"
+              rows="4"
+            ></textarea>
           </div>
         </div>
         <div v-if="isAbnormal && userRole == 'Finance Management Employee'" class="abnormality-description">
@@ -351,6 +370,10 @@ export default {
       //   this.isAbnormal = false;
       //   this.abnormalityDescription = ''; // Clear abnormality description
       // }
+      if (this.requestStatus === 'QLTC từ chối') {
+      this.abnormalityTag = 'Đã từ chối';
+      this.isAbnormal = true; // Mark as abnormal
+    }
       
     } catch (error) {
       console.error('Error fetching abnormality status:', error);
@@ -899,7 +922,11 @@ export default {
 }
 
 .status-box.abnormal {
-  background-color: #dc3545; /* Red background for abnormal */
+  background-color: #fd7e14; /* Red background for abnormal */
+}
+
+.status-box.rejected {
+  background-color: #dc3545; /* Orange background for rejected */
 }
 
 .status-box.normal {
@@ -936,5 +963,37 @@ export default {
   border: 1px solid #ced4da; /* Match the border style */
   font-size: 1rem; /* Match the font size */
   color: #495057; /* Text color */
+  cursor: text; /* Change cursor to text selection (I icon) */
+}
+
+textarea.form-control {
+  width: 100%; /* Full width */
+  resize: none; /* Disable resizing */
+  background-color: #f8f9fa; /* Light background for readability */
+  border: 1px solid #ced4da; /* Match the border style */
+  font-size: 1rem; /* Match the font size */
+  color: #495057; /* Text color */
+  padding: 8px 12px; /* Add padding for better spacing */
+  border-radius: 4px; /* Match the border radius */
+  box-sizing: border-box; /* Ensure padding doesn't affect size */
+}
+
+.modal-content .table {
+  width: 100%;
+  border-collapse: collapse; /* Ensure borders are collapsed */
+  border: 1px solid #dee2e6; /* Add a border to the table */
+}
+
+.modal-content .table th,
+.modal-content .table td {
+  border: 1px solid #dee2e6; /* Add borders to table cells */
+  padding: 8px;
+  text-align: left;
+}
+
+.modal-content .table th {
+  background-color: #f8f9fa; /* Light background for the header */
+  font-weight: bold;
+  text-transform: uppercase;
 }
 </style>
