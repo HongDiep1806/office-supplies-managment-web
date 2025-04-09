@@ -666,7 +666,13 @@ export default {
               ? `Trường phòng đã duyệt`
               : `Trường phòng từ chối`,
             actor: departmentLeaderName,
-            time: this.formatDateToUTC7(request.dateDepLeadApprove),
+            time: new Date(request.dateDepLeadApprove).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
             note: request.noteDepLead || 'Không có ghi chú', // Include Dep Leader's note
           });
         }
@@ -676,7 +682,13 @@ export default {
           journey.push({
             action: 'QLTC đã duyệt',
             actor: 'QLTC',
-            time: this.formatDateToUTC7(request.dateSupLeadApprove),
+            time: new Date(request.dateSupLeadApprove).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
             note: request.noteSupLead || 'Không có ghi chú', 
           });
         }
@@ -686,13 +698,25 @@ export default {
               ? `Trường phòng đã duyệt`
               : `Trường phòng từ chối`,
             actor: departmentLeaderName,
-            time: this.formatDateToUTC7(request.dateDepLeadApprove),
+            time: new Date(request.dateDepLeadApprove).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
             note: request.noteDepLead || 'Không có ghi chú', // Include Dep Leader's note
           });
           journey.push({
             action: 'QLTC từ chối',
             actor: 'QLTC',
-            time: this.formatDateToUTC7(request.dateSupLeadApprove),
+            time: new Date(request.dateSupLeadApprove).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
             note: request.noteSupLead || 'Không có ghi chú', 
           });
         }
@@ -723,7 +747,13 @@ export default {
                 ? 'QLTC đã duyệt phiếu tổng hợp'
                 : 'QLTC từ chối phiếu tổng hợp',
               actor: 'QLTC',
-              time: this.formatDateToUTC7(summary.updateDate),
+              time: new Date(summary.updateDate).toLocaleString('vi-VN', {
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit',
+        hour: '2-digit',
+        minute: '2-digit',
+      }),
               note: summary.note || 'Không có ghi chú', // Include the note in the journey data
             });
           }
