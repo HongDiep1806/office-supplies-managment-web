@@ -40,7 +40,7 @@
         </div>
       </div>
 
-      <div class="row" v-if="userRole === 'Sup Leader'">
+      <!-- <div class="row" v-if="userRole === 'Sup Leader'">
         <div class="col-12">
           <div class="card">
             <div class="card-header">
@@ -82,7 +82,7 @@
             </div>
           </div>
         </div>
-      </div>
+      </div> -->
 
       <div class="row" v-if="userRole === 'Sup Leader'">
         <div class="col-12">
@@ -549,6 +549,9 @@ async fetchReportData() {
         );
 
         if (response.data && Array.isArray(response.data)) {
+          // Sort the response data by createdDate in descending order (newest first)
+          response.data.sort((a, b) => new Date(b.createdDate) - new Date(a.createdDate));
+
           // Resolve user names for each request
           const userPromises = response.data.map((item) => this.getUserName(item.userID));
           const userNames = await Promise.all(userPromises);

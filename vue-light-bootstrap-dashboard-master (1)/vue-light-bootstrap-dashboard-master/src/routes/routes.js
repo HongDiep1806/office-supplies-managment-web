@@ -22,6 +22,7 @@ import ViewAllRequests from '../pages/ViewAllRequests.vue'
 import CreateSummary from '../pages/CreateSummary.vue'
 import SummaryTable from '../pages/SummaryTable.vue'
 import ViewSummaryDetails from '../pages/ViewSummaryDetails.vue'
+import ExportFile from 'src/pages/ExportFile/ExportFile.vue'
 const routes = [
   {
     path: '/',
@@ -140,7 +141,13 @@ const routes = [
         name: 'View Summary',
         component: ViewSummaryDetails,
         meta: {requiresAuth: true}
-      }
+      },
+      {
+        path: 'export-file',
+        name: 'Export File',
+        component: ExportFile,
+        meta: { requiresAuth: true }
+      },
     ]
   },
   { path: '*', component: NotFound }

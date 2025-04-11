@@ -22,6 +22,11 @@
         <i class="nc-icon nc-paper-2"></i>
         <p>QL Phiếu tổng hợp</p>
       </sidebar-link>
+      
+      <sidebar-link to="/admin/export-file" v-if="role ==='Sup Leader'">
+        <i class="nc-icon nc-paper-2"></i>
+        <p>Xuất file</p>
+      </sidebar-link>
       <!-- <sidebar-link to="/admin/icons">
         <i class="nc-icon nc-atom"></i>
         <p>Icons</p>

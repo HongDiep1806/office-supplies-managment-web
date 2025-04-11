@@ -1,7 +1,16 @@
 <template>
   <card>
     <template #header>
-      <h4 class="card-title">Chi tiết phiếu tổng hợp</h4>
+      <div class="header-container">
+        <h4 class="card-title">Chi tiết phiếu tổng hợp</h4>
+        <button 
+          type="button" 
+          class="btn btn-success btn-fill download-btn" 
+          @click.prevent="downloadSummaryExcel"
+        >
+          <i class="nc-icon nc-cloud-download-93"></i> Tải Excel
+        </button>
+      </div>
     </template>
     <form>
       <div class="summary-info">
@@ -60,12 +69,25 @@
         </div>
       </div>
 
-      <button type="button" class="btn btn-info btn-fill float-right" @click.prevent="updateSummary(true)" v-if="showApproveButton">
-        Duyệt phiếu tổng hợp
-      </button>
-      <button type="button" class="btn btn-danger btn-fill float-right" @click.prevent="updateSummary(false)" style="margin-right: 10px;" v-if="showApproveButton">
-        Không duyệt phiếu
-      </button>
+      <div class="button-group">
+        <button 
+          type="button" 
+          class="btn btn-info btn-fill float-right" 
+          @click.prevent="updateSummary(true)" 
+          v-if="showApproveButton"
+        >
+          Duyệt phiếu tổng hợp
+        </button>
+        <button 
+          type="button" 
+          class="btn btn-danger btn-fill float-right" 
+          @click.prevent="updateSummary(false)" 
+          style="margin-right: 10px;" 
+          v-if="showApproveButton"
+        >
+          Không duyệt phiếu
+        </button>
+      </div>
     </form>
   </card>
 </template>
@@ -325,6 +347,69 @@ export default {
     this.$router.push('/admin/summary-table');
   }
 },
+    async downloadSummaryExcel() {
+  try {
+    const response = await axios.get(
+      `https://localhost:7162/Summary/export-summary-detail`,
+      {
+        headers: { Authorization: `Bearer ${this.token}` },
+        params: {
+          summaryId: this.summary.summaryID
+        },
+        responseType: 'blob', // Ensure the response is treated as a file
+      }
+    );
+
+    // Create a link to download the file
+    const url = window.URL.createObjectURL(new Blob([response.data]));
+    const link = document.createElement('a');
+    
+    // Extract filename from content-disposition header
+    let fileName = `summary-detail-${this.summary.summaryID}.xlsx`;
+    
+    // In axios, header names are normalized to lowercase
+    const contentDisposition = response.headers['content-disposition'];
+    
+    if (contentDisposition) {
+      // Try to extract the filename* parameter (RFC 5987 encoded)
+      const filenameStarRegex = /filename\*=UTF-8''([^;]+)/i;
+      const filenameStarMatch = contentDisposition.match(filenameStarRegex);
+      if (filenameStarMatch && filenameStarMatch[1]) {
+        fileName = decodeURIComponent(filenameStarMatch[1]);
+      } else {
+        // Try to extract the filename parameter
+        const filenameRegex = /filename=["']?([^"';]+)["']?/i;
+        const filenameMatch = contentDisposition.match(filenameRegex);
+        if (filenameMatch && filenameMatch[1]) {
+          fileName = filenameMatch[1];
+        }
+      }
+    }
+
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    this.$notifications.notify({
+      message: 'Tải xuống báo cáo thành công!',
+      icon: 'nc-icon nc-check-2',
+      horizontalAlign: 'right',
+      verticalAlign: 'bottom',
+      type: 'success'
+    });
+  } catch (error) {
+    console.error('Lỗi khi tải báo cáo:', error);
+    this.$notifications.notify({
+      message: 'Lỗi khi tải báo cáo. Vui lòng thử lại.',
+      icon: 'nc-icon nc-simple-remove',
+      horizontalAlign: 'right',
+      verticalAlign: 'bottom',
+      type: 'danger'
+    });
+  }
+},
     async notifySuccess(verticalAlign, horizontalAlign) {
       this.$notifications.notify({
         message: <span>Cập nhật phiếu tổng hợp thành công</span>,
@@ -425,5 +510,31 @@ export default {
   display: flex;
   gap: 10px;
   font-size: 14px;
+}
+
+.button-group {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+}
+
+.button-group .btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.button-group .btn i {
+  margin-right: 5px;
+}
+
+.header-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.download-btn {
+  margin-left: auto;
 }
 </style>
