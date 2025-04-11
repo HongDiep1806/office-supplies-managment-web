@@ -111,7 +111,23 @@
               </div>
               <div class="row">
                 <div class="col-md-12">
-                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right" style="margin-top: 5px;">Lấy Dữ Liệu</button>
+                  <div class="button-container float-right" style="margin-top: 5px;">
+                    <!-- Tải về Excel Button -->
+                    <button 
+                      @click="downloadApprovedRequestsExcel" 
+                      class="btn btn-success btn-fill" 
+                      style="margin-right: 10px;"
+                    >
+                      <i class="nc-icon nc-cloud-download-93"></i> Tải về Excel
+                    </button>
+                    <!-- Lấy Dữ Liệu Button -->
+                    <button 
+                      @click="fetchSummariesByDateRange" 
+                      class="btn btn-info btn-fill"
+                    >
+                      Lấy Dữ Liệu
+                    </button>
+                  </div>
                 </div>
               </div>
             </template>
@@ -718,6 +734,81 @@ async fetchReportData() {
         alert('Lỗi khi tải báo cáo. Vui lòng thử lại.');
       }
     },
+    async downloadApprovedRequestsExcel() {
+      if (!this.startDate || !this.endDate) {
+        alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.');
+        return;
+      }
+    
+      try {
+        const params = {
+          startDate: this.startDate,
+          endDate: this.endDate,
+        };
+    
+        // Add department to params only if a specific department is selected
+        if (this.selectedDepartment) {
+          params.department = this.selectedDepartment;
+        }
+        
+        const response = await axios.get(
+          `https://localhost:7162/Summary/export-approved-requests`,
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+            params,
+            responseType: 'blob', // Ensure the response is treated as a file
+          }
+        );
+    
+        // Create a link to download the file
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        
+        // Extract filename from content-disposition header
+        let fileName = this.selectedDepartment
+  ? `PYC-da-duyet-${this.selectedDepartment}-${this.startDate}-${this.endDate}.xlsx`
+  : `PYC-da-duyet-${this.startDate}-${this.endDate}.xlsx`;
+        
+        // In axios, header names are normalized to lowercase
+        const contentDisposition = response.headers['content-disposition'];
+        
+        if (contentDisposition) {
+          // Try to extract the filename* parameter (RFC 5987 encoded)
+          const filenameStarRegex = /filename\*=UTF-8''([^;]+)/i;
+          const filenameStarMatch = contentDisposition.match(filenameStarRegex);
+          if (filenameStarMatch && filenameStarMatch[1]) {
+            fileName = decodeURIComponent(filenameStarMatch[1]);
+          } else {
+            // Try to extract the filename parameter
+            const filenameRegex = /filename=["']?([^"';]+)["']?/i;
+            const filenameMatch = contentDisposition.match(filenameRegex);
+            if (filenameMatch && filenameMatch[1]) {
+              fileName = filenameMatch[1];
+            }
+          }
+        }
+    
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log(`Downloaded file: ${fileName}`);
+        
+        // Show success notification
+        this.$notifications.notify({
+          message: 'Tải xuống báo cáo thành công!',
+          icon: 'nc-icon nc-check-2',
+          horizontalAlign: 'right',
+          verticalAlign: 'bottom',
+          type: 'success'
+        });
+      } catch (error) {
+        console.error('Lỗi khi tải báo cáo:', error);
+        alert('Lỗi khi tải báo cáo. Vui lòng thử lại.');
+      }
+    },
   },
   watch: {
     selectedDepartment(newVal) {
@@ -772,5 +863,14 @@ async fetchReportData() {
 button.btn-info {
   display: block !important;
   visibility: visible !important;
+}
+
+.button-container {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.button-container .btn i {
+  margin-right: 5px;
 }
 </style>
