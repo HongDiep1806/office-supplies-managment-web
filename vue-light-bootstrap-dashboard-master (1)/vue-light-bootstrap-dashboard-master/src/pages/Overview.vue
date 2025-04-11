@@ -19,31 +19,106 @@
       </div>
 
       <div class="row" v-if="userRole === 'Sup Leader'">
-      </div>
-
-      <div class="row" v-if="userRole === 'Sup Leader'">
         <div class="col-md-12">
-          <chart-card ref="chartCard" :chart-data="barChart.data" :chart-options="barChart.options"
-            chart-type="StackedBar">
+          <chart-card ref="chartCard" :chart-data="barChart.data" :chart-options="barChart.options" chart-type="StackedBar">
             <template v-slot:header>
               <h4 class="card-title">Tổng quát</h4>
               <p class="card-category">Biểu đồ tổng quát về việc sử dụng VPP các Phòng ban</p>
             </template>
             <template v-slot:footer>
               <div class="legend">
-  <span v-for="(seriesItem, index) in barChart.data.series" :key="index">
-    <i class="fa fa-circle" :style="{ color: departmentColors[seriesItem.name] }"></i> {{ seriesItem.name }}
-  </span>
-</div>
-
-
-
-  <hr>
-  <div class="stats">
-    <i class="fa fa-check"></i> Data information certified
-  </div>
-</template>
+                <span v-for="(seriesItem, index) in barChart.data.series" :key="index">
+                  <i class="fa fa-circle" :style="{ color: departmentColors[seriesItem.name] }"></i> {{ seriesItem.name }}
+                </span>
+              </div>
+              <hr>
+              <div class="stats">
+                <i class="fa fa-check"></i> Data information certified
+              </div>
+            </template>
           </chart-card>
+        </div>
+      </div>
+
+      <div class="row" v-if="userRole === 'Sup Leader'">
+        <div class="col-12">
+          <div class="card">
+            <div class="card-header">
+              <h4 class="card-title">Xuất Báo Cáo Sản Phẩm</h4>
+              <p class="card-category">Chọn khoảng thời gian để xuất báo cáo</p>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="export-start-date">Ngày bắt đầu:</label>
+                  <input
+                    type="date"
+                    id="export-start-date"
+                    v-model="exportStartDate"
+                    class="form-control"
+                  />
+                </div>
+                
+                <div class="col-md-4">
+                  <label for="export-end-date">Ngày kết thúc:</label>
+                  <input
+                    type="date"
+                    id="export-end-date"
+                    v-model="exportEndDate"
+                    class="form-control"
+                  />
+                </div>
+                
+                <div class="col-md-4 d-flex align-items-end">
+                  <button
+                    @click="downloadProductReport"
+                    class="btn btn-info btn-fill"
+                    style="width: 100%; margin-top: 25px;"
+                  >
+                    Tải Báo Cáo
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="row" v-if="userRole === 'Sup Leader'">
+        <div class="col-12">
+          <card class="strpied-tabled-with-hover" body-classes="table-full-width table-responsive">
+            <template v-slot:header>
+              <h4 class="card-title">Báo cáo chi tiết Về việc Cấp phát VPP</h4>
+              <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
+              <div class="row">
+                <div class="col-md-4">
+                  <label for="start-date">Ngày bắt đầu:</label>
+                  <input type="date" id="start-date" v-model="startDate" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label for="end-date">Ngày kết thúc:</label>
+                  <input type="date" id="end-date" v-model="endDate" class="form-control">
+                </div>
+                <div class="col-md-4">
+                  <label for="department">Phòng ban:</label>
+                  <select id="department" v-model="selectedDepartment" class="form-control">
+                    <option value="">Tất cả phòng ban</option>
+                    <option v-for="department in departments" :key="department" :value="department">
+                      {{ department }}
+                    </option>
+                  </select>
+                </div>
+              </div>
+              <div class="row">
+                <div class="col-md-12">
+                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right" style="margin-top: 5px;">Lấy Dữ Liệu</button>
+                </div>
+              </div>
+            </template>
+            <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
+              :displayStatus="false" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
+              :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
+          </card>
         </div>
       </div>
 
@@ -89,45 +164,6 @@
         </div>
       </div>
 
-
-      <div class="row" v-if="userRole === 'Sup Leader'">
-        <div class="col-12">
-          <card class="strpied-tabled-with-hover" body-classes="table-full-width table-responsive">
-            <template v-slot:header>
-              <h4 class="card-title">Báo cáo chi tiết Về việc Cấp phát VPP</h4>
-              <p class="card-category">Các Phiếu yêu cầu đã tạo gần đây của bạn</p>
-              <div class="row">
-                <div class="col-md-4">
-                  <label for="start-date">Ngày bắt đầu:</label>
-                  <input type="date" id="start-date" v-model="startDate" class="form-control">
-                </div>
-                <div class="col-md-4">
-                  <label for="end-date">Ngày kết thúc:</label>
-                  <input type="date" id="end-date" v-model="endDate" class="form-control">
-                </div>
-                <div class="col-md-4">
-                  <label for="department">Phòng ban:</label>
-                  <select id="department" v-model="selectedDepartment" class="form-control">
-                    <option value="">Tất cả phòng ban</option> <!-- Option for all departments -->
-                    <option v-for="department in departments" :key="department" :value="department">
-                      {{ department }}
-                    </option>
-                  </select>
-                </div>
-              </div>
-              <div class="row">
-                <div class="col-md-12">
-                  <button @click="fetchSummariesByDateRange" class="btn btn-info btn-fill float-right" style="margin-top: 5px;">Lấy Dữ Liệu</button>
-                </div>
-              </div>
-            </template>
-            <l-table class="table-hover table-striped" :columns="tableData.columns" :data="tableData.data"
-              :displayStatus="false" :domain="'request'" :displayActions="false" :canEdit="false" :canDelete="false"
-              :canView="true" :apiURL="'https://localhost:7162/Request'"></l-table>
-          </card>
-        </div>
-      </div>
-
     </div>
   </div>
 </template>
@@ -148,26 +184,9 @@ export default {
   },
   data() {
     return {
-//       ::v-deep .ct-series-a .ct-bar { stroke: #17a2b8; } 
-// ::v-deep .ct-series-b .ct-bar { stroke: #ffc107; } 
-// ::v-deep .ct-series-c .ct-bar { stroke: #6f42c1; } 
-// ::v-deep .ct-series-d .ct-bar { stroke: #28a745; } 
-// ::v-deep .ct-series-e .ct-bar { stroke: #dc3545; } 
-// ::v-deep .ct-series-f .ct-bar { stroke: #007bff; } 
-// ::v-deep .ct-series-g .ct-bar { stroke: #fd7e14; } 
-// ::v-deep .ct-series-h .ct-bar { stroke: #6610f2; }
-// ::v-deep .ct-series-i .ct-bar { stroke: #6c757d; } 
-// ::v-deep .ct-series-j .ct-bar { stroke: #17a2b8; } 
       colorPalette: ['#17a2b8',  '#dc3545', '#ffc107', '#6f42c1', '#28a745', '#007bff', '#fd7e14', '#6610f2', '#6c757d', '#17a2b8'],
       departmentColors: {
-  // CDS: '#17a2b8',  // Blue
-  // ABC: '#dc3545',   // Red
-  // KT: '#ffc107',      // Orange
-  // CSKH: '#6f42c1',    // Purple
-  // SXKD: '#28a745',    // Green
-       
-},
-// Map to hold department -> color
+      },
       selectedDepartment: '',
       currentTime: '',
       userName: 'Nguyen Van A',
@@ -182,6 +201,13 @@ export default {
       token: '',
       startDate: '', // Biến cho ngày bắt đầu
       endDate: '',   // Biến cho ngày kết thúc
+      exportEndDate: new Date().toISOString().split('T')[0],  // Today's date
+      exportStartDate: (() => {
+        // Set start date to 3 months before end date
+        const threeMonthsPrior = new Date();
+        threeMonthsPrior.setMonth(threeMonthsPrior.getMonth() - 3);
+        return threeMonthsPrior.toISOString().split('T')[0];
+      })(),
       barChart: {
         data: {
           labels: ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'],
@@ -344,13 +370,14 @@ async notifySuccess(verticalAlign, horizontalAlign, message) {
             requestID: item.requestID,
             'Mã số phiếu': item.requestCode,
             'Người tạo': userNames[index], // Lấy tên người dùng từ mảng đã giải quyết
-            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
+            'Ngày tạo': new Date(item.createdDate).toLocaleDateString('vi-VN', {
               day: '2-digit',
               month: '2-digit',
-              year: 'numeric'
-            }).replace(',', ''),
+              year: 'numeric',
+            }) + ' ' + new Date(item.createdDate).toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
             Status: (() => {
                 if (this.userRole === 'Dep Leader') {
@@ -531,13 +558,14 @@ async fetchReportData() {
             requestID: item.requestID,
             'Mã số phiếu': item.requestCode,
             'Người tạo': userNames[index],
-            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
+            'Ngày tạo': new Date(item.createdDate).toLocaleDateString('vi-VN', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
-            }).replace(',', ''),
+            }) + ' ' + new Date(item.createdDate).toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
           }));
         } else {
@@ -559,13 +587,14 @@ async fetchReportData() {
             requestID: item.requestID,
             'Mã số phiếu': item.requestCode,
             'Tổng tiền': new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(item.totalPrice),
-            'Ngày tạo': new Date(item.createdDate).toLocaleString('vi-VN', {
-              hour: '2-digit',
-              minute: '2-digit',
+            'Ngày tạo': new Date(item.createdDate).toLocaleDateString('vi-VN', {
               day: '2-digit',
               month: '2-digit',
               year: 'numeric',
-            }).replace(',', ''),
+            }) + ' ' + new Date(item.createdDate).toLocaleTimeString('vi-VN', {
+              hour: '2-digit',
+              minute: '2-digit',
+            }),
           }));
         } else {
           console.error('API trả về dữ liệu không hợp lệ:', response);
@@ -615,6 +644,77 @@ async fetchReportData() {
 
       return dateRanges;
     },
+    async downloadProductReport() {
+      if (!this.exportStartDate || !this.exportEndDate) {
+        alert('Vui lòng chọn cả ngày bắt đầu và ngày kết thúc.');
+        return;
+      }
+    
+      try {
+        const response = await axios.get(
+          `https://localhost:7162/Summary/export-product-report`,
+          {
+            headers: { Authorization: `Bearer ${this.token}` },
+            params: {
+              startDate: this.exportStartDate,
+              endDate: this.exportEndDate,
+            },
+            responseType: 'blob', // Ensure the response is treated as a file
+          }
+        );
+    
+        // Create a link to download the file
+        const url = window.URL.createObjectURL(new Blob([response.data]));
+        const link = document.createElement('a');
+        
+        // Log the headers to debug
+        console.log('Response headers:', response.headers);
+        
+        // Extract filename from content-disposition header
+        let fileName = 'report.xlsx';
+        
+        // In axios, header names are normalized to lowercase
+        const contentDisposition = response.headers['content-disposition'];
+        console.log('Content-Disposition header:', contentDisposition);
+        
+        if (contentDisposition) {
+          // Try to extract the filename* parameter (RFC 5987 encoded)
+          const filenameStarRegex = /filename\*=UTF-8''([^;]+)/i;
+          const filenameStarMatch = contentDisposition.match(filenameStarRegex);
+          if (filenameStarMatch && filenameStarMatch[1]) {
+            fileName = decodeURIComponent(filenameStarMatch[1]);
+            console.log('Extracted filename from filename*:', fileName);
+          } else {
+            // Try to extract the filename parameter
+            const filenameRegex = /filename=["']?([^"';]+)["']?/i;
+            const filenameMatch = contentDisposition.match(filenameRegex);
+            if (filenameMatch && filenameMatch[1]) {
+              fileName = filenameMatch[1];
+              console.log('Extracted filename from filename:', fileName);
+            } else {
+              // If both extraction methods fail, generate a meaningful filename
+              fileName = `report-${this.exportStartDate}-${this.exportEndDate}.xlsx`;
+              console.log('Generated filename:', fileName);
+            }
+          }
+        } else {
+          // If no content-disposition header, use the date range to generate a name
+          fileName = `report-${this.exportStartDate}-${this.exportEndDate}.xlsx`;
+          console.log('No content-disposition header, generated filename:', fileName);
+        }
+    
+        link.href = url;
+        link.setAttribute('download', fileName);
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        console.log(`Downloaded file: ${fileName}`);
+      } catch (error) {
+        console.error('Lỗi khi tải báo cáo:', error);
+        alert('Lỗi khi tải báo cáo. Vui lòng thử lại.');
+      }
+    },
   },
   watch: {
     selectedDepartment(newVal) {
@@ -630,5 +730,44 @@ async fetchReportData() {
 
 .legend i {
   margin-right: 5px;
+}
+
+.card .form-control {
+  display: block;
+  width: 100%;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  color: #495057;
+  background-color: #fff;
+  background-clip: padding-box;
+  border: 1px solid #ced4da;
+  border-radius: 0.25rem;
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 8%);
+}
+
+.card .btn {
+  display: inline-block;
+  font-weight: 400;
+  text-align: center;
+  white-space: nowrap;
+  vertical-align: middle;
+  user-select: none;
+  border: 1px solid transparent;
+  padding: 0.375rem 0.75rem;
+  font-size: 1rem;
+  line-height: 1.5;
+  border-radius: 0.25rem;
+  transition: color 0.15s ease-in-out, background-color 0.15s ease-in-out, border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control {
+  display: block !important;
+  visibility: visible !important;
+}
+
+button.btn-info {
+  display: block !important;
+  visibility: visible !important;
 }
 </style>
