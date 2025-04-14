@@ -6,7 +6,7 @@
         <!-- Button moved to the top-right -->
         <button
           type="button"
-          class="btn btn-primary btn-journey"
+          class="btn btn-info btn-fill btn-journey"
           @click="toggleJourneyModal"
         >
           Hành trình phiếu
@@ -34,7 +34,7 @@
             <label for="requestStatus">Trạng thái</label>
             <base-input type="text" :value="requestStatus" readonly></base-input>
           </div>
-          <div class="col-md-2" v-if="userRole === 'Finance Management Employee'">
+          <div class="col-md-2" v-if="userRole === 'Finance Management Employee' || userRole === 'Dep Leader'">
             <label for="abnormalityTag">Bất thường</label>
             <div
               class="status-box"
@@ -43,6 +43,8 @@
                 rejected: requestStatus === 'QLTC từ chối',
                 normal: !isAbnormal && requestStatus !== 'QLTC từ chối',
               }"
+              @click="showAbnormalityModal"
+              style="cursor: pointer;"
             >
               <span v-if="requestStatus === 'QLTC từ chối'">
                 Đã từ chối
@@ -123,7 +125,7 @@
             ></textarea>
           </div>
         </div>
-        <div v-if="isAbnormal && userRole == 'Finance Management Employee'" class="abnormality-description">
+        <!-- <div v-if="isAbnormal && userRole == 'Finance Management Employee'" class="abnormality-description">
           <label for="abnormalityDescription" class="font-weight-bold">Chi tiết</label>
           <textarea
             id="abnormalityDescription"
@@ -132,7 +134,7 @@
             readonly
             :value="abnormalityDescription"
           ></textarea>
-        </div>
+        </div> -->
         <!-- Duyệt/KHÔNG Duyệt Buttons -->
         <div class="text-center position-relative">
           <div style="display: flex; flex-direction: row; justify-content: end;">
@@ -219,6 +221,18 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal for Abnormality Warning -->
+    <div v-if="isAbnormalityModalVisible" class="modal-overlay">
+      <div class="modal-content">
+        <h4 class="modal-title">Cảnh Báo Bất Thường của AI</h4>
+        <button class="close-btn" @click="closeAbnormalityModal">×</button>
+        <p>{{ abnormalityDescription }}</p>
+        <div class="modal-actions">
+          <button class="btn btn-info btn-fill" @click="closeAbnormalityModal">Đóng</button>
+        </div>
+      </div>
+    </div>
   </div>
 </template>
 
@@ -262,6 +276,7 @@ export default {
       showJourneyModal: false, // Controls visibility of the journey modal
       journeyData: [], // Data for the journey table
       isApproved: false, // Indicates if the request is approved
+      isAbnormalityModalVisible: false, // Controls visibility of the abnormality modal
     };
   },
   async mounted() {
@@ -816,6 +831,14 @@ export default {
         .map((t) => translations[t.trim()] || t.trim())
         .join(', ');
     },
+    showAbnormalityModal() {
+      if (this.isAbnormal) {
+        this.isAbnormalityModalVisible = true;
+      }
+    },
+    closeAbnormalityModal() {
+      this.isAbnormalityModalVisible = false;
+    },
   },
 };
 </script>
@@ -852,7 +875,7 @@ export default {
   background-color: #fff;
   padding: 20px;
   border-radius: 8px;
-  width: 600px;
+  width: 875px;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
   position: relative;
 }
@@ -871,6 +894,11 @@ export default {
   border: none;
   font-size: 1.5rem;
   cursor: pointer;
+}
+
+.modal-actions {
+  margin-top: 20px;
+  text-align: right;
 }
 
 .table-responsive {
@@ -995,5 +1023,25 @@ textarea.form-control {
   background-color: #f8f9fa; /* Light background for the header */
   font-weight: bold;
   text-transform: uppercase;
+}
+
+.modal-content .table th:nth-child(1), /* Hành động column */
+.modal-content .table td:nth-child(1) {
+  width: 25%; /* Adjust width as needed */
+}
+
+.modal-content .table th:nth-child(3), /* Thời gian column */
+.modal-content .table td:nth-child(3) {
+  width: 20%; /* Adjust width as needed */
+}
+
+.modal-content .table th:nth-child(2), /* Người hành động column */
+.modal-content .table td:nth-child(2) {
+  width: 20%; /* Adjust width as needed */
+}
+
+.modal-content .table th:nth-child(4), /* Ghi chú column */
+.modal-content .table td:nth-child(4) {
+  width: 35%; /* Remaining space for Ghi chú */
 }
 </style>

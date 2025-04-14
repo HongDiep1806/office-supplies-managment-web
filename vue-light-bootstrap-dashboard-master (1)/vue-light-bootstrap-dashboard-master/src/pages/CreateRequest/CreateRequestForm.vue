@@ -1,5 +1,14 @@
 <template>
     <card>
+      <div class="card-header-actions">
+        <button
+          type="button"
+          class="btn btn-info btn-fill"
+          @click="toggleRecommendationModal"
+        >
+          Gợi ý của AI
+        </button>
+      </div>
       <h4 slot="header" class="card-title">Tạo phiếu yêu cầu</h4>
       <form>
         <div class="row">
@@ -60,33 +69,6 @@
             </tbody>
           </table>
         </div>
-
-        <div class="recommendations-panel">
-          <h5>Gợi ý sản phẩm</h5>
-          <table class="table">
-            <thead>
-              <tr>
-                <th>Sản phẩm</th>
-                <th>Số lượng</th>
-                <th></th>
-              </tr>
-            </thead>
-            <tbody>
-              <tr v-for="(recommendation, index) in recommendations" :key="index">
-                <td>{{ recommendation.Product }}</td>
-                <td>{{ recommendation.Quantity }}</td>
-                <td>
-                  <button
-                    class="btn btn-sm btn-primary"
-                    @click.prevent="addRecommendedProduct(recommendation)"
-                  >
-                    Thêm
-                  </button>
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
   
         <div class="text-center position-relative">
           <div style="display: flex; flex-direction: row; justify-content: space-between;">
@@ -103,6 +85,39 @@
           </button>
         </div>
       </form>
+
+      <!-- Modal for Recommendations -->
+      <div v-if="showRecommendationModal" class="modal-overlay">
+        <div class="modal-content">
+          <h4 class="modal-title">Gợi ý của AI</h4>
+          <button class="close-btn" @click="toggleRecommendationModal">×</button>
+          <div class="table-responsive mt-4">
+            <table class="table table-bordered">
+              <thead>
+                <tr>
+                  <th>Sản phẩm</th>
+                  <th>Số lượng</th>
+                  <th>‎ </th> <!-- Blank column title -->
+                </tr>
+              </thead>
+              <tbody>
+                <tr v-for="(recommendation, index) in recommendations" :key="index">
+                  <td>{{ recommendation.Product }}</td>
+                  <td>{{ recommendation.Quantity }}</td>
+                  <td>
+                    <button
+                      class="btn btn-sm btn-primary"
+                      @click.prevent="addRecommendedProduct(recommendation)"
+                    >
+                      Thêm
+                    </button>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
     </card>
   </template>
   
@@ -132,7 +147,8 @@
         type: ['success', 'danger', 'warning'],
         requestNumber: 0,
         token: localStorage.getItem('authToken'),
-        recommendations: [] // Added recommendations data property
+        recommendations: [], // Added recommendations data property
+        showRecommendationModal: false // Controls visibility of the recommendation modal
       };
     },
     methods: {
@@ -273,7 +289,7 @@
         }
       },
       addRecommendedProduct(recommendation) {
-        const product = this.products.find(p => p.name === recommendation.Product);
+        const product = this.products.find((p) => p.name === recommendation.Product);
         if (product) {
           if (this.productRows.length === 1 && !this.productRows[0].selectedProduct) {
             // Update the first product row directly
@@ -293,6 +309,9 @@
             });
           }
         }
+      },
+      toggleRecommendationModal() {
+        this.showRecommendationModal = !this.showRecommendationModal;
       }
     },
     async mounted() {
@@ -336,3 +355,62 @@
     },
   };
   </script>
+
+  <style scoped>
+  .modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+
+  .modal-content {
+    background-color: #fff;
+    padding: 20px;
+    border-radius: 8px;
+    width: 600px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    position: relative;
+  }
+
+  .modal-title {
+    font-size: 1.5rem;
+    font-weight: bold;
+    margin-bottom: 20px;
+  }
+
+  .close-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+  }
+
+  .table-bordered {
+    width: 100%;
+    border: 1px solid #dee2e6;
+  }
+
+  .table-bordered th,
+  .table-bordered td {
+    border: 1px solid #dee2e6;
+    padding: 8px;
+    text-align: left;
+  }
+
+  .card-header-actions {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    z-index: 1;
+  }
+  </style>
