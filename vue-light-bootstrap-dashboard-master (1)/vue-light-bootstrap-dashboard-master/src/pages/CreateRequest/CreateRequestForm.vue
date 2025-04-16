@@ -107,6 +107,7 @@
                   <td>
                     <button
                       class="btn btn-sm btn-primary"
+                      :disabled="isProductInRequest(recommendation)"
                       @click.prevent="addRecommendedProduct(recommendation)"
                     >
                       Thêm
@@ -272,12 +273,13 @@
         }
       },
       availableProducts(index) {
+        // Get all selected product IDs from any row EXCEPT the current row being edited
         const selectedProductIds = this.productRows
-          .filter((row, i) => i < index && row.selectedProduct)
-          .map((row) => row.selectedProduct && row.selectedProduct.id);
-        const filteredSelectedProductIds = selectedProductIds.filter(id => id !== undefined);
-  
-        return this.products.filter((product) => !filteredSelectedProductIds.includes(product.id));
+          .filter((row, i) => i !== index && row.selectedProduct) // Exclude the current row
+          .map((row) => row.selectedProduct.productID); // Use productID instead of id
+        
+        // Return only products that aren't already selected in other rows
+        return this.products.filter((product) => !selectedProductIds.includes(product.productID));
       },
       async fetchRecommendations() {
         try {
@@ -287,6 +289,11 @@
         } catch (error) {
           console.error('Error fetching recommendations:', error);
         }
+      },
+      isProductInRequest(recommendation) {
+        return this.productRows.some(
+          (row) => row.selectedProduct && row.selectedProduct.name === recommendation.Product
+        );
       },
       addRecommendedProduct(recommendation) {
         const product = this.products.find((p) => p.name === recommendation.Product);
@@ -412,5 +419,14 @@
     top: 10px;
     right: 10px;
     z-index: 1;
+  }
+
+  button:disabled {
+    background-color: #ccc;
+    cursor: not-allowed;
+  }
+
+  button:disabled:hover {
+    background-color: #ccc; /* Prevent color change on hover */
   }
   </style>
