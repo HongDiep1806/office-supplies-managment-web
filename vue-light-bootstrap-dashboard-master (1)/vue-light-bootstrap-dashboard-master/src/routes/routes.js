@@ -143,8 +143,8 @@ const routes = [
         meta: {requiresAuth: true}
       },
       {
-        path: 'export-file',
-        name: 'Export File',
+        path: 'Tools',
+        name: 'Tools',
         component: ExportFile,
         meta: { requiresAuth: true }
       },

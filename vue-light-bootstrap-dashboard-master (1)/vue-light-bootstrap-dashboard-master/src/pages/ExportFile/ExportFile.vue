@@ -11,10 +11,10 @@
             </template>
             <div class="dashboard-container">
               <iframe
-                src="http://localhost:3000/dashboard/14-san-pham-phieu-yeu-cau"
+                src="http://localhost:3000/public/dashboard/9788d3ac-5822-4df1-b9e1-9e0af41dcc19"
                 frameborder="0"
                 width="100%"
-                height="600"
+                height="1900"
                 allowtransparency
               ></iframe>
             </div>
@@ -32,10 +32,10 @@
             </template>
             <div class="dashboard-container">
               <iframe
-                src="http://localhost:3000/dashboard/13-phieu-yeu-cau"
+                src="http://localhost:3000/public/dashboard/e629bb33-b2db-4be0-a3c2-9bd11d074d72"
                 frameborder="0"
                 width="100%"
-                height="600"
+                height="2200"
                 allowtransparency
               ></iframe>
             </div>
