@@ -1,7 +1,50 @@
 <template>
   <div class="content">
     <div class="container-fluid">
+      <!-- First Dashboard - Product Statistics -->
       <div class="row">
+        <div class="col-12">
+          <card>
+            <template v-slot:header>
+              <h4 class="card-title">Thống kê sản phẩm phiếu yêu cầu</h4>
+              <p class="card-category">Chi tiết về sản phẩm theo phòng ban</p>
+            </template>
+            <div class="dashboard-container">
+              <iframe
+                src="http://localhost:3000/dashboard/14-san-pham-phieu-yeu-cau"
+                frameborder="0"
+                width="100%"
+                height="600"
+                allowtransparency
+              ></iframe>
+            </div>
+          </card>
+        </div>
+      </div>
+
+      <!-- Second Dashboard - Request Statistics -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <card>
+            <template v-slot:header>
+              <h4 class="card-title">Thống kê phiếu yêu cầu</h4>
+              <p class="card-category">Tổng hợp phiếu yêu cầu theo trạng thái</p>
+            </template>
+            <div class="dashboard-container">
+              <iframe
+                src="http://localhost:3000/dashboard/13-phieu-yeu-cau"
+                frameborder="0"
+                width="100%"
+                height="600"
+                allowtransparency
+              ></iframe>
+            </div>
+          </card>
+        </div>
+      </div>
+
+      <!-- Export Product Report Section -->
+      <div class="row mt-4">
         <div class="col-12">
           <card>
             <template v-slot:header>
@@ -159,6 +202,25 @@ export default {
 </script>
 
 <style scoped>
+.dashboard-container {
+  width: 100%;
+  overflow: hidden;
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 0;
+}
+
+.dashboard-container iframe {
+  border: none;
+  width: 100%;
+  min-height: 600px;
+  transition: height 0.3s ease;
+}
+
+.mt-4 {
+  margin-top: 1.5rem !important;
+}
+
 .form-control {
   display: block !important;
   width: 100%;
