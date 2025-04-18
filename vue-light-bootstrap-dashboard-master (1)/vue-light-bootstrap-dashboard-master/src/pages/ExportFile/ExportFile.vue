@@ -1,6 +1,26 @@
 <template>
   <div class="content">
     <div class="container-fluid">
+      <!-- Second Dashboard - Request Statistics -->
+      <div class="row mt-4">
+        <div class="col-12">
+          <card>
+            <template v-slot:header>
+              <h4 class="card-title">Thống kê phiếu yêu cầu</h4>
+              <p class="card-category">Tổng hợp phiếu yêu cầu theo trạng thái</p>
+            </template>
+            <div class="dashboard-container">
+              <iframe
+                src="http://localhost:3000/public/dashboard/e629bb33-b2db-4be0-a3c2-9bd11d074d72"
+                frameborder="0"
+                width="100%"
+                height="2200"
+                allowtransparency
+              ></iframe>
+            </div>
+          </card>
+        </div>
+      </div>
       <!-- First Dashboard - Product Statistics -->
       <div class="row">
         <div class="col-12">
@@ -22,26 +42,7 @@
         </div>
       </div>
 
-      <!-- Second Dashboard - Request Statistics -->
-      <div class="row mt-4">
-        <div class="col-12">
-          <card>
-            <template v-slot:header>
-              <h4 class="card-title">Thống kê phiếu yêu cầu</h4>
-              <p class="card-category">Tổng hợp phiếu yêu cầu theo trạng thái</p>
-            </template>
-            <div class="dashboard-container">
-              <iframe
-                src="http://localhost:3000/public/dashboard/e629bb33-b2db-4be0-a3c2-9bd11d074d72"
-                frameborder="0"
-                width="100%"
-                height="2200"
-                allowtransparency
-              ></iframe>
-            </div>
-          </card>
-        </div>
-      </div>
+      
 
       <!-- Export Product Report Section -->
       <div class="row mt-4">
