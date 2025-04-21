@@ -370,6 +370,7 @@ export default {
       // Fetch abnormality status
       
       const abnormalityResponse = await axios.get(`http://localhost:5000/check_any_request_abnormality?request_id=${requestId}`);
+      console.log('Abnormality Response:', abnormalityResponse.data); // Log the response for debugging
       if (abnormalityResponse.data.IsAbnormal) {
         const descriptions = abnormalityResponse.data.Descriptions;
         this.abnormalityDescription = descriptions.join('\n'); // Combine descriptions into a single string
@@ -1043,5 +1044,11 @@ textarea.form-control {
 .modal-content .table th:nth-child(4), /* Ghi chú column */
 .modal-content .table td:nth-child(4) {
   width: 35%; /* Remaining space for Ghi chú */
+}
+
+.modal-content p {
+  white-space: pre-line;
+  margin-bottom: 20px;
+  line-height: 1.5;
 }
 </style>
