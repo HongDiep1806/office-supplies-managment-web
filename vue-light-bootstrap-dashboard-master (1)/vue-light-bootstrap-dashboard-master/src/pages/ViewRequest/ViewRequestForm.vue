@@ -369,7 +369,7 @@ export default {
     try {
       // Fetch abnormality status
       
-      const abnormalityResponse = await axios.get(`http://localhost:5000/check_request_abnormality?request_id=${requestId}`);
+      const abnormalityResponse = await axios.get(`http://localhost:5000/check_any_request_abnormality?request_id=${requestId}`);
       if (abnormalityResponse.data.IsAbnormal) {
         const descriptions = abnormalityResponse.data.Descriptions;
         this.abnormalityDescription = descriptions.join('\n'); // Combine descriptions into a single string

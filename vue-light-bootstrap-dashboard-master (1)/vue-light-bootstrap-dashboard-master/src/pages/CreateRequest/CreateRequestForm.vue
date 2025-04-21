@@ -153,6 +153,14 @@
       };
     },
     methods: {
+      async retrainModels() {
+      try {
+        const response = await axios.post('http://localhost:5000/retrain_anomaly_models');
+        console.log('Retrain success:', response.data.message);
+      } catch (error) {
+        console.error('Retrain failed:', error);
+      }
+    },
       async notifySuccess(verticalAlign, horizontalAlign) {
         this.$notifications.notify({
           message: `<span>Tạo Phiếu yêu cầu thành công</span>`,
@@ -262,6 +270,7 @@
           });
   
           await this.notifySuccess('bottom', 'right');
+          await this.retrainModels();
           await this.$router.push('/admin/request-table');
         } catch (error) {
           if (error.response && error.response.data && error.response.data.errors) {
